@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -31,7 +32,7 @@ public class AuthenticationController {
     private JwtEncoder jwtEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ResponseEntity<HashMap<String, String>> login(@RequestBody AuthenticationRequest authenticationRequest) {
         Authentication authentication = authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
         AppUser appUser = (AppUser) authentication.getPrincipal();
 
@@ -50,16 +51,20 @@ public class AuthenticationController {
                 .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        return ResponseEntity.ok(token);
+
+        HashMap<String, String> response = new HashMap<>();
+        response.put("token", token);
+
+        return ResponseEntity.ok(response);
     }
 
     private Authentication authenticate(String email, String password) throws DisabledException, BadCredentialsException {
         try {
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-        } catch (DisabledException e) {
-            throw new DisabledException("USER_DISABLED", e);
-        } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("INVALID_CREDENTIALS", e);
+        } catch (DisabledException ex) {
+            throw new DisabledException("Your email address is not verified", ex);
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("You have entered an invalid username or password", ex);
         }
     }
 }
