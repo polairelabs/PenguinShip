@@ -13,7 +13,6 @@ import java.util.Set;
 
 @RestController
 @RequestMapping(path = "api/v1/packages")
-@CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
 public class PackagesController {
 
     private PackagesServices packagesServices;
@@ -24,7 +23,6 @@ public class PackagesController {
 
     @JsonView(PackagesView.StudentEvaluations.class)
     @GetMapping
-    @CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
     public ResponseEntity<List<Packages>> findAllPackages(){
         return new ResponseEntity<>(packagesServices.getPackages(), HttpStatus.OK);
     }
@@ -35,11 +33,11 @@ public class PackagesController {
         return new ResponseEntity<>(packagesServices.savePackages(packages, clientId), HttpStatus.CREATED);
     }
 
-    @JsonView(PackagesView.StudentEvaluations.class)
+/*    @JsonView(PackagesView.StudentEvaluations.class)
     @GetMapping
     public ResponseEntity<Set<Packages>> findAllPackagesForClient(@RequestParam Long studentId){
         return new ResponseEntity<>(packagesServices.getPackagesForClient(studentId), HttpStatus.OK);
-    }
+    }*/
 
     @JsonView(PackagesView.Default.class)
     @PutMapping("/{id}")
