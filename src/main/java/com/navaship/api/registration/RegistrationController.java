@@ -2,14 +2,12 @@ package com.navaship.api.registration;
 
 import com.navaship.api.appuser.AppUser;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "api/v1/register")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
 public class RegistrationController {
 
     private RegistrationService registrationService;

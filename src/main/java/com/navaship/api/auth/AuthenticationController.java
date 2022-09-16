@@ -12,10 +12,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -26,13 +25,15 @@ import static java.lang.String.format;
 @RestController
 @RequestMapping(path = "api/v1/auth")
 @AllArgsConstructor
+@CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
 public class AuthenticationController {
 
     private AuthenticationManager authenticationManager;
     private JwtEncoder jwtEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<HashMap<String, String>> login(@RequestBody AuthenticationRequest authenticationRequest) {
+    @CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
         Authentication authentication = authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
         AppUser appUser = (AppUser) authentication.getPrincipal();
 
@@ -52,10 +53,9 @@ public class AuthenticationController {
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
-        HashMap<String, String> response = new HashMap<>();
-        response.put("token", token);
+        AuthenticationResponse authResponce = new AuthenticationResponse(token, appUser);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authResponce);
     }
 
     private Authentication authenticate(String email, String password) throws DisabledException, BadCredentialsException {
