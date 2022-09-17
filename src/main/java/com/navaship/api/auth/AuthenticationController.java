@@ -1,6 +1,7 @@
 package com.navaship.api.auth;
 
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.auth.refreshtoken.RefreshTokenRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +33,7 @@ public class AuthenticationController {
     private JwtEncoder jwtEncoder;
 
     @PostMapping("/login")
-    public ResponseEntity<HashMap<String, String>> login(@RequestBody AuthenticationRequest authenticationRequest) {
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
         Authentication authentication = authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
         AppUser appUser = (AppUser) authentication.getPrincipal();
 
@@ -52,10 +53,18 @@ public class AuthenticationController {
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
-        HashMap<String, String> response = new HashMap<>();
-        response.put("token", token);
+        // HashMap<String, String> appUserMap = new HashMap<>();
+        // appUserMap.put("id", appUser.getId().toString());
+        // appUserMap.put("email", appUser.getEmail());
+        // appUserMap.put("role", appUser.getRole().name());
 
-        return ResponseEntity.ok(response);
+        AuthenticationResponse authenticationResponse = new AuthenticationResponse(token, "");
+        return ResponseEntity.ok(authenticationResponse);
+    }
+
+    @PostMapping("/refreshtoken")
+    public ResponseEntity<?> refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        return null;
     }
 
     private Authentication authenticate(String email, String password) throws DisabledException, BadCredentialsException {

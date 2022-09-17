@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-public class ApiError {
+public class ErrorMessage {
     private final HttpStatus status;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private LocalDateTime timestamp;
@@ -19,19 +19,19 @@ public class ApiError {
     @JsonProperty("sub_errors")
     private List<ApiValidationError> subErrors;
 
-    ApiError(HttpStatus status) {
+    public ErrorMessage(HttpStatus status) {
         timestamp = LocalDateTime.now();
         this.timestamp = LocalDateTime.now();
         this.status = status;
     }
 
-    ApiError(HttpStatus status, String message) {
+    public ErrorMessage(HttpStatus status, String message) {
         timestamp = LocalDateTime.now();
         this.status = status;
         this.message = message;
     }
 
-    ApiError(HttpStatus status, String message, Throwable ex) {
+    public ErrorMessage(HttpStatus status, String message, Throwable ex) {
         timestamp = LocalDateTime.now();
         this.status = status;
         this.message = message;

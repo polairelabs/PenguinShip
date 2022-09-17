@@ -23,26 +23,26 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return buildResponseEntity(new ApiError(HttpStatus.BAD_REQUEST, "Malformed JSON request", ex));
+        return buildResponseEntity(new ErrorMessage(HttpStatus.BAD_REQUEST, "Malformed JSON request", ex));
     }
 
     /* Custom exception handlers not overridden by ResponseEntityExceptionHandler */
     @ExceptionHandler(EntityNotFoundException.class)
     protected ResponseEntity<Object> handleEntityNotFound(EntityNotFoundException ex) {
-        return buildResponseEntity(new ApiError(HttpStatus.NOT_FOUND, ex.getMessage()));
+        return buildResponseEntity(new ErrorMessage(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     protected ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex) {
-        return buildResponseEntity(new ApiError(HttpStatus.UNAUTHORIZED, ex.getMessage()));
+        return buildResponseEntity(new ErrorMessage(HttpStatus.UNAUTHORIZED, ex.getMessage()));
     }
 
     @ExceptionHandler(DisabledException.class)
     protected ResponseEntity<Object> handleDisabledException(BadCredentialsException ex) {
-        return buildResponseEntity(new ApiError(HttpStatus.UNAUTHORIZED, ex.getMessage()));
+        return buildResponseEntity(new ErrorMessage(HttpStatus.UNAUTHORIZED, ex.getMessage()));
     }
 
-    private ResponseEntity<Object> buildResponseEntity(ApiError apiError) {
-        return new ResponseEntity<>(apiError, apiError.getStatus());
+    private ResponseEntity<Object> buildResponseEntity(ErrorMessage errorMessage) {
+        return new ResponseEntity<>(errorMessage, errorMessage.getStatus());
     }
 }
