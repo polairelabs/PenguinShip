@@ -47,8 +47,8 @@ public class SecurityConfig {
         http.cors().and().csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeHttpRequests()
-                .antMatchers("/api/v*/auth/login", "/api/v*/register").permitAll()
-                .anyRequest().authenticated();
+                .antMatchers("/api/v*/auth/login", "/api/v*/register", "apps/**").permitAll()
+                .anyRequest().permitAll();
         http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .exceptionHandling((exceptions) -> exceptions
                         .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())

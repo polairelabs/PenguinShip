@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping(path = "api/v1/packages")
+@RequestMapping(path = "apps/packages")
 public class PackagesController {
 
     private PackagesServices packagesServices;
@@ -21,7 +21,6 @@ public class PackagesController {
         this.packagesServices = packagesServices;
     }
 
-    @JsonView(PackagesView.StudentEvaluations.class)
     @GetMapping
     public ResponseEntity<List<Packages>> findAllPackages(){
         return new ResponseEntity<>(packagesServices.getPackages(), HttpStatus.OK);
