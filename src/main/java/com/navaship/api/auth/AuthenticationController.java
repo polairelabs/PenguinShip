@@ -25,14 +25,14 @@ import static java.lang.String.format;
 @RestController
 @RequestMapping(path = "api/v1/auth")
 @AllArgsConstructor
-@CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
+@CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
 public class AuthenticationController {
 
     private AuthenticationManager authenticationManager;
     private JwtEncoder jwtEncoder;
 
     @PostMapping("/login")
-    @CrossOrigin(origins = "http://localhost:3001", maxAge = 3600)
+    @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
         Authentication authentication = authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
         AppUser appUser = (AppUser) authentication.getPrincipal();

@@ -21,10 +21,10 @@ public class PackagesController {
         this.packagesServices = packagesServices;
     }
 
-    @GetMapping
+    /*@GetMapping
     public ResponseEntity<List<Packages>> findAllPackages(){
         return new ResponseEntity<>(packagesServices.getPackages(), HttpStatus.OK);
-    }
+    }*/
 
     @JsonView(PackagesView.Default.class)
     @PostMapping
@@ -32,11 +32,10 @@ public class PackagesController {
         return new ResponseEntity<>(packagesServices.savePackages(packages, clientId), HttpStatus.CREATED);
     }
 
-/*    @JsonView(PackagesView.StudentEvaluations.class)
     @GetMapping
-    public ResponseEntity<Set<Packages>> findAllPackagesForClient(@RequestParam Long studentId){
-        return new ResponseEntity<>(packagesServices.getPackagesForClient(studentId), HttpStatus.OK);
-    }*/
+    public ResponseEntity<List<Packages>> findAllPackagesForClient(@RequestParam Long clientId){
+        return new ResponseEntity<>(packagesServices.getPackagesForClient(clientId), HttpStatus.OK);
+    }
 
     @JsonView(PackagesView.Default.class)
     @PutMapping("/{id}")

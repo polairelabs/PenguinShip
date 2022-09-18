@@ -1,5 +1,6 @@
 package com.navaship.api.packages;
 
+import com.navaship.api.appuser.AppUser;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,5 +25,8 @@ public class Packages {
     private BigDecimal length;
     private BigDecimal width;
     private BigDecimal height;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name="userId")
+    private AppUser appUser;
 
 }

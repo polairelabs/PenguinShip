@@ -19,6 +19,10 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
     }
 
+    public AppUser loadUserById(Long Id) throws UsernameNotFoundException {
+        return appUserRepository.findById(Id).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
+    }
+
     public AppUser createUser(AppUser appUser) {
         boolean userExists = appUserRepository.findByEmail(appUser.getEmail()).isPresent();
         if (userExists) {
