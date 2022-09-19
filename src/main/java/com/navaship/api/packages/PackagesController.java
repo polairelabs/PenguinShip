@@ -45,6 +45,7 @@ public class PackagesController {
 
     @JsonView(PackagesView.Default.class)
     @DeleteMapping("/{id}")
+    @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
     public ResponseEntity<Packages> deletePackages(@PathVariable Long id) {
         return new ResponseEntity<>(packagesServices.deletePackages(id), HttpStatus.ACCEPTED);
     }

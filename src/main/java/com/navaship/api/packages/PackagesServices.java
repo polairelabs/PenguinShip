@@ -5,6 +5,7 @@ import com.navaship.api.appuser.AppUserRepository;
 import com.navaship.api.appuser.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,12 +38,18 @@ public class PackagesServices {
     }
 
     public Packages modifyPackages(Packages packages, Long id) {
-        Optional<Packages> optionalPackages= repository.findById(id);
+        Optional<Packages> optionalPackages = repository.findById(id);
         return repository.save(packages);
     }
 
     public Packages deletePackages(Long id) {
-        return null;
+        Optional<Packages> optionalPackages = repository.findById(id);
+        if(optionalPackages.isEmpty()){
+            //TODO: Add exceptions for packages
+            throw new UsernameNotFoundException("not found");
+        }
+        repository.delete(optionalPackages.get());
+        return optionalPackages.get();
     }
 
     public List<Packages> getPackages() {
