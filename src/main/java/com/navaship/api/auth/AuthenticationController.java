@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -52,14 +51,7 @@ public class AuthenticationController {
                 .build();
 
         String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-
-        // HashMap<String, String> appUserMap = new HashMap<>();
-        // appUserMap.put("id", appUser.getId().toString());
-        // appUserMap.put("email", appUser.getEmail());
-        // appUserMap.put("role", appUser.getRole().name());
-
-        AuthenticationResponse authenticationResponse = new AuthenticationResponse(token, "");
-        return ResponseEntity.ok(authenticationResponse);
+        return ResponseEntity.ok(new AuthenticationResponse(token, "", appUser));
     }
 
     @PostMapping("/refreshtoken")
