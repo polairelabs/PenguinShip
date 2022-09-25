@@ -1,7 +1,10 @@
 package com.navaship.api.auth;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.auth.refreshtoken.RefreshTokenRequest;
+import com.navaship.api.refreshtoken.RefreshTokenRequest;
+import com.navaship.api.refreshtoken.RefreshTokenService;
+import com.navaship.api.registration.RegistrationRequest;
+import com.navaship.api.registration.RegistrationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,18 +13,15 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 @RestController
 @RequestMapping(path = "api/v1/auth")
@@ -29,33 +29,36 @@ import static java.lang.String.format;
 public class AuthenticationController {
 
     private AuthenticationManager authenticationManager;
-    private JwtEncoder jwtEncoder;
+
+    private AuthenticationService authenticationService;
+    private RegistrationService registrationService;
+
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
         Authentication authentication = authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
         AppUser appUser = (AppUser) authentication.getPrincipal();
 
-        Instant now = Instant.now();
-        long expiry = 36000L;
-
         String scope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(" "));
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("navaship.api")
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiry))
-                .subject(format("%s %s", appUser.getEmail(), appUser.getPassword()))
-                .claim("scope", scope)
-                .build();
 
-        String token = jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        return ResponseEntity.ok(new AuthenticationResponse(token, "", appUser));
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("scope", scope);
+
+        String accessToken = authenticationService.createAccessToken(appUser.getEmail(), claims);
+        return ResponseEntity.ok(new AuthenticationResponse(accessToken, "", appUser));
+    }
+
+    @PostMapping("/register")
+    public AppUser register(@RequestBody RegistrationRequest request) {
+        // TODO Check for valid email
+        return registrationService.register(request);
     }
 
     @PostMapping("/refreshtoken")
     public ResponseEntity<?> refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        // From old refresh token, generate new refresh token and new access token
         return null;
     }
 

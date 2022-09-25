@@ -1,4 +1,4 @@
-package com.navaship.api.auth.refreshtoken;
+package com.navaship.api.refreshtoken;
 
 import com.navaship.api.appuser.AppUser;
 import lombok.EqualsAndHashCode;
@@ -16,19 +16,13 @@ import java.time.Instant;
 @Entity
 public class RefreshToken {
     @Id
-    @SequenceGenerator(
-            name = "refresh_token_sequence",
-            sequenceName = "refresh_token_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "refresh_token_sequence"
-    )
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private AppUser appUser;
-    private String refreshtoken;
+    private AppUser user;
+    @Column(nullable = false, unique = true)
+    private String refreshToken;
+    @Column(nullable = false)
     private Instant expiryDate;
 }
