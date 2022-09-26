@@ -9,5 +9,5 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class RefreshTokenRequest {
     private long id;
-    private String refreshToken;
+    private String token;
 }

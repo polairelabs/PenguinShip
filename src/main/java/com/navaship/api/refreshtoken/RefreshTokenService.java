@@ -2,7 +2,7 @@ package com.navaship.api.refreshtoken;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
-import com.navaship.api.exception.TokenRefreshException;
+import com.navaship.api.exception.RefreshTokenException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,22 +25,26 @@ public class RefreshTokenService {
     }
 
 
-
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = new RefreshToken();
         Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
+        RefreshToken refreshToken = new RefreshToken();
         optionalAppUser.ifPresent(refreshToken::setUser);
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpiryMs));
-        refreshToken.setRefreshToken(UUID.randomUUID().toString());
-        return refreshToken;
+        refreshToken.setToken(UUID.randomUUID().toString());
+        return refreshTokenRepository.save(refreshToken);
     }
 
     public RefreshToken validateExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
-            throw new TokenRefreshException(token.getRefreshToken(), "Refresh token has expired");
+            throw new RefreshTokenException(token.getToken(), "Refresh token has expired");
         }
         // else return the same unexpired token
         return token;
+    }
+
+    public int deleteByUserId(Long userId) {
+        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
+        return optionalAppUser.map(appUser -> refreshTokenRepository.deleteByUser(appUser)).orElse(-1);
     }
 }
