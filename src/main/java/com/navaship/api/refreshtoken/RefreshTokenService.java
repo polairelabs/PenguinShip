@@ -3,27 +3,28 @@ package com.navaship.api.refreshtoken;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
 import com.navaship.api.exception.RefreshTokenException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class RefreshTokenService {
     @Value("${navaship.app.refreshTokenExpirationMs}")
     private long refreshTokenExpiryMs;
 
-    private RefreshTokenRepository refreshTokenRepository;
-    private AppUserRepository appUserRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final AppUserRepository appUserRepository;
 
-    public Optional<RefreshToken> findByRefreshToken(String refreshToken) {
-        return refreshTokenRepository.findByRefreshToken(refreshToken);
+
+    public Optional<RefreshToken> findByRefreshToken(String token) {
+        return refreshTokenRepository.findByToken(token);
     }
-
 
     public RefreshToken createRefreshToken(Long userId) {
         Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
@@ -34,17 +35,18 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken validateExpiration(RefreshToken token) {
-        if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-            refreshTokenRepository.delete(token);
-            throw new RefreshTokenException(token.getToken(), "Refresh token has expired");
+    public RefreshToken validateExpiration(RefreshToken refreshToken) {
+        if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
+            refreshTokenRepository.delete(refreshToken);
+            throw new RefreshTokenException(refreshToken.getToken(), "Refresh token has expired");
         }
         // else return the same unexpired token
-        return token;
+        return refreshToken;
     }
 
+    @Transactional
     public int deleteByUserId(Long userId) {
         Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
-        return optionalAppUser.map(appUser -> refreshTokenRepository.deleteByUser(appUser)).orElse(-1);
+        return optionalAppUser.map(refreshTokenRepository::deleteByUser).orElse(-1);
     }
 }

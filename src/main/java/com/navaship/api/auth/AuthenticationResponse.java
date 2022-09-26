@@ -1,13 +1,10 @@
 package com.navaship.api.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRole;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor

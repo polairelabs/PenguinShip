@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class AppUserService implements UserDetailsService {
-
     private final AppUserRepository appUserRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 

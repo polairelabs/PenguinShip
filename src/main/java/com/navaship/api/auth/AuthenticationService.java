@@ -1,6 +1,6 @@
 package com.navaship.api.auth;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -16,16 +16,16 @@ import java.time.Instant;
 import java.util.Map;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthenticationService {
     @Value("${navaship.app.jwtIssuer}")
     private String jwtIssuer;
     @Value("${navaship.app.jwtExpirationMs}")
-    private long jwtAccessTokenExpiryMs;
+    private long jwtExpirationMs;
 
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final JwtEncoder jwtEncoder;
 
-    private JwtEncoder jwtEncoder;
 
     public Authentication authenticate(String email, String password) {
         try {
@@ -42,7 +42,7 @@ public class AuthenticationService {
         JwtClaimsSet.Builder claimsSetBuilder = JwtClaimsSet.builder()
                 .issuer(jwtIssuer)
                 .issuedAt(now)
-                .expiresAt(now.plusMillis(jwtAccessTokenExpiryMs))
+                .expiresAt(now.plusMillis(jwtExpirationMs))
                 .subject(subject);
         // Set claims set
         claims.forEach(claimsSetBuilder::claim); // Equivalent of a lambda function: .foreach((k, v) -> setBuilder.setClaim(k, v))

@@ -9,6 +9,7 @@ import com.navaship.api.refreshtoken.RefreshTokenService;
 import com.navaship.api.registration.RegistrationRequest;
 import com.navaship.api.registration.RegistrationService;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -24,15 +25,13 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "api/v1/auth")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AuthenticationController {
     public static final String BEARER_TOKEN_TYPE = "Bearer";
 
-    private AuthenticationManager authenticationManager;
-
-    private AuthenticationService authenticationService;
-    private RegistrationService registrationService;
-    private RefreshTokenService refreshTokenService;
+    private final AuthenticationService authenticationService;
+    private final RegistrationService registrationService;
+    private final RefreshTokenService refreshTokenService;
 
 
     @PostMapping("/login")
@@ -70,7 +69,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refreshtoken")
-    public ResponseEntity<?> refreshToken(RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         // Client exchanges refresh token to get a new access token and a new refresh token
         // Refresh token rotation is used to always provide the user with a new refresh token when he requests new access token
         return refreshTokenService
@@ -81,7 +80,7 @@ public class AuthenticationController {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("scope", user.getRole());
                     String accessToken = authenticationService.createAccessToken(user.getEmail(), claims);
-                    // Refresh token rotation / Should update/change refresh token
+                    // Refresh token rotation / Should update the refresh token
                     String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
                     return ResponseEntity.ok(new RefreshTokenResponse(
                             accessToken,
