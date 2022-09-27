@@ -15,6 +15,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
+    // https://www.bezkoder.com/spring-boot-refresh-token-jwt/
+
     @Value("${navaship.app.refreshTokenExpirationMs}")
     private long refreshTokenExpiryMs;
 
