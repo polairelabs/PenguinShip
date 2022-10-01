@@ -2,7 +2,6 @@ package com.navaship.api.refreshtoken;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
-import com.navaship.api.exception.RefreshTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

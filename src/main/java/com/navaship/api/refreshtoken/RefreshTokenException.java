@@ -1,4 +1,4 @@
-package com.navaship.api.exception;
+package com.navaship.api.refreshtoken;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

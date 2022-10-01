@@ -32,11 +32,7 @@ import java.security.interfaces.RSAPublicKey;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final AppUserService appUserService;
-
     @Value("${jwt.public.key}")
     RSAPublicKey rsaPublicKey;
 

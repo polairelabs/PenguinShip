@@ -1,17 +1,15 @@
 package com.navaship.api.auth;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.exception.RefreshTokenException;
+import com.navaship.api.refreshtoken.RefreshTokenException;
 import com.navaship.api.refreshtoken.RefreshToken;
 import com.navaship.api.refreshtoken.RefreshTokenRequest;
 import com.navaship.api.refreshtoken.RefreshTokenResponse;
 import com.navaship.api.refreshtoken.RefreshTokenService;
 import com.navaship.api.registration.RegistrationRequest;
 import com.navaship.api.registration.RegistrationService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,7 +62,6 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public AppUser register(@RequestBody RegistrationRequest request) {
-        // TODO Check for valid email
         return registrationService.register(request);
     }
 
