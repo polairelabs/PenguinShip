@@ -41,7 +41,6 @@ public class RefreshTokenService {
             refreshTokenRepository.delete(refreshToken);
             throw new RefreshTokenException(refreshToken.getToken(), "Refresh token has expired");
         }
-        // else return the same unexpired token
         return refreshToken;
     }
 

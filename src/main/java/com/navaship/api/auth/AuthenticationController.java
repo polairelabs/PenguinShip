@@ -25,8 +25,6 @@ import java.util.stream.Collectors;
 @RequestMapping(path = "api/v1/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
-    public static final String BEARER_TOKEN_TYPE = "Bearer";
-
     private final AuthenticationService authenticationService;
     private final RegistrationService registrationService;
     private final RefreshTokenService refreshTokenService;
@@ -66,7 +64,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refreshtoken")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         // Client exchanges refresh token to get a new access token and a new refresh token
         // Refresh token rotation is used to always provide the user with a new refresh token when he requests new access token
         return refreshTokenService
@@ -81,8 +79,7 @@ public class AuthenticationController {
                     String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
                     return ResponseEntity.ok(new RefreshTokenResponse(
                             accessToken,
-                            refreshToken,
-                            BEARER_TOKEN_TYPE
+                            refreshToken
                     ));
                 }).orElseThrow(() -> new RefreshTokenException(refreshTokenRequest.getToken(), "Not found"));
     }

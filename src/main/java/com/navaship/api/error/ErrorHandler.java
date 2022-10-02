@@ -17,8 +17,8 @@ import javax.persistence.EntityNotFoundException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
-public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
+public class ErrorHandler extends ResponseEntityExceptionHandler {
+    // Global exception handler class which translates specific types of errors to HTTP response codes with custom messages
     // https://github.com/brunocleite/spring-boot-exception-handling
 
     @Override

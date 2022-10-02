@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -17,23 +18,13 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 public class VerificationToken {
-    private static final int ExpirationInMinutes = 120;
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
+    private String token;
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private AppUser user;
-
-    private Date expiryDate;
-
-
-    private Date calculateExpiryDate(int expiryTimeInMinutes) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Timestamp(cal.getTime().getTime()));
-        cal.add(Calendar.MINUTE, expiryTimeInMinutes);
-        return new Date(cal.getTime().getTime());
-    }
+    @Column(nullable = false)
+    private Instant expiryDate;
 }
