@@ -4,6 +4,7 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +17,10 @@ import java.util.UUID;
 public class RefreshTokenService {
     // https://www.bezkoder.com/spring-boot-refresh-token-jwt/
 
-    @Value("${navaship.app.refreshTokenExpirationMs}")
-    private long refreshTokenExpiryMs;
-
     private final RefreshTokenRepository refreshTokenRepository;
     private final AppUserRepository appUserRepository;
-
+    @Value("${navaship.app.refreshTokenExpirationMs}")
+    private long refreshTokenExpiryMs;
 
     public Optional<RefreshToken> findByRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -39,7 +38,7 @@ public class RefreshTokenService {
     public RefreshToken validateExpiration(RefreshToken refreshToken) {
         if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(refreshToken);
-            throw new RefreshTokenException(refreshToken.getToken(), "Refresh token has expired");
+            throw new RefreshTokenException(HttpStatus.UNAUTHORIZED, "Refresh token has expired");
         }
         return refreshToken;
     }

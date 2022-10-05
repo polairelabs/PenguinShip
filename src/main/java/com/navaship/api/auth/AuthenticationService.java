@@ -31,9 +31,9 @@ public class AuthenticationService {
         try {
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (DisabledException ex) {
-            throw new DisabledException("Your email address is not verified", ex);
+            throw new DisabledException("Email not verified", ex);
         } catch (BadCredentialsException ex) {
-            throw new BadCredentialsException("You have entered invalid credentials", ex);
+            throw new BadCredentialsException("Invalid credentials", ex);
         }
     }
 

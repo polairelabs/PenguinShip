@@ -1,7 +1,10 @@
 package com.navaship.api.verificationtoken;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,8 +16,11 @@ public class VerificationTokenController {
 
 
     @PostMapping
-    public ResponseEntity<String> createVerificationToken(@RequestBody Long userId) {
-        // From user settings, request new token if account not yet verified, create new token and invalid (delete) existing one
+    public ResponseEntity<String> createVerificationToken(JwtAuthenticationToken principal) {
+        principal.getName();
+        // Retrieve email from JWT
+        // From USER SETTINGS, request new token if account not yet verified, create new token and invalid (delete) existing one
+        Long userId = 2L;
         return verificationTokenService.findVerificationTokenByUser(userId)
                 .map(VerificationToken::getUser)
                 .map(user -> {
@@ -22,7 +28,7 @@ public class VerificationTokenController {
                     VerificationToken verificationToken = verificationTokenService.createVerificationToken(userId);
                     String message = String.format("Account verification link has been sent to %s", verificationToken.getUser().getEmail());
                     return ResponseEntity.ok(message);
-                }).orElseThrow(() -> new VerificationTokenException("", "Encountered a problem"));
+                }).orElseThrow(() -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "IDK"));
     }
 
     @GetMapping
@@ -36,6 +42,6 @@ public class VerificationTokenController {
                 .map(user -> {
                     String message = String.format("Account enabled for %s", user.getEmail());
                     return ResponseEntity.ok(message);
-                }).orElseThrow(() -> new VerificationTokenException(token, "Invalid account confirmation link"));
+                }).orElseThrow(() -> new VerificationTokenException(HttpStatus.BAD_REQUEST, "Invalid account verification link"));
     }
 }

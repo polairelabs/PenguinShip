@@ -1,11 +1,15 @@
 package com.navaship.api.verificationtoken;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.UNAUTHORIZED)
+@Getter
 public class VerificationTokenException extends RuntimeException {
-    public VerificationTokenException(String token, String message) {
-        super(String.format("Failed for [%s]: [%s]", token, message));
+    private HttpStatus statusCode;
+
+    public VerificationTokenException(HttpStatus statusCode, String message) {
+        super(message);
+        this.statusCode = statusCode;
     }
 }

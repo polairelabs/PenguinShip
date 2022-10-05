@@ -4,6 +4,7 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -44,21 +45,21 @@ public class VerificationTokenService {
     }
 
     public VerificationToken createVerificationToken(Long userId) {
+        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
+        if (optionalAppUser.isEmpty()) {
+            throw new RuntimeException("User does not exist");
+        }
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(UUID.randomUUID().toString());
-        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
-//        optionalAppUser.map(user -> {
-//            verificationToken.setUser(user);
-//        }
-//        );
-        // verificationToken.setUser(appUserRepository.findById(userId).get());
+        verificationToken.setUser(optionalAppUser.get());
         verificationToken.setExpiryDate(Instant.now().plusMillis(verificationTokenExpiryMs));
         return verificationToken;
     }
 
     public VerificationToken validateExpiration(VerificationToken verificationToken) {
         if (verificationToken.getExpiryDate().compareTo(Instant.now()) < 0) {
-            throw new VerificationTokenException(verificationToken.getToken(), "Verification token has expired");
+            verificationTokenRepository.delete(verificationToken);
+            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Verification token has expired");
         }
         return verificationToken;
     }

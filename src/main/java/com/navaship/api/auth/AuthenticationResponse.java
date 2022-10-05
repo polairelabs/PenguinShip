@@ -18,4 +18,6 @@ public class AuthenticationResponse {
     private String lastName;
     private String email;
     private AppUserRole role;
+    @JsonProperty("token_type")
+    private String tokenType;
 }

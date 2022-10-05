@@ -19,11 +19,6 @@ public class ErrorMessage {
     @JsonProperty("sub_errors")
     private List<ApiValidationError> subErrors;
 
-    public ErrorMessage(HttpStatus status) {
-        timestamp = LocalDateTime.now();
-        this.timestamp = LocalDateTime.now();
-        this.status = status;
-    }
 
     public ErrorMessage(HttpStatus status, String message) {
         timestamp = LocalDateTime.now();

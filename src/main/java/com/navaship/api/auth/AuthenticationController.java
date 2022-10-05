@@ -9,6 +9,7 @@ import com.navaship.api.refreshtoken.RefreshTokenService;
 import com.navaship.api.registration.RegistrationRequest;
 import com.navaship.api.registration.RegistrationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
 @RequestMapping(path = "api/v1/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
+    public static final String TOKEN_TYPE = "Bearer";
+
     private final AuthenticationService authenticationService;
     private final RegistrationService registrationService;
     private final RefreshTokenService refreshTokenService;
@@ -53,7 +56,8 @@ public class AuthenticationController {
                         appUser.getFirstName(),
                         appUser.getLastName(),
                         appUser.getEmail(),
-                        appUser.getRole()
+                        appUser.getRole(),
+                        TOKEN_TYPE
                 )
         );
     }
@@ -75,12 +79,13 @@ public class AuthenticationController {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("scope", user.getRole());
                     String accessToken = authenticationService.createAccessToken(user.getEmail(), claims);
-                    // Refresh token rotation / Should update the refresh token
+                    // Refresh token rotation / Should update the refresh token as well
                     String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
                     return ResponseEntity.ok(new RefreshTokenResponse(
                             accessToken,
-                            refreshToken
+                            refreshToken,
+                            TOKEN_TYPE
                     ));
-                }).orElseThrow(() -> new RefreshTokenException(refreshTokenRequest.getToken(), "Not found"));
+                }).orElseThrow(() -> new RefreshTokenException(HttpStatus.BAD_REQUEST, "Error processing refresh token"));
     }
 }

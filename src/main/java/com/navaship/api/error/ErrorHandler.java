@@ -1,5 +1,7 @@
 package com.navaship.api.error;
 
+import com.navaship.api.refreshtoken.RefreshTokenException;
+import com.navaship.api.verificationtoken.VerificationTokenException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +42,16 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(DisabledException.class)
     protected ResponseEntity<Object> handleDisabledException(BadCredentialsException ex) {
         return buildResponseEntity(new ErrorMessage(HttpStatus.UNAUTHORIZED, ex.getMessage()));
+    }
+
+    @ExceptionHandler(RefreshTokenException.class)
+    protected ResponseEntity<Object> handleRefreshTokenException(RefreshTokenException ex) {
+        return buildResponseEntity(new ErrorMessage(ex.getStatusCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(VerificationTokenException.class)
+    protected ResponseEntity<Object> handleVerificationTokenException(VerificationTokenException ex) {
+        return buildResponseEntity(new ErrorMessage(ex.getStatusCode(), ex.getMessage()));
     }
 
     private ResponseEntity<Object> buildResponseEntity(ErrorMessage errorMessage) {
