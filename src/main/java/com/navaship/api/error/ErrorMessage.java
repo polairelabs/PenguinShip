@@ -10,7 +10,9 @@ import java.util.List;
 
 @Getter
 public class ErrorMessage {
-    private final HttpStatus status;
+    private HttpStatus status;
+    @JsonProperty("status_code")
+    private int statusCode;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private LocalDateTime timestamp;
     private String message;
@@ -23,13 +25,15 @@ public class ErrorMessage {
     public ErrorMessage(HttpStatus status, String message) {
         timestamp = LocalDateTime.now();
         this.status = status;
+        statusCode = status.value();
         this.message = message;
     }
 
     public ErrorMessage(HttpStatus status, String message, Throwable ex) {
         timestamp = LocalDateTime.now();
         this.status = status;
+        statusCode = status.value();
         this.message = message;
-        this.debugMessage = ex.getLocalizedMessage();
+        debugMessage = ex.getLocalizedMessage();
     }
 }

@@ -22,25 +22,25 @@ public class RefreshTokenService {
     @Value("${navaship.app.refreshTokenExpirationMs}")
     private long refreshTokenExpiryMs;
 
-    public Optional<RefreshToken> findByRefreshToken(String token) {
+
+    public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public RefreshToken createRefreshToken(Long userId) {
-        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
+    public void delete(RefreshToken refreshToken) {
+        refreshTokenRepository.delete(refreshToken);
+    }
+
+    public RefreshToken createRefreshToken(AppUser user) {
         RefreshToken refreshToken = new RefreshToken();
-        optionalAppUser.ifPresent(refreshToken::setUser);
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpiryMs));
         refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setUser(user);
+        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpiryMs));
         return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken validateExpiration(RefreshToken refreshToken) {
-        if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
-            refreshTokenRepository.delete(refreshToken);
-            throw new RefreshTokenException(HttpStatus.UNAUTHORIZED, "Refresh token has expired");
-        }
-        return refreshToken;
+    public boolean validateExpiration(RefreshToken refreshToken) {
+        return refreshToken.getExpiryDate().compareTo(Instant.now()) < 0;
     }
 
     @Transactional

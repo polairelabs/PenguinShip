@@ -1,5 +1,6 @@
 package com.navaship.api.auth;
 
+import com.navaship.api.appuser.AppUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -37,17 +39,23 @@ public class AuthenticationService {
         }
     }
 
-    public String createAccessToken(String subject, Map<String, Object> claims) {
+    public String createAccessToken(AppUser user) {
         Instant now = Instant.now();
         JwtClaimsSet.Builder claimsSetBuilder = JwtClaimsSet.builder()
                 .issuer(jwtIssuer)
                 .issuedAt(now)
                 .expiresAt(now.plusMillis(jwtExpirationMs))
-                .subject(subject);
-        // Set claims set
-        claims.forEach(claimsSetBuilder::claim); // Equivalent of a lambda function: .foreach((k, v) -> setBuilder.setClaim(k, v))
-
+                .subject(user.getEmail());
+        // Set claims here! Equivalent of a lambda function: .foreach((k, v) -> setBuilder.setClaim(k, v))
+        getClaimsMap(user).forEach(claimsSetBuilder::claim);
         JwtClaimsSet claimsSet = claimsSetBuilder.build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    private Map<String, Object> getClaimsMap(AppUser user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", user.getEmail());
+        claims.put("role", user.getRole());
+        return claims;
     }
 }

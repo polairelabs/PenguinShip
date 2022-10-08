@@ -5,14 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Calendar;
-import java.util.Date;
 
 @Getter
 @Setter
@@ -23,10 +18,13 @@ public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    private String token;
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private AppUser user;
+    private String token;
     @Column(nullable = false)
     private Instant expiryDate;
+    @Column(name = "token_type")
+    @Enumerated(EnumType.STRING)
+    private VerificationTokenType verificationTokenType;
 }

@@ -19,7 +19,7 @@ public class RegistrationService {
                         request.getLastName(),
                         request.getEmail(),
                         request.getPassword(),
-                        AppUserRole.USER
+                        AppUserRole.UNVERIFIED_USER
                 )
         );
     }

@@ -13,6 +13,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
@@ -25,7 +26,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return buildResponseEntity(new ErrorMessage(HttpStatus.BAD_REQUEST, "Malformed JSON request", ex));
+        return buildResponseEntity(new ErrorMessage(HttpStatus.BAD_REQUEST, "Malformed JSON request"));
     }
 
     /* Custom exception handlers not overridden by ResponseEntityExceptionHandler */
@@ -40,8 +41,13 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(DisabledException.class)
-    protected ResponseEntity<Object> handleDisabledException(BadCredentialsException ex) {
+    protected ResponseEntity<Object> handleDisabledException(DisabledException ex) {
         return buildResponseEntity(new ErrorMessage(HttpStatus.UNAUTHORIZED, ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    protected ResponseEntity<Object> handleEntityNotFound(ResponseStatusException ex) {
+        return buildResponseEntity(new ErrorMessage(ex.getStatus(), ex.getReason()));
     }
 
     @ExceptionHandler(RefreshTokenException.class)

@@ -2,6 +2,7 @@ package com.navaship.api.verificationtoken;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
+import com.navaship.api.sendgrid.SendGridEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -22,49 +23,40 @@ public class VerificationTokenService {
     private final AppUserRepository appUserRepository;
     private final VerificationTokenRepository verificationTokenRepository;
 
+    private final SendGridEmailService sendGridEmailService;
 
-    public Optional<VerificationToken> findByVerificationToken(String token) {
+
+    public Optional<VerificationToken> findByToken(String token) {
         return verificationTokenRepository.findByToken(token);
     }
 
-    public Optional<VerificationToken> findVerificationTokenByUser(Long userId) {
-        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
-        return optionalAppUser.map(verificationTokenRepository::findByUser)
-                .orElseThrow(() -> new RuntimeException("Not found user"));
+    public Optional<VerificationToken> findByUser(AppUser user) {
+        return verificationTokenRepository.findByUser(user);
     }
 
-    public int deleteByUser(Long userId) {
-        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
-        return optionalAppUser.map(verificationTokenRepository::deleteByUser).orElse(-1);
+    public void delete(VerificationToken verificationToken) {
+        verificationTokenRepository.delete(verificationToken);
     }
 
-    public AppUser enableUserAccount(AppUser appUser) {
-        appUser.setEnabled(true);
-        appUserRepository.save(appUser);
-        return appUser;
+    public void enableUserAccount(AppUser user) {
+        user.setEnabled(true);
+        appUserRepository.save(user);
     }
 
-    public VerificationToken createVerificationToken(Long userId) {
-        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
-        if (optionalAppUser.isEmpty()) {
-            throw new RuntimeException("User does not exist");
-        }
+    public VerificationToken createVerificationToken(AppUser user, VerificationTokenType tokenType) {
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(UUID.randomUUID().toString());
-        verificationToken.setUser(optionalAppUser.get());
+        verificationToken.setUser(user);
+        verificationToken.setVerificationTokenType(tokenType);
         verificationToken.setExpiryDate(Instant.now().plusMillis(verificationTokenExpiryMs));
-        return verificationToken;
+        return verificationTokenRepository.save(verificationToken);
     }
 
-    public VerificationToken validateExpiration(VerificationToken verificationToken) {
-        if (verificationToken.getExpiryDate().compareTo(Instant.now()) < 0) {
-            verificationTokenRepository.delete(verificationToken);
-            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Verification token has expired");
-        }
-        return verificationToken;
+    public boolean validateExpiration(VerificationToken verificationToken) {
+        return verificationToken.getExpiryDate().compareTo(Instant.now()) < 0;
     }
 
     public void sendVerificationEmail() {
-        // TODO
+        // sendGridEmailService.sendHTML();
     }
 }

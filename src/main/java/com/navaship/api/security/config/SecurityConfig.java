@@ -1,16 +1,15 @@
 package com.navaship.api.security.config;
 
-import com.navaship.api.appuser.AppUserService;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -35,7 +34,6 @@ import java.security.interfaces.RSAPublicKey;
 public class SecurityConfig {
     @Value("${jwt.public.key}")
     RSAPublicKey rsaPublicKey;
-
     @Value("${jwt.private.key}")
     RSAPrivateKey rsaPrivateKey;
 
@@ -44,11 +42,12 @@ public class SecurityConfig {
         // Using the build in JWT filter
         // https://github.com/spring-projects/spring-security-samples/blob/main/servlet/spring-boot/java/jwt/login/src/main/java/example/RestConfig.java
         http.
-                authorizeRequests((authorize) -> authorize
-                        .antMatchers("/api/v*/auth/login", "/api/v*/auth/register").permitAll()
-                        .anyRequest().authenticated()
-                ).
-                csrf(AbstractHttpConfigurer::disable)
+                authorizeRequests()
+                .antMatchers("/api/v*/auth/login", "/api/v*/auth/register", "/api/v*/auth/refreshtoken").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v*/account/verify-email/**").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

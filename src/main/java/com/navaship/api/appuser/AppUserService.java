@@ -7,6 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
@@ -17,6 +19,10 @@ public class AppUserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return appUserRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
+    }
+
+    public Optional<AppUser> findByEmail(String email) {
+        return appUserRepository.findByEmail(email);
     }
 
     public AppUser createUser(AppUser appUser) {
