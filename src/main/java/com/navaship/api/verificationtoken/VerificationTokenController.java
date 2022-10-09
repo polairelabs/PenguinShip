@@ -25,21 +25,8 @@ public class VerificationTokenController {
     @PostMapping("/verify-email")
     public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@Valid @RequestBody String email) {
         // Send verification email to user
-        Optional<AppUser> optionalUser = appUserService.findByEmail(email);
-        if (optionalUser.isEmpty()) {
-            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Email not found");
-        }
-
-        AppUser user = optionalUser.get();
-        if (user.isEnabled()) {
-            throw new VerificationTokenException(HttpStatus.FORBIDDEN, "Something went wrong");
-        }
-
-        Optional<VerificationToken> optionalVerificationToken = verificationTokenService.findByUser(user);
-        if (optionalVerificationToken.isPresent()) {
-            VerificationToken verificationToken = optionalVerificationToken.get();
-            verificationTokenService.delete(verificationToken);
-        }
+        AppUser user = retrieveAppUser(email);
+        deleteVerificationTokenIfPresent(user);
 
         verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
         try {
@@ -81,21 +68,8 @@ public class VerificationTokenController {
     @PostMapping("/password-reset")
     public ResponseEntity<Map<String, String>> resetPassword(@RequestBody String email) {
         // Create password token and send by email, if email doesn't exist, don't send it
-        Optional<AppUser> optionalUser = appUserService.findByEmail(email);
-        if (optionalUser.isEmpty()) {
-            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Email not found");
-        }
-
-        AppUser user = optionalUser.get();
-        if (user.isEnabled()) {
-            throw new VerificationTokenException(HttpStatus.FORBIDDEN, "Something went wrong");
-        }
-
-        Optional<VerificationToken> optionalVerificationToken = verificationTokenService.findByUser(user);
-        if (optionalVerificationToken.isPresent()) {
-            VerificationToken verificationToken = optionalVerificationToken.get();
-            verificationTokenService.delete(verificationToken);
-        }
+        AppUser user = retrieveAppUser(email);
+        deleteVerificationTokenIfPresent(user);
 
         verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
         try {
@@ -132,5 +106,26 @@ public class VerificationTokenController {
         message.put("message", String.format("Password was successfully reset for %s", user.getEmail()));
 
         return ResponseEntity.ok(message);
+    }
+
+    private AppUser retrieveAppUser(String email) {
+        Optional<AppUser> optionalUser = appUserService.findByEmail(email);
+        if (optionalUser.isEmpty()) {
+            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Email not found");
+        }
+
+        AppUser user = optionalUser.get();
+        if (user.isEnabled()) {
+            throw new VerificationTokenException(HttpStatus.FORBIDDEN, "Something went wrong");
+        }
+        return user;
+    }
+
+    private void deleteVerificationTokenIfPresent(AppUser user) {
+        Optional<VerificationToken> optionalVerificationToken = verificationTokenService.findByUser(user);
+        if (optionalVerificationToken.isPresent()) {
+            VerificationToken verificationToken = optionalVerificationToken.get();
+            verificationTokenService.delete(verificationToken);
+        }
     }
 }
