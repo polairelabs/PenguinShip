@@ -17,13 +17,9 @@ import java.util.UUID;
 public class VerificationTokenService {
     @Value("${navaship.app.verificationTokenExpirationMs}")
     private long verificationTokenExpiryMs;
-    @Value("${navaship.app.senderEmail}")
-    private String senderEmail;
 
-    private final AppUserRepository appUserRepository;
+
     private final VerificationTokenRepository verificationTokenRepository;
-
-    private final SendGridEmailService sendGridEmailService;
 
 
     public Optional<VerificationToken> findByToken(String token) {
@@ -38,11 +34,6 @@ public class VerificationTokenService {
         verificationTokenRepository.delete(verificationToken);
     }
 
-    public void enableUserAccount(AppUser user) {
-        user.setEnabled(true);
-        appUserRepository.save(user);
-    }
-
     public VerificationToken createVerificationToken(AppUser user, VerificationTokenType tokenType) {
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(UUID.randomUUID().toString());
@@ -54,9 +45,5 @@ public class VerificationTokenService {
 
     public boolean validateExpiration(VerificationToken verificationToken) {
         return verificationToken.getExpiryDate().compareTo(Instant.now()) < 0;
-    }
-
-    public void sendVerificationEmail() {
-        // sendGridEmailService.sendHTML();
     }
 }

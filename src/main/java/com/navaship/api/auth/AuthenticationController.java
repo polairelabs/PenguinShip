@@ -5,6 +5,7 @@ import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.refreshtoken.*;
 import com.navaship.api.registration.RegistrationRequest;
 import com.navaship.api.registration.RegistrationService;
+import com.navaship.api.sendgrid.SendGridEmailService;
 import com.navaship.api.verificationtoken.VerificationTokenService;
 import com.navaship.api.verificationtoken.VerificationTokenType;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class AuthenticationController {
     private final RegistrationService registrationService;
     private final RefreshTokenService refreshTokenService;
     private final VerificationTokenService verificationTokenService;
+    private final SendGridEmailService sendGridEmailService;
 
 
     @PostMapping("/login")
@@ -63,7 +65,7 @@ public class AuthenticationController {
 
         AppUser user = registrationService.register(request);
         verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
-        verificationTokenService.sendVerificationEmail();
+        // sendGridEmailService.sendHTML();
 
         return user;
     }

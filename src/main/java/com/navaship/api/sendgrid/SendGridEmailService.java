@@ -7,6 +7,7 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -16,19 +17,23 @@ public class SendGridEmailService implements EmailService {
     public static final String EMAIL_TEXT_PLAIN_CONTENT_TYPE = "text/plain";
     public static final String EMAIL_TEXT_HTML_CONTENT_TYPE = "text/html";
 
+    @Value("${navaship.app.senderEmail}")
+    private String senderEmail;
+
+
     @Override
-    public void sendText(String from, String to, String subject, String body) throws IOException {
+    public void sendText(String to, String subject, String body) throws IOException {
         try {
-            sendEmail(from, to, subject, new Content(EMAIL_TEXT_PLAIN_CONTENT_TYPE, body));
+            sendEmail(senderEmail, to, subject, new Content(EMAIL_TEXT_PLAIN_CONTENT_TYPE, body));
         } catch (IOException ex) {
             throw new IOException("Email failure", ex);
         }
     }
 
     @Override
-    public void sendHTML(String from, String to, String subject, String body) throws IOException {
+    public void sendHTML(String to, String subject, String body) throws IOException {
         try {
-            sendEmail(from, to, subject, new Content(EMAIL_TEXT_HTML_CONTENT_TYPE, body));
+            sendEmail(senderEmail, to, subject, new Content(EMAIL_TEXT_HTML_CONTENT_TYPE, body));
         } catch (IOException ex) {
             throw new IOException("Email failure", ex);
         }

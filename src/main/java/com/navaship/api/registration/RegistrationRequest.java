@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 
 @Getter
@@ -17,8 +18,9 @@ public class RegistrationRequest {
     private final String firstName;
     @NotEmpty
     private final String lastName;
-    @NotEmpty
+    @NotBlank
     @Email
+    @NotEmpty(message = "Email cannot be empty")
     private final String email;
     // TODO Add password validation
     private final String password;

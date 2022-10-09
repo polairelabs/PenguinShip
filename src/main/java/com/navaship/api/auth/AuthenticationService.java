@@ -33,7 +33,7 @@ public class AuthenticationService {
         try {
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (DisabledException ex) {
-            throw new DisabledException("Email not verified", ex);
+            throw new DisabledException("Account is disabled", ex);
         } catch (BadCredentialsException ex) {
             throw new BadCredentialsException("Invalid credentials", ex);
         }

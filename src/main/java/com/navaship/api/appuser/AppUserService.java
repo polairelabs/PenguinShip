@@ -25,18 +25,26 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findByEmail(email);
     }
 
-    public AppUser createUser(AppUser appUser) {
-        boolean userExists = appUserRepository.findByEmail(appUser.getEmail()).isPresent();
+    public AppUser createUser(AppUser user) {
+        boolean userExists = appUserRepository.findByEmail(user.getEmail()).isPresent();
         if (userExists) {
             throw new IllegalStateException("Email already registered");
         }
 
-        String encodedPassword = bCryptPasswordEncoder.encode(appUser.getPassword());
-        appUser.setPassword(encodedPassword);
-
-        appUserRepository.save(appUser);
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        appUserRepository.save(user);
 
         // TODO send confirmation OTP
-        return appUser;
+        return user;
+    }
+
+    public void enableUserAccount(AppUser user) {
+        user.setEnabled(true);
+        appUserRepository.save(user);
+    }
+
+    public void changePassword(AppUser user, String password) {
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        appUserRepository.save(user);
     }
 }

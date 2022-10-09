@@ -14,6 +14,7 @@ import java.time.Instant;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "token_type"})})
 public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
