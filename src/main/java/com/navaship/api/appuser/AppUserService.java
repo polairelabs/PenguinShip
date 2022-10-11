@@ -12,6 +12,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
+
     private final AppUserRepository appUserRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -25,6 +26,10 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findByEmail(email);
     }
 
+    public AppUser loadUserById(Long Id) throws UsernameNotFoundException {
+        return appUserRepository.findById(Id).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
+    }
+
     public AppUser createUser(AppUser user) {
         boolean userExists = appUserRepository.findByEmail(user.getEmail()).isPresent();
         if (userExists) {
@@ -34,7 +39,6 @@ public class AppUserService implements UserDetailsService {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         appUserRepository.save(user);
 
-        // TODO send confirmation OTP
         return user;
     }
 
