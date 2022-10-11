@@ -1,22 +1,17 @@
-package com.navaship.api.auth;
+package com.navaship.api.refreshtoken;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.navaship.api.appuser.AppUserRole;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
-public class AuthenticationResponse {
+public class RefreshTokenResponse {
     @JsonProperty("access_token")
     private String accessToken;
     @JsonProperty("refresh_token")
     private String refreshToken;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private AppUserRole role;
     @JsonProperty("token_type")
     private String tokenType;
 }
