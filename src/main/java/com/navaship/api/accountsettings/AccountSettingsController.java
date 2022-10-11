@@ -1,9 +1,8 @@
-package com.navaship.api.usersettings;
+package com.navaship.api.accountsettings;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.verificationtoken.VerificationTokenService;
-import com.navaship.api.verificationtoken.VerificationTokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -15,8 +14,8 @@ import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping(path = "api/v1/settings")
-public class UserSettingsController {
+@RequestMapping(path = "api/v1/account/settings")
+public class AccountSettingsController {
     private final VerificationTokenService verificationTokenService;
     private final AppUserService appUserService;
 
@@ -26,15 +25,6 @@ public class UserSettingsController {
         // Request new token if account not yet verified, create new token and invalid (delete) existing one
         String email = principal.getTokenAttributes().get("email").toString();
         Optional<AppUser> optionalUser = appUserService.findByEmail(email);
-
-        return optionalUser
-                .filter(user -> !user.isEnabled()).stream().findFirst()
-                .map(verificationTokenService::findByUser)
-                .map(verificationToken -> {
-                    verificationToken.ifPresent(verificationTokenService::delete);
-                    verificationTokenService.createVerificationToken(optionalUser.get(), VerificationTokenType.VERIFY_ACCOUNT);
-                    String message = String.format("Account verification link has been sent to %s", email);
-                    return ResponseEntity.ok(message);
-                }).orElseThrow(() -> new RuntimeException("Interval server error"));
+        return null;
     }
 }

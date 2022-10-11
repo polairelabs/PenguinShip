@@ -7,8 +7,7 @@ import lombok.ToString;
 
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode
 public class AuthenticationRequest {
-    private final String email;
-    private final String password;
+    private String email;
+    private String password;
 }

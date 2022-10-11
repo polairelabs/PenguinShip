@@ -6,6 +6,7 @@ import com.navaship.api.refreshtoken.*;
 import com.navaship.api.registration.RegistrationRequest;
 import com.navaship.api.registration.RegistrationService;
 import com.navaship.api.sendgrid.SendGridEmailService;
+import com.navaship.api.verificationtoken.VerificationToken;
 import com.navaship.api.verificationtoken.VerificationTokenService;
 import com.navaship.api.verificationtoken.VerificationTokenType;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.Optional;
 
 @RestController
@@ -64,8 +66,8 @@ public class AuthenticationController {
         }
 
         AppUser user = registrationService.register(request);
-        verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
-        // sendGridEmailService.sendHTML();
+        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
+        sendGridEmailService.sendVerifyAccountEmail(user.getEmail(), verificationToken.getToken());
 
         return user;
     }
@@ -86,6 +88,7 @@ public class AuthenticationController {
 
         refreshTokenService.delete(refreshToken);
         AppUser user = optionalRefreshToken.get().getUser();
+
         return ResponseEntity.ok(new RefreshTokenResponse(
                 authenticationService.createAccessToken(user),
                 refreshTokenService.createRefreshToken(user).getToken(),

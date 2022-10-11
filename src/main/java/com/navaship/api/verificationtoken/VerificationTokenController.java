@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,17 +22,14 @@ public class VerificationTokenController {
     private final SendGridEmailService sendGridEmailService;
 
     @PostMapping("/verify-email")
-    public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@Valid @RequestBody String email) {
+    public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@Valid @RequestBody EmailRequest emailRequest) {
         // Send verification email to user
+        String email = emailRequest.getEmail();
         AppUser user = retrieveAppUser(email);
         deleteVerificationTokenIfPresent(user);
 
-        verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
-        try {
-            sendGridEmailService.sendHTML(email, "Verify your account", "Please");
-        } catch (IOException e) {
-            throw new RuntimeException("Something went wrong sending email");
-        }
+        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
+        sendGridEmailService.sendVerifyAccountEmail(email, verificationToken.getToken());
 
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Email verification link has been sent to %s", email));
@@ -41,8 +37,8 @@ public class VerificationTokenController {
         return ResponseEntity.ok(message);
     }
 
-    @GetMapping("/verify-email")
-    public ResponseEntity<Map<String, String>> verifyEmail(@RequestParam("token") String emailVerificationToken) {
+    @GetMapping("/confirm-email")
+    public ResponseEntity<Map<String, String>> confirmEmailVerified(@RequestParam("token") String emailVerificationToken) {
         // Check if token exists, validates if not expired, then retrieve the user and enable his account
         Optional<VerificationToken> optionalVerificationToken = verificationTokenService.findByToken(emailVerificationToken);
         if (optionalVerificationToken.isEmpty()) {
@@ -66,17 +62,14 @@ public class VerificationTokenController {
     }
 
     @PostMapping("/password-reset")
-    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody String email) {
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody EmailRequest emailRequest) {
         // Create password token and send by email, if email doesn't exist, don't send it
+        String email = emailRequest.getEmail();
         AppUser user = retrieveAppUser(email);
         deleteVerificationTokenIfPresent(user);
 
-        verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
-        try {
-            sendGridEmailService.sendHTML(email, "Password reset request", "Please");
-        } catch (IOException e) {
-            throw new RuntimeException("Something went wrong sending email");
-        }
+        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
+        sendGridEmailService.sendPasswordResetEmail(email, user.getFirstName(), verificationToken.getToken());
 
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Password reset link has been sent to %s", email));
@@ -85,7 +78,7 @@ public class VerificationTokenController {
     }
 
     @PostMapping("/confirm-password")
-    public ResponseEntity<Map<String, String>> confirmPasswordReset(@RequestParam("token") String passwordResetToken, @RequestBody String password) {
+    public ResponseEntity<Map<String, String>> confirmPasswordReset(@RequestParam("token") String passwordResetToken, @Valid @RequestBody PasswordRequest passwordRequest) {
         // Confirm password reset valid and reset it for user associated with that token
         Optional<VerificationToken> optionalVerificationToken = verificationTokenService.findByToken(passwordResetToken);
         if (optionalVerificationToken.isEmpty()) {
@@ -99,7 +92,7 @@ public class VerificationTokenController {
         }
 
         AppUser user = verificationToken.getUser();
-        appUserService.changePassword(user, password);
+        appUserService.changePassword(user, passwordRequest.getPassword());
         verificationTokenService.delete(verificationToken);
 
         Map<String, String> message = new HashMap<>();
@@ -115,7 +108,7 @@ public class VerificationTokenController {
         }
 
         AppUser user = optionalUser.get();
-        if (user.isEnabled()) {
+        if (!user.isEnabled()) {
             throw new VerificationTokenException(HttpStatus.FORBIDDEN, "Something went wrong");
         }
         return user;

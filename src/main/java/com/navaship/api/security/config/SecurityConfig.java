@@ -43,8 +43,7 @@ public class SecurityConfig {
         // https://github.com/spring-projects/spring-security-samples/blob/main/servlet/spring-boot/java/jwt/login/src/main/java/example/RestConfig.java
         http.
                 authorizeRequests()
-                .antMatchers("/api/v*/auth/login", "/api/v*/auth/register", "/api/v*/auth/refreshtoken").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/v*/account/verify-email/**").permitAll()
+                .antMatchers("/api/v*/auth/login", "/api/v*/auth/register", "/api/v*/auth/refreshtoken", "/api/v*/account/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .csrf(AbstractHttpConfigurer::disable)

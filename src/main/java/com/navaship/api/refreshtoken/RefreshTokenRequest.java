@@ -7,7 +7,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode
 public class RefreshTokenRequest {
     private long id;
     @JsonProperty("refresh_token")

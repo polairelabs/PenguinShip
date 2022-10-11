@@ -1,6 +1,7 @@
 package com.navaship.api.error;
 
 import com.navaship.api.refreshtoken.RefreshTokenException;
+import com.navaship.api.sendgrid.SendGridEmailException;
 import com.navaship.api.verificationtoken.VerificationTokenException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -26,7 +27,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        return buildResponseEntity(new ErrorMessage(HttpStatus.BAD_REQUEST, "Malformed JSON request"));
+        return buildResponseEntity(new ErrorMessage(HttpStatus.BAD_REQUEST, "Malformed JSON request", ex));
     }
 
     /* Custom exception handlers not overridden by ResponseEntityExceptionHandler */
@@ -58,6 +59,11 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(VerificationTokenException.class)
     protected ResponseEntity<Object> handleVerificationTokenException(VerificationTokenException ex) {
         return buildResponseEntity(new ErrorMessage(ex.getStatusCode(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(SendGridEmailException.class)
+    protected ResponseEntity<Object> handleVerificationTokenException(SendGridEmailException ex) {
+        return buildResponseEntity(new ErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex));
     }
 
     private ResponseEntity<Object> buildResponseEntity(ErrorMessage errorMessage) {

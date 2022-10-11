@@ -8,7 +8,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode
 public class AuthenticationResponse {
     @JsonProperty("access_token")
     private String accessToken;
