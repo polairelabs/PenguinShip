@@ -12,7 +12,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
-
     private final AppUserRepository appUserRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -22,20 +21,15 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
     }
 
-    public Optional<AppUser> findByEmail(String email) {
-        return appUserRepository.findByEmail(email);
-    }
-
     public AppUser loadUserById(Long Id) throws UsernameNotFoundException {
         return appUserRepository.findById(Id).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
     }
 
-    public AppUser createUser(AppUser user) {
-        boolean userExists = appUserRepository.findByEmail(user.getEmail()).isPresent();
-        if (userExists) {
-            throw new IllegalStateException("Email already registered");
-        }
+    public Optional<AppUser> findByEmail(String email) {
+        return appUserRepository.findByEmail(email);
+    }
 
+    public AppUser createUser(AppUser user) {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         appUserRepository.save(user);
 

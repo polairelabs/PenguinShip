@@ -1,11 +1,8 @@
 package com.navaship.api.verificationtoken;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserRepository;
-import com.navaship.api.sendgrid.SendGridEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,7 +15,6 @@ public class VerificationTokenService {
     @Value("${navaship.app.verificationTokenExpirationMs}")
     private long verificationTokenExpiryMs;
 
-
     private final VerificationTokenRepository verificationTokenRepository;
 
 
@@ -30,6 +26,10 @@ public class VerificationTokenService {
         return verificationTokenRepository.findByUser(user);
     }
 
+    public Optional<VerificationToken> findByUserAndTokenType(AppUser user, VerificationTokenType tokenType) {
+        return verificationTokenRepository.findByUserAndTokenType(user, tokenType);
+    }
+
     public void delete(VerificationToken verificationToken) {
         verificationTokenRepository.delete(verificationToken);
     }
@@ -38,7 +38,7 @@ public class VerificationTokenService {
         VerificationToken verificationToken = new VerificationToken();
         verificationToken.setToken(UUID.randomUUID().toString());
         verificationToken.setUser(user);
-        verificationToken.setVerificationTokenType(tokenType);
+        verificationToken.setTokenType(tokenType);
         verificationToken.setExpiryDate(Instant.now().plusMillis(verificationTokenExpiryMs));
         return verificationTokenRepository.save(verificationToken);
     }

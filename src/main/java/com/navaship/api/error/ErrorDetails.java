@@ -3,13 +3,15 @@ package com.navaship.api.error;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-public class ErrorMessage {
+@Setter
+public class ErrorDetails {
     private HttpStatus status;
     @JsonProperty("status_code")
     private int statusCode;
@@ -18,22 +20,31 @@ public class ErrorMessage {
     private String message;
     @JsonProperty("debug_message")
     private String debugMessage;
-    @JsonProperty("sub_errors")
-    private List<ApiValidationError> subErrors;
+    @JsonProperty("validation_errors")
+    private List<FieldValidationError> validationErrors;
 
 
-    public ErrorMessage(HttpStatus status, String message) {
+    public ErrorDetails(HttpStatus status, String message) {
         timestamp = LocalDateTime.now();
         this.status = status;
         statusCode = status.value();
         this.message = message;
     }
 
-    public ErrorMessage(HttpStatus status, String message, Throwable ex) {
+    public ErrorDetails(HttpStatus status, String message, Throwable ex) {
         timestamp = LocalDateTime.now();
         this.status = status;
         statusCode = status.value();
         this.message = message;
         debugMessage = ex.getLocalizedMessage();
     }
+
+    public ErrorDetails(HttpStatus status, String message, List<FieldValidationError> validationErrors) {
+        timestamp = LocalDateTime.now();
+        this.status = status;
+        statusCode = status.value();
+        this.message = message;
+        this.validationErrors = validationErrors;
+    }
+
 }

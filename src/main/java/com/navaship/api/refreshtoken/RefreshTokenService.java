@@ -1,12 +1,9 @@
 package com.navaship.api.refreshtoken;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -15,13 +12,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
-    // https://www.bezkoder.com/spring-boot-refresh-token-jwt/
-
     private final RefreshTokenRepository refreshTokenRepository;
-    private final AppUserRepository appUserRepository;
+    // https://www.bezkoder.com/spring-boot-refresh-token-jwt/
     @Value("${navaship.app.refreshTokenExpirationMs}")
     private long refreshTokenExpiryMs;
-
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -41,11 +35,5 @@ public class RefreshTokenService {
 
     public boolean validateExpiration(RefreshToken refreshToken) {
         return refreshToken.getExpiryDate().compareTo(Instant.now()) < 0;
-    }
-
-    @Transactional
-    public int deleteByUserId(Long userId) {
-        Optional<AppUser> optionalAppUser = appUserRepository.findById(userId);
-        return optionalAppUser.map(refreshTokenRepository::deleteByUser).orElse(-1);
     }
 }

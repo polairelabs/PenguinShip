@@ -1,6 +1,5 @@
 package com.navaship.api.accountsettings;
 
-import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.verificationtoken.VerificationTokenService;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +8,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -24,7 +21,7 @@ public class AccountSettingsController {
     public ResponseEntity<String> createVerificationToken(JwtAuthenticationToken principal) {
         // Request new token if account not yet verified, create new token and invalid (delete) existing one
         String email = principal.getTokenAttributes().get("email").toString();
-        Optional<AppUser> optionalUser = appUserService.findByEmail(email);
+        // AppUser user = appUserService.findByEmail(email);
         return null;
     }
 }

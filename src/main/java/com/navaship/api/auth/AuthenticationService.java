@@ -54,6 +54,7 @@ public class AuthenticationService {
 
     private Map<String, Object> getClaimsMap(AppUser user) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("id", user.getId());
         claims.put("email", user.getEmail());
         claims.put("role", user.getRole());
         return claims;

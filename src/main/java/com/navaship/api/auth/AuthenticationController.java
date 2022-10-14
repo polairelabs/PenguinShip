@@ -1,14 +1,7 @@
 package com.navaship.api.auth;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.refreshtoken.*;
-import com.navaship.api.registration.RegistrationRequest;
-import com.navaship.api.registration.RegistrationService;
-import com.navaship.api.sendgrid.SendGridEmailService;
-import com.navaship.api.verificationtoken.VerificationToken;
-import com.navaship.api.verificationtoken.VerificationTokenService;
-import com.navaship.api.verificationtoken.VerificationTokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-import javax.validation.Valid;
-import java.io.IOException;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "api/v1/auth")
@@ -29,12 +17,8 @@ import java.util.Optional;
 public class AuthenticationController {
     public static final String TOKEN_TYPE = "Bearer";
 
-    private final AppUserService appUserService;
     private final AuthenticationService authenticationService;
-    private final RegistrationService registrationService;
     private final RefreshTokenService refreshTokenService;
-    private final VerificationTokenService verificationTokenService;
-    private final SendGridEmailService sendGridEmailService;
 
 
     @PostMapping("/login")
@@ -58,36 +42,20 @@ public class AuthenticationController {
         );
     }
 
-    @PostMapping("/register")
-    public AppUser register(@Valid @RequestBody RegistrationRequest request) {
-        Optional<AppUser> optionalUser = appUserService.findByEmail(request.getEmail());
-        if (optionalUser.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already in use");
-        }
-
-        AppUser user = registrationService.register(request);
-        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_ACCOUNT);
-        sendGridEmailService.sendVerifyAccountEmail(user.getEmail(), verificationToken.getToken());
-
-        return user;
-    }
-
     @PostMapping("/refreshtoken")
     public ResponseEntity<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
         // Client exchanges refresh token to get a new access token and a new refresh token
         // Refresh token rotation is used to always provide the user with a new refresh token when he requests new access token
-        Optional<RefreshToken> optionalRefreshToken = refreshTokenService.findByToken(refreshTokenRequest.getToken());
-        if (optionalRefreshToken.isEmpty()) {
-            throw new RefreshTokenException(HttpStatus.UNAUTHORIZED, "Refresh token cannot be processed");
-        }
+        RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenRequest.getToken()).orElseThrow(
+                () -> new RefreshTokenException(HttpStatus.UNAUTHORIZED, "Refresh token cannot be processed")
+        );
 
-        RefreshToken refreshToken = optionalRefreshToken.get();
         if (refreshTokenService.validateExpiration(refreshToken)) {
             throw new RefreshTokenException(HttpStatus.UNAUTHORIZED, "Refresh token has expired");
         }
 
         refreshTokenService.delete(refreshToken);
-        AppUser user = optionalRefreshToken.get().getUser();
+        AppUser user = refreshToken.getUser();
 
         return ResponseEntity.ok(new RefreshTokenResponse(
                 authenticationService.createAccessToken(user),

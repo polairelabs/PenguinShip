@@ -1,6 +1,6 @@
 package com.navaship.api.verificationtoken;
 
 public enum VerificationTokenType {
-    VERIFY_ACCOUNT,
+    VERIFY_EMAIL,
     RESET_PASSWORD
 }

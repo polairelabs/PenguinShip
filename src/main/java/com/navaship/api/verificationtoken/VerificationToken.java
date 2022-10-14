@@ -27,5 +27,5 @@ public class VerificationToken {
     private Instant expiryDate;
     @Column(name = "token_type")
     @Enumerated(EnumType.STRING)
-    private VerificationTokenType verificationTokenType;
+    private VerificationTokenType tokenType;
 }
