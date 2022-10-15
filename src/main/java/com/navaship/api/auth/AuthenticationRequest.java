@@ -5,10 +5,18 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 @Getter
 @AllArgsConstructor
-@EqualsAndHashCode
 public class AuthenticationRequest {
-    private final String email;
-    private final String password;
+    @NotBlank
+    @NotNull
+    @Email
+    private String email;
+    @NotBlank
+    @NotNull
+    private String password;
 }

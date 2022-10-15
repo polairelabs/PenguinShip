@@ -3,38 +3,48 @@ package com.navaship.api.error;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-public class ApiError {
-    private final HttpStatus status;
+@Setter
+public class ErrorDetails {
+    private HttpStatus status;
+    @JsonProperty("status_code")
+    private int statusCode;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private LocalDateTime timestamp;
     private String message;
     @JsonProperty("debug_message")
     private String debugMessage;
-    @JsonProperty("sub_errors")
-    private List<ApiValidationError> subErrors;
+    @JsonProperty("validation_errors")
+    private List<FieldValidationError> validationErrors;
 
-    ApiError(HttpStatus status) {
-        timestamp = LocalDateTime.now();
-        this.timestamp = LocalDateTime.now();
-        this.status = status;
-    }
 
-    ApiError(HttpStatus status, String message) {
+    public ErrorDetails(HttpStatus status, String message) {
         timestamp = LocalDateTime.now();
         this.status = status;
+        statusCode = status.value();
         this.message = message;
     }
 
-    ApiError(HttpStatus status, String message, Throwable ex) {
+    public ErrorDetails(HttpStatus status, String message, Throwable ex) {
         timestamp = LocalDateTime.now();
         this.status = status;
+        statusCode = status.value();
         this.message = message;
-        this.debugMessage = ex.getLocalizedMessage();
+        debugMessage = ex.getLocalizedMessage();
     }
+
+    public ErrorDetails(HttpStatus status, String message, List<FieldValidationError> validationErrors) {
+        timestamp = LocalDateTime.now();
+        this.status = status;
+        statusCode = status.value();
+        this.message = message;
+        this.validationErrors = validationErrors;
+    }
+
 }

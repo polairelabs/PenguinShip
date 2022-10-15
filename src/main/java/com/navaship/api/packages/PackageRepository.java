@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 @Transactional(readOnly = true)
-public interface PackagesRepository extends JpaRepository<Packages, Long> {
-    List<Packages> findAllByAppUser(AppUser user);
+public interface PackageRepository extends JpaRepository<Package, Long> {
+    List<Package> findAllByUser(AppUser user);
 }

@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
-public class Packages {
+public class Package {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
@@ -27,6 +27,6 @@ public class Packages {
     private BigDecimal height;
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name="userId")
-    private AppUser appUser;
+    private AppUser user;
 
 }

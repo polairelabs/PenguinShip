@@ -5,6 +5,5 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(readOnly = true)
-public interface AddressesRepository extends JpaRepository<Addresses, Long> {
+public interface AddressRepository extends JpaRepository<Address, Long> {
 }

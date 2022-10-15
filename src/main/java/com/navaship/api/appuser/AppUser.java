@@ -1,8 +1,10 @@
 package com.navaship.api.appuser;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.navaship.api.auth.AuthViews;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,29 +17,32 @@ import java.util.Collections;
 @Getter
 @Setter
 @EqualsAndHashCode
-@NoArgsConstructor
+@RequiredArgsConstructor
 @Entity
 public class AppUser implements UserDetails {
-
     @Id
-    @SequenceGenerator(
-            name = "user_sequence",
-            sequenceName = "user_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "user_sequence"
-    )
+    @JsonView(AuthViews.Default.class)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @JsonView(AuthViews.Default.class)
+    @Column(nullable = false)
     private String firstName;
+    @JsonView(AuthViews.Default.class)
+    @Column(nullable = false)
     private String lastName;
+    @JsonView(AuthViews.Default.class)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
+    @Column(name = "password", nullable = false)
     private String password;
     @Enumerated(EnumType.STRING)
+    @JsonView(AuthViews.Default.class)
+    @Column(nullable = false)
     private AppUserRole role;
+    @JsonView(AuthViews.Default.class)
     private Boolean locked = false;
-    private Boolean enabled = true; // TODO Change this back to false
+    @JsonView(AuthViews.Default.class)
+    private Boolean enabled = true;
 
     public AppUser(String firstName, String lastName, String email, String password, AppUserRole role) {
         this.firstName = firstName;

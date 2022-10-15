@@ -1,18 +1,20 @@
 package com.navaship.api.appuser;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@Service
-@AllArgsConstructor
-public class AppUserService implements UserDetailsService {
+import java.util.Optional;
 
+@Service
+@RequiredArgsConstructor
+public class AppUserService implements UserDetailsService {
     private final AppUserRepository appUserRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -23,18 +25,24 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findById(Id).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
     }
 
-    public AppUser createUser(AppUser appUser) {
-        boolean userExists = appUserRepository.findByEmail(appUser.getEmail()).isPresent();
-        if (userExists) {
-            throw new IllegalStateException("Email already registered");
-        }
+    public Optional<AppUser> findByEmail(String email) {
+        return appUserRepository.findByEmail(email);
+    }
 
-        String encodedPassword = bCryptPasswordEncoder.encode(appUser.getPassword());
-        appUser.setPassword(encodedPassword);
+    public AppUser createUser(AppUser user) {
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        appUserRepository.save(user);
 
-        appUserRepository.save(appUser);
+        return user;
+    }
 
-        // TODO send confirmation OTP
-        return appUser;
+    public void enableUserAccount(AppUser user) {
+        user.setEnabled(true);
+        appUserRepository.save(user);
+    }
+
+    public void changePassword(AppUser user, String password) {
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        appUserRepository.save(user);
     }
 }
