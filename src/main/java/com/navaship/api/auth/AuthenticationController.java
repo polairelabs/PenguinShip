@@ -1,5 +1,6 @@
 package com.navaship.api.auth;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.refreshtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class AuthenticationController {
 
 
     @PostMapping("/login")
+    @JsonView(AuthViews.Default.class)
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest authenticationRequest) {
         Authentication authentication = authenticationService.authenticate(
                 authenticationRequest.getEmail(),
@@ -33,10 +35,7 @@ public class AuthenticationController {
                 new AuthenticationResponse(
                         accessToken,
                         refreshToken,
-                        user.getFirstName(),
-                        user.getLastName(),
-                        user.getEmail(),
-                        user.getRole(),
+                        user,
                         TOKEN_TYPE
                 )
         );

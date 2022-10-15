@@ -1,5 +1,7 @@
 package com.navaship.api.appuser;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.navaship.api.auth.AuthViews;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,20 +21,27 @@ import java.util.Collections;
 @Entity
 public class AppUser implements UserDetails {
     @Id
+    @JsonView(AuthViews.Default.class)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
     private String firstName;
+    @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
     private String lastName;
+    @JsonView(AuthViews.Default.class)
     @Column(name = "email", unique = true, nullable = false)
     private String email;
     @Column(name = "password", nullable = false)
     private String password;
     @Enumerated(EnumType.STRING)
+    @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
     private AppUserRole role;
+    @JsonView(AuthViews.Default.class)
     private Boolean locked = false;
+    @JsonView(AuthViews.Default.class)
     private Boolean enabled = true;
 
     public AppUser(String firstName, String lastName, String email, String password, AppUserRole role) {
