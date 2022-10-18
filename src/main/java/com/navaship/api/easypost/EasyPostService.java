@@ -1,5 +1,6 @@
 package com.navaship.api.easypost;
 
+import com.easypost.EasyPost;
 import com.easypost.exception.EasyPostException;
 import com.easypost.model.Address;
 import com.easypost.model.Shipment;
@@ -22,6 +23,7 @@ public class EasyPostService {
     public void createShipment(com.navaship.api.addresses.Address fromAddress,
                                com.navaship.api.addresses.Address toAddress,
                                com.navaship.api.packages.Package parcel) throws EasyPostException {
+        EasyPost.apiKey = easyPostApiKey;
         Map<String, Object> shipmentMap = new HashMap<String, Object>();
         shipmentMap.put(FROM_ADDRESS_MAP_KEY, fromAddress.toAddressMap());
         shipmentMap.put(TO_ADDRESS_MAP_KEY, toAddress.toAddressMap());
