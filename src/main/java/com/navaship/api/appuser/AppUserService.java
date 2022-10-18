@@ -21,12 +21,12 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
     }
 
-    public AppUser loadUserById(Long Id) throws UsernameNotFoundException {
-        return appUserRepository.findById(Id).orElseThrow(() -> new UsernameNotFoundException("Incorrect login details"));
-    }
-
     public Optional<AppUser> findByEmail(String email) {
         return appUserRepository.findByEmail(email);
+    }
+
+    public Optional<AppUser> findById(Long id) {
+        return appUserRepository.findById(id);
     }
 
     public AppUser createUser(AppUser user) {

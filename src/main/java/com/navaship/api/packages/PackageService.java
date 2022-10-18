@@ -1,55 +1,45 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PackageService {
+    private final PackageRepository packageRepository;
 
-    private final PackageRepository repository;
-    private final AppUserService appUserService;
 
-    @Autowired
-    public PackageService(PackageRepository repository, AppUserService appUserService){
-        this.repository = repository;
-        this.appUserService = appUserService;
+    public Package savePackage(Package parcel, AppUser user) {
+        parcel.setUser(user);
+        return packageRepository.save(parcel);
     }
 
-
-    public Package savePackages(Package aPackage, Long clientId) {
-        // TODO: ADD VALIDATION HERE, KINDA BS
-        AppUser user = appUserService.loadUserById(clientId);
-        aPackage.setUser(user);
-        return repository.save(aPackage);
+    public Optional<Package> findById(Long id) {
+        return packageRepository.findById(id);
     }
 
-    public List<Package> getPackagesForClient(Long clientId) {
-        AppUser user = appUserService.loadUserById(clientId);
-        return repository.findAllByUser(user);
+    public List<Package> getAllPackages(AppUser user) {
+        return packageRepository.findAllByUser(user);
     }
 
-    public Package modifyPackages(Package aPackage, Long id) {
-        Optional<Package> optionalPackages = repository.findById(id);
-        return repository.save(aPackage);
+    public Package modifyPackage(Package parcel) {
+        return packageRepository.save(parcel);
     }
 
-    public Package deletePackages(Long id) {
-        Optional<Package> optionalPackages = repository.findById(id);
-        if(optionalPackages.isEmpty()){
-            //TODO: Add exceptions for packages
-            throw new UsernameNotFoundException("not found");
-        }
-        repository.delete(optionalPackages.get());
-        return optionalPackages.get();
+    public Package deletePackage(Package parcel) {
+        packageRepository.delete(parcel);
+        return parcel;
     }
 
-    public List<Package> getPackages() {
-        return repository.findAll();
+    public Package retrievePackage(Long parcelId) {
+        return packageRepository.findById(parcelId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parcel not found")
+        );
     }
 }

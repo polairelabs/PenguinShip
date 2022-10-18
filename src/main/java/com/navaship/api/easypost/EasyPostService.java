@@ -1,43 +1,34 @@
 package com.navaship.api.easypost;
 
-import com.easypost.model.*;
-import com.navaship.api.addresses.Addresses;
-import com.navaship.api.packages.Packages;
-import org.springframework.stereotype.Service;
-import com.easypost.EasyPost;
 import com.easypost.exception.EasyPostException;
+import com.easypost.model.Address;
+import com.easypost.model.Shipment;
+import com.navaship.api.packages.Package;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class EasyPostService {
+    public static final String FROM_ADDRESS_MAP_KEY = "from_address";
+    public static final String TO_ADDRESS_MAP_KEY = "to_address";
+    public static final String PARCEL_MAP_KEY = "parcel";
 
-    public void createShipment(EasyPostObject fromAddressMap, EasyPostObject toAddressMap, EasyPostObject parcelMap) throws EasyPostException {
+    @Value("${navaship.app.easypost.apikey}")
+    private String easyPostApiKey;
+
+    public void createShipment(com.navaship.api.addresses.Address fromAddress,
+                               com.navaship.api.addresses.Address toAddress,
+                               com.navaship.api.packages.Package parcel) throws EasyPostException {
         Map<String, Object> shipmentMap = new HashMap<String, Object>();
-        shipmentMap.put("from_address", fromAddressMap);
-        shipmentMap.put("to_address", toAddressMap);
-        shipmentMap.put("parcel", parcelMap);
+        shipmentMap.put(FROM_ADDRESS_MAP_KEY, fromAddress.toAddressMap());
+        shipmentMap.put(TO_ADDRESS_MAP_KEY, toAddress.toAddressMap());
+        shipmentMap.put(PARCEL_MAP_KEY, parcel.toPackageMap());
 
         Shipment shipment = Shipment.create(shipmentMap);
         shipment.buy(shipment.lowestRate());
+        System.out.println(shipment.prettyPrint());
     }
-
-    public Address createAddress(Addresses addresses) throws EasyPostException {
-        Map<String, Object> addressMap = new HashMap<>();
-        addressMap.put("name", addresses.getName());
-        addressMap.put("company", addresses.getCompany());
-        addressMap.put("street1", addresses.getStreet1());
-        addressMap.put("street2", addresses.getStreet2());
-        addressMap.put("city", addresses.getCity());
-        addressMap.put("state", addresses.getRegion());
-        addressMap.put("country", addresses.getCountry());
-        addressMap.put("zip", addresses.getPostalCode());
-        addressMap.put("phone", addresses.getPostalCode());
-
-        return Address.create(addressMap);
-    }
-
-
-
 }

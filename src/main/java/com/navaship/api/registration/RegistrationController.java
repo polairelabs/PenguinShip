@@ -9,6 +9,7 @@ import com.navaship.api.verificationtoken.VerificationTokenService;
 import com.navaship.api.verificationtoken.VerificationTokenType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ public class RegistrationController {
 
 
     @PostMapping("/register")
-    public AppUser register(@Valid @RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<AppUser> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
         if (appUserService.findByEmail(registrationRequest.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
         }
@@ -45,6 +46,6 @@ public class RegistrationController {
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
         sendGridEmailService.sendVerifyAccountEmail(user.getEmail(), verificationToken.getToken());
 
-        return user;
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 }

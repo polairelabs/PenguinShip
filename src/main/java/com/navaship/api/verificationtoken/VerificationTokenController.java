@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping(path = "api/v1/account")
 @RequiredArgsConstructor
+@RequestMapping(path = "api/v1/account")
 public class VerificationTokenController {
     private final VerificationTokenService verificationTokenService;
     private final AppUserService appUserService;

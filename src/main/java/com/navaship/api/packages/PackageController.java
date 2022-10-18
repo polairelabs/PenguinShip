@@ -1,50 +1,68 @@
 package com.navaship.api.packages;
 
-import com.fasterxml.jackson.annotation.JsonView;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.navaship.api.appuser.AppUser;
+import com.navaship.api.appuser.AppUserService;
+import com.navaship.api.verificationtoken.VerificationTokenException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "apps/packages")
+@RequiredArgsConstructor
+@RequestMapping(path = "api/v1/packages")
 public class PackageController {
+    private final PackageService packageService;
+    private final AppUserService appUserService;
 
-    private PackageService packageService;
-    @Autowired
-    public PackageController(PackageService packageService){
-        this.packageService = packageService;
-    }
-
-    /*@GetMapping
-    public ResponseEntity<List<Packages>> findAllPackages(){
-        return new ResponseEntity<>(packagesServices.getPackages(), HttpStatus.OK);
-    }*/
-
-    @JsonView(PackagesView.Default.class)
-    @PostMapping
-    public ResponseEntity<Package> addPackages(@RequestBody Package aPackage, @RequestParam Long clientId) {
-        return new ResponseEntity<>(packageService.savePackages(aPackage, clientId), HttpStatus.CREATED);
-    }
 
     @GetMapping
-    public ResponseEntity<List<Package>> findAllPackagesForClient(@RequestParam Long clientId){
-        return new ResponseEntity<>(packageService.getPackagesForClient(clientId), HttpStatus.OK);
+    public ResponseEntity<List<Package>> getAllPackagesForUser(JwtAuthenticationToken principal) {
+        AppUser user = retrieveUserFromJwt(principal);
+        return new ResponseEntity<>(packageService.getAllPackages(user), HttpStatus.OK);
     }
 
-    @JsonView(PackagesView.Default.class)
+    @PostMapping
+    public ResponseEntity<Package> addPackage(JwtAuthenticationToken principal,
+                                              @Valid @RequestBody Package parcel) {
+        AppUser user = retrieveUserFromJwt(principal);
+        return new ResponseEntity<>(packageService.savePackage(parcel, user), HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Package> updatePackages(@RequestBody Package evaluation, @PathVariable Long id) {
-        return new ResponseEntity<>(packageService.modifyPackages(evaluation, id), HttpStatus.OK);
+    public ResponseEntity<Package> updatePackage(JwtAuthenticationToken principal,
+                                                 @PathVariable Long id,
+                                                 @Valid @RequestBody Package updatedParcel) {
+        Package parcel = packageService.retrievePackage(id);
+        checkResourceBelongsToUser(principal, parcel);
+        return new ResponseEntity<>(packageService.modifyPackage(updatedParcel), HttpStatus.OK);
     }
 
-    @JsonView(PackagesView.Default.class)
     @DeleteMapping("/{id}")
-    @CrossOrigin(origins = "http://localhost:3000", maxAge = 3600)
-    public ResponseEntity<Package> deletePackages(@PathVariable Long id) {
-        return new ResponseEntity<>(packageService.deletePackages(id), HttpStatus.ACCEPTED);
+    public ResponseEntity<Package> deletePackage(JwtAuthenticationToken principal,
+                                                 @PathVariable Long id) {
+        Package parcel = packageService.retrievePackage(id);
+        checkResourceBelongsToUser(principal, parcel);
+        return new ResponseEntity<>(packageService.deletePackage(parcel), HttpStatus.ACCEPTED);
     }
 
+    private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
+        Long userId = (Long) principal.getTokenAttributes().get("id");
+        return appUserService.findById(userId).orElseThrow(
+                () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
+        );
+    }
+
+    private void checkResourceBelongsToUser(JwtAuthenticationToken principal,
+                                            Package parcel) {
+        Long userId = (Long) principal.getTokenAttributes().get("id");
+        if (!parcel.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
+        }
+    }
 }

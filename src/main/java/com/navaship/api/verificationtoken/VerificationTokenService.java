@@ -22,10 +22,6 @@ public class VerificationTokenService {
         return verificationTokenRepository.findByToken(token);
     }
 
-    public Optional<VerificationToken> findByUser(AppUser user) {
-        return verificationTokenRepository.findByUser(user);
-    }
-
     public Optional<VerificationToken> findByUserAndTokenType(AppUser user, VerificationTokenType tokenType) {
         return verificationTokenRepository.findByUserAndTokenType(user, tokenType);
     }
