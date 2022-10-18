@@ -9,10 +9,8 @@ import com.navaship.api.packages.PackageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,9 +21,10 @@ public class ShipmentController {
     private final PackageService packageService;
 
     @PostMapping()
-    private ResponseEntity<String> createShipments(@PathVariable Long fromAddressId,
-                                                   @PathVariable Long toAddressId,
-                                                   @PathVariable Long parcelId) {
+    private ResponseEntity<String> createShipments(@RequestParam Long fromAddressId,
+                                                   @RequestParam Long toAddressId,
+                                                   @RequestParam Long parcelId) {
+        // TODO check fromAddressId and toAddressId cannot be the same (elementary check)
         Address fromAddress = addressService.retrieveAddress(fromAddressId);
         Address toAddress = addressService.retrieveAddress(toAddressId);
         Package parcel = packageService.retrievePackage(parcelId);
@@ -33,7 +32,7 @@ public class ShipmentController {
         try {
             easyPostService.createShipment(fromAddress, toAddress, parcel);
         } catch (EasyPostException e) {
-            throw new RuntimeException(e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
