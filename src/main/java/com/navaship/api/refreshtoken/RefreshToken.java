@@ -19,7 +19,7 @@ public class RefreshToken {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id")
     private AppUser user;
     @Column(name = "refresh_token", nullable = false, unique = true)
     private String token;

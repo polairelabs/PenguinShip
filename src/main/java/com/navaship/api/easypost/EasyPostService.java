@@ -20,7 +20,7 @@ public class EasyPostService {
     @Value("${navaship.app.easypost.apikey}")
     private String easyPostApiKey;
 
-    public void createShipment(com.navaship.api.addresses.Address fromAddress,
+    public Shipment createShipment(com.navaship.api.addresses.Address fromAddress,
                                com.navaship.api.addresses.Address toAddress,
                                com.navaship.api.packages.Package parcel) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
@@ -29,8 +29,19 @@ public class EasyPostService {
         shipmentMap.put(TO_ADDRESS_MAP_KEY, toAddress.toAddressMap());
         shipmentMap.put(PARCEL_MAP_KEY, parcel.toPackageMap());
 
-        Shipment shipment = Shipment.create(shipmentMap);
-        shipment.buy(shipment.lowestRate());
-        System.out.println(shipment.prettyPrint());
+        return Shipment.create(shipmentMap);
+    }
+
+    public Shipment buyShipment(String easypostShipmentId, String rate) throws EasyPostException {
+        EasyPost.apiKey = easyPostApiKey;
+        Shipment shipment = Shipment.retrieve(easypostShipmentId);
+        return shipment.buy(rate);
+    }
+
+    public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
+        EasyPost.apiKey = easyPostApiKey;
+        Shipment shipment = Shipment.retrieve(easypostShipmentId);
+        shipment.insure(amountInUSD);
+        return shipment;
     }
 }

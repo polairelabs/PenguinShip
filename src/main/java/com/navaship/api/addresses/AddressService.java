@@ -25,10 +25,6 @@ public class AddressService {
         return addressRepository.findAllByUser(user);
     }
 
-    public Optional<Address> findById(Long id) {
-        return addressRepository.findById(id);
-    }
-
     public Address modifyAddress(Address address) {
         return addressRepository.save(address);
     }

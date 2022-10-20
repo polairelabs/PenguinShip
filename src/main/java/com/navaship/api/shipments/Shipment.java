@@ -3,6 +3,7 @@ package com.navaship.api.shipments;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
+import com.navaship.api.rates.Rate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,21 +20,31 @@ import java.math.BigDecimal;
 public class Shipment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private Long id;
+
+    @Column(name = "easypost_shipment_id", nullable = false)
+    private String easypostShipmentId;
+
     @OneToOne
-    @JoinColumn(name = "to_address_id", referencedColumnName = "id")
+    @JoinColumn(name = "to_address_id")
     private Address toAddress;
+
     @OneToOne
-    @JoinColumn(name = "from_address_id", referencedColumnName = "id")
+    @JoinColumn(name = "from_address_id")
     private Address fromAddress;
-    private BigDecimal amount;
-    private String carrier;
-    private String trackingNumber;
+
     @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id")
     private AppUser user;
+
     @OneToOne
-    @JoinColumn(name = "package_id", referencedColumnName = "id")
+    @JoinColumn(name = "package_id")
     private Package parcel;
+
+    @Column(nullable = false)
+    private ShipmentStatus status = ShipmentStatus.DRAFT;
+
+    @OneToOne
+    @JoinColumn(name="rate_id")
+    private Rate rate;
 }

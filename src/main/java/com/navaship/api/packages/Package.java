@@ -28,7 +28,7 @@ public class Package {
     private BigDecimal width;
     private BigDecimal height;
     @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id")
     private AppUser user;
 
 

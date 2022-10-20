@@ -20,6 +20,7 @@ public class VerificationTokenController {
     private final AppUserService appUserService;
     private final SendGridEmailService sendGridEmailService;
 
+
     @PostMapping("/verify-email")
     public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@Valid @RequestBody EmailConfirmationRequest emailConfirmationRequest) {
         // Send email verification link to user

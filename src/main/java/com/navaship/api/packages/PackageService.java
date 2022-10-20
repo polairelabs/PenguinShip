@@ -20,10 +20,6 @@ public class PackageService {
         return packageRepository.save(parcel);
     }
 
-    public Optional<Package> findById(Long id) {
-        return packageRepository.findById(id);
-    }
-
     public List<Package> getAllPackages(AppUser user) {
         return packageRepository.findAllByUser(user);
     }

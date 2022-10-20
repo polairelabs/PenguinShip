@@ -18,7 +18,6 @@ import java.util.Map;
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private Long id;
     @Column(nullable = false)
     private String street1;
@@ -31,27 +30,31 @@ public class Address {
     private String zip; // zip or postal code
     @Column(nullable = false)
     private String country;
-    private String residential;
-    @Column(nullable = false)
-    private String name; // name of the person or company
+    private Boolean residential;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "user_id")
+    private AppUser user;
+
+    // Info to reach the person/organization (The more information, the better)
+    private String name;
     private String company;
     private String phone;
     private String email;
-    private Boolean verified;
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private AppUser user;
 
 
     public Map<String, Object> toAddressMap() {
         Map<String, Object> addressMap = new HashMap<>();
-        addressMap.put("name", name);
         addressMap.put("street1", street1);
         addressMap.put("street2", street2);
         addressMap.put("city", city);
         addressMap.put("state", state);
         addressMap.put("country", country);
         addressMap.put("zip", zip);
+        addressMap.put("residential", residential);
+        addressMap.put("name", name);
+        addressMap.put("company", company);
+        addressMap.put("phone", phone);
+        addressMap.put("email", email);
         return addressMap;
     }
 }

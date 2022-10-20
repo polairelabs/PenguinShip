@@ -1,7 +1,9 @@
 package com.navaship.api.appuser;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.navaship.api.addresses.Address;
 import com.navaship.api.auth.AuthViews;
+import com.navaship.api.shipments.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -43,6 +47,12 @@ public class AppUser implements UserDetails {
     private Boolean locked = false;
     @JsonView(AuthViews.Default.class)
     private Boolean enabled = true;
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    private Set<Shipment> shipments;
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    private Set<Address> addresses;
 
     public AppUser(String firstName, String lastName, String email, String password, AppUserRole role) {
         this.firstName = firstName;
