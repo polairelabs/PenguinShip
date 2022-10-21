@@ -31,8 +31,7 @@ public class Address {
     @Column(nullable = false)
     private String country;
     private Boolean residential;
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     private AppUser user;
 
     // Info to reach the person/organization (The more information, the better)

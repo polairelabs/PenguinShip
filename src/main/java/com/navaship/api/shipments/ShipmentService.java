@@ -26,7 +26,7 @@ public class ShipmentService {
         return shipmentRepository.save(shipment);
     }
 
-    public List<Shipment> getAllShipments() {
-        return shipmentRepository.findAll();
+    public List<Shipment> getAllShipments(AppUser user) {
+        return shipmentRepository.findAllByUser(user);
     }
 }

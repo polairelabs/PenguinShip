@@ -109,6 +109,7 @@ public class VerificationTokenController {
     }
 
     private void deleteVerificationTokenIfPresent(AppUser user, VerificationTokenType tokenType) {
-        verificationTokenService.findByUserAndTokenType(user, tokenType).ifPresent(verificationTokenService::delete);
+        verificationTokenService.findByUserAndTokenType(user, tokenType)
+                .ifPresent(verificationTokenService::delete);
     }
 }

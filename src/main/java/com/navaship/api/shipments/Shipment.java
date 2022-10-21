@@ -33,8 +33,12 @@ public class Shipment {
     @JoinColumn(name = "from_address_id")
     private Address fromAddress;
 
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id")
+    /*
+        The reason we explicitly set the fetch attribute to FetchType.LAZY is because, by default,
+        all @ManyToOne and @OneToOne associations are fetched eagerly, which can cause N+1 query issues
+        Lazy loading: fetch data only when needed
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     private AppUser user;
 
     @OneToOne

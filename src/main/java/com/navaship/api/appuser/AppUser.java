@@ -13,10 +13,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -47,12 +47,22 @@ public class AppUser implements UserDetails {
     private Boolean locked = false;
     @JsonView(AuthViews.Default.class)
     private Boolean enabled = true;
-    @OneToMany
-    @JoinColumn(name = "user_id")
-    private Set<Shipment> shipments;
-    @OneToMany
-    @JoinColumn(name = "user_id")
-    private Set<Address> addresses;
+
+    /*
+        Bidirectional mapping:
+        - AppUser will have access to his list of Shipments
+        - From Shipment, we will have access to user who "owns" that Shipment
+
+        CascadeType.ALL means that any change which happens on AppUser must cascade to Shipment as well.
+        - If you save an AppUser, then all associated Shipment will also be saved into database
+        - If you delete an AppUser then all Shipments associated with that AppUser will also be deleted
+    */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Shipment> shipments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Address> addresses = new ArrayList<>();
+
 
     public AppUser(String firstName, String lastName, String email, String password, AppUserRole role) {
         this.firstName = firstName;
@@ -96,5 +106,28 @@ public class AppUser implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    // For a bidirectional association, you also need to have two utility methods, like addChild
+    // These two methods ensure that both sides of the bidirectional association are in sync in Hibernate
+
+    public void addShipment(Shipment shipment) {
+        shipments.add(shipment);
+        shipment.setUser(this);
+    }
+
+    public void removeShipment(Shipment shipment) {
+        shipments.remove(shipment);
+        shipment.setUser(null);
+    }
+
+    public void addAddress(Address address) {
+        addresses.add(address);
+        address.setUser(this);
+    }
+
+    public void removeAddress(Address address) {
+        addresses.remove(address);
+        address.setUser(null);
     }
 }

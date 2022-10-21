@@ -31,8 +31,9 @@ public class ShipmentController {
 
 
     @GetMapping
-    public List<com.navaship.api.shipments.Shipment> listShipments() {
-        return shipmentService.getAllShipments();
+    public List<com.navaship.api.shipments.Shipment> listShipments(JwtAuthenticationToken principal) {
+        AppUser user = retrieveUserFromJwt(principal);
+        return shipmentService.getAllShipments(user);
     }
 
     @PostMapping()
