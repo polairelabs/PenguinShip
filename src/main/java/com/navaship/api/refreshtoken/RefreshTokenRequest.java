@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import javax.validation.constraints.NotNull;
+
 @Getter
 @AllArgsConstructor
 public class RefreshTokenRequest {
-    private long id;
+    @NotNull
     @JsonProperty("refresh_token")
     private String token;
 }
