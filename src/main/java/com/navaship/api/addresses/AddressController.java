@@ -30,13 +30,14 @@ public class AddressController {
     }
 
     @PostMapping
-    public ResponseEntity<Address> addAddress(JwtAuthenticationToken principal,
-                                              @Valid @RequestBody Address address) {
+    public ResponseEntity<AddressResponse> addAddress(JwtAuthenticationToken principal,
+                                              @Valid @RequestBody Address newAddress) {
         AppUser user = retrieveUserFromJwt(principal);
-        return new ResponseEntity<>(addressService.saveAddress(address, user), HttpStatus.CREATED);
+        Address address = addressService.saveAddress(newAddress, user);
+        return new ResponseEntity<>(new AddressResponse(address), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Address> updateAddress(JwtAuthenticationToken principal,
                                                  @PathVariable Long id,
                                                  @Valid @RequestBody Address updatedAddress) {
