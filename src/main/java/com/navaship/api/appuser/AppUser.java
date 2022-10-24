@@ -1,5 +1,6 @@
 package com.navaship.api.appuser;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.auth.AuthViews;
@@ -57,9 +58,11 @@ public class AppUser implements UserDetails {
         - If you save an AppUser, then all associated Shipment will also be saved into database
         - If you delete an AppUser then all Shipments associated with that AppUser will also be deleted
     */
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Shipment> shipments = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Address> addresses = new ArrayList<>();
 

@@ -14,11 +14,9 @@ public class RegistrationRequest {
     // http://emailregex.com/
     @NotNull(message = "Firstname is required")
     @NotEmpty(message = "Firstname must not be empty")
-    @Min(3)
     private String firstName;
     @NotNull(message = "Lastname is required")
     @NotEmpty(message = "Lastname must not be empty")
-    @Min(3)
     private String lastName;
     @NotNull(message = "Email is required")
     @NotEmpty(message = "Email must not be empty")

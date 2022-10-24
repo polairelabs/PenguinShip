@@ -2,9 +2,13 @@ package com.navaship.api.addresses;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 public class AddressResponse {
     private Long id;
     private String street1;
@@ -18,19 +22,4 @@ public class AddressResponse {
     private String company;
     private String phone;
     private String email;
-
-    public AddressResponse(Address address) {
-        id = address.getId();
-        street1 = address.getStreet1();
-        street2 = address.getStreet2();
-        city = address.getCity();
-        state = address.getState();
-        zip = address.getZip();
-        country = address.getCountry();
-        residential = address.getResidential();
-        name = address.getName();
-        company = address.getCompany();
-        phone = address.getPhone();
-        email = address.getEmail();
-    }
 }
