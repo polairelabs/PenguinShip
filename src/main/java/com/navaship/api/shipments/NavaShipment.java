@@ -3,21 +3,21 @@ package com.navaship.api.shipments;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
-import com.navaship.api.rates.Rate;
+import com.navaship.api.rates.NavaRate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.math.BigDecimal;
 
 @Getter
 @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
-public class Shipment {
+@Table(name = "shipment")
+public class NavaShipment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -49,6 +49,10 @@ public class Shipment {
     private ShipmentStatus status = ShipmentStatus.DRAFT;
 
     @OneToOne
-    @JoinColumn(name="rate_id")
-    private Rate rate;
+    @JoinColumn(name = "rate_id")
+    private NavaRate rate;
+
+    // Gets populated when a rate gets bought for the current shipment
+    private String trackingCode;
+    private String postageLabelUrl;
 }

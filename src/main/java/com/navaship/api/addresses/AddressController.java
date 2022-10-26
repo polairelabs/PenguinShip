@@ -23,10 +23,10 @@ public class AddressController {
     private AppUserService appUserService;
 
 
-    @GetMapping("/{id}")
+    @GetMapping("/{addressId}")
     public AddressResponse getAddressById(JwtAuthenticationToken principal,
-                                          @PathVariable Long id) {
-        Address address = addressService.retrieveAddress(id);
+                                          @PathVariable Long addressId) {
+        Address address = addressService.retrieveAddress(addressId);
         checkResourceBelongsToUser(principal, address);
         return addressService.convertToAddressResponse(address);
     }
@@ -44,31 +44,36 @@ public class AddressController {
     public ResponseEntity<AddressResponse> addAddress(JwtAuthenticationToken principal,
                                                       @Valid @RequestBody AddressRequest addressRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Address address = addressService.saveAddress(addressService.convertToAddress(addressRequest), user);
+        Address address = addressService.createAddress(addressService.convertToAddress(addressRequest), user);
         return new ResponseEntity<>(addressService.convertToAddressResponse(address), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{addressId}")
     public ResponseEntity<AddressResponse> updateAddress(JwtAuthenticationToken principal,
-                                                         @PathVariable Long id,
+                                                         @PathVariable Long addressId,
                                                          @Valid @RequestBody AddressRequest addressRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Address address = addressService.retrieveAddress(id);
+        Address address = addressService.retrieveAddress(addressId);
         checkResourceBelongsToUser(principal, address);
+
         Address convertedAddress = addressService.convertToAddress(addressRequest);
         convertedAddress.setUser(user);
-        Address updatedAddress = addressService.modifyAddress(id, convertedAddress);
+        convertedAddress.setId(addressId);
+
+        Address updatedAddress = addressService.modifyAddress(convertedAddress);
         return new ResponseEntity<>(addressService.convertToAddressResponse(updatedAddress), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{addressId}")
     public ResponseEntity<Map<String, String>> deleteAddress(JwtAuthenticationToken principal,
-                                                             @PathVariable Long id) {
-        Address address = addressService.retrieveAddress(id);
+                                                             @PathVariable Long addressId) {
+        Address address = addressService.retrieveAddress(addressId);
         checkResourceBelongsToUser(principal, address);
-        addressService.deleteAddress(id);
+
+        addressService.deleteAddress(addressId);
+
         Map<String, String> message = new HashMap<>();
-        message.put("message", String.format("Successfully deleted address %d", id));
+        message.put("message", String.format("Successfully deleted address %d", addressId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
     }
 

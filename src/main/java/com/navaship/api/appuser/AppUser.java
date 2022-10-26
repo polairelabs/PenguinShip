@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.auth.AuthViews;
-import com.navaship.api.shipments.Shipment;
+import com.navaship.api.shipments.NavaShipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +60,7 @@ public class AppUser implements UserDetails {
     */
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Shipment> shipments = new ArrayList<>();
+    private List<NavaShipment> shipments = new ArrayList<>();
 
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -114,12 +114,12 @@ public class AppUser implements UserDetails {
     // For a bidirectional association, you also need to have two utility methods, like addChild
     // These two methods ensure that both sides of the bidirectional association are in sync in Hibernate
 
-    public void addShipment(Shipment shipment) {
+    public void addShipment(NavaShipment shipment) {
         shipments.add(shipment);
         shipment.setUser(this);
     }
 
-    public void removeShipment(Shipment shipment) {
+    public void removeShipment(NavaShipment shipment) {
         shipments.remove(shipment);
         shipment.setUser(null);
     }

@@ -1,6 +1,7 @@
 package com.navaship.api.addresses;
 
 import com.navaship.api.appuser.AppUser;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -10,13 +11,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AddressService {
-    private final AddressRepository addressRepository;
-    private final ModelMapper modelMapper;
+    private AddressRepository addressRepository;
+    private ModelMapper modelMapper;
 
 
-    public Address saveAddress(Address address, AppUser user) {
+    public Address createAddress(Address address, AppUser user) {
         address.setUser(user);
         return addressRepository.save(address);
     }
@@ -25,8 +26,7 @@ public class AddressService {
         return addressRepository.findAllByUser(user);
     }
 
-    public Address modifyAddress(Long addressId, Address address) {
-        address.setId(addressId);
+    public Address modifyAddress(Address address) {
         return addressRepository.save(address);
     }
 

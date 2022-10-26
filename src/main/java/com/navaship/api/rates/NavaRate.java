@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
-public class Rate {
+public class NavaRate {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
