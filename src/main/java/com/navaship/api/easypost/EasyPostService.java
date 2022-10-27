@@ -65,4 +65,12 @@ public class EasyPostService {
         shipment.insure(amountInUSD);
         return shipment;
     }
+
+    public Shipment refund(String easypostShipmentId, Rate rate) throws EasyPostException {
+        // TODO finish this or delete
+        EasyPost.apiKey = easyPostApiKey;
+        Shipment shipment = Shipment.retrieve(easypostShipmentId);
+        shipment.refund();
+        return shipment;
+    }
 }

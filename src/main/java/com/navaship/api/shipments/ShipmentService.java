@@ -4,6 +4,7 @@ import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
 import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ShipmentService {
     private ShipmentRepository shipmentRepository;
+    private ModelMapper modelMapper;
 
 
     public NavaShipment createShipment(NavaShipment shipment,
@@ -23,7 +25,7 @@ public class ShipmentService {
                                        Package parcel) {
         shipment.setUser(user);
         shipment.setFromAddress(fromAddress);
-        shipment.setFromAddress(toAddress);
+        shipment.setToAddress(toAddress);
         shipment.setParcel(parcel);
         return shipmentRepository.save(shipment);
     }
@@ -34,6 +36,10 @@ public class ShipmentService {
 
     public void modifyShipment(NavaShipment shipment) {
         shipmentRepository.save(shipment);
+    }
+
+    public NavaShipmentResponse convertToNavaShipmentResponse(NavaShipment shipment) {
+        return modelMapper.map(shipment, NavaShipmentResponse.class);
     }
 
     public NavaShipment retrieveShipment(Long shipmentId) {

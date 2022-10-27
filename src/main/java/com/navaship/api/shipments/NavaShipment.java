@@ -25,24 +25,19 @@ public class NavaShipment {
     @Column(name = "easypost_shipment_id", nullable = false)
     private String easypostShipmentId;
 
-    @OneToOne
-    @JoinColumn(name = "to_address_id")
-    private Address toAddress;
-
-    @OneToOne
-    @JoinColumn(name = "from_address_id")
-    private Address fromAddress;
-
-    /*
-        The reason we explicitly set the fetch attribute to FetchType.LAZY is because, by default,
-        all @ManyToOne and @OneToOne associations are fetched eagerly, which can cause N+1 query issues
-        Lazy loading: fetch data only when needed
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private AppUser user;
 
     @OneToOne
-    @JoinColumn(name = "package_id")
+    @JoinColumn(name = "to_address_id", nullable = false)
+    private Address toAddress;
+
+    @OneToOne
+    @JoinColumn(name = "from_address_id", nullable = false)
+    private Address fromAddress;
+
+    @OneToOne
+    @JoinColumn(name = "package_id", nullable = false)
     private Package parcel;
 
     @Column(nullable = false)

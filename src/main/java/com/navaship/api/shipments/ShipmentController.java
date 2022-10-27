@@ -49,6 +49,7 @@ public class ShipmentController {
                                                    @RequestParam Long toAddressId,
                                                    @RequestParam Long parcelId) {
         // TODO check fromAddressId and toAddressId cannot be the same (elementary check)
+        // TODO check if all resources belong to user
         AppUser user = retrieveUserFromJwt(principal);
         Address fromAddress = addressService.retrieveAddress(fromAddressId);
         Address toAddress = addressService.retrieveAddress(toAddressId);
@@ -69,9 +70,11 @@ public class ShipmentController {
     }
 
     @PostMapping("/buy/{shipmentId}")
-    public ResponseEntity<NavaShipment> buyShipment(@PathVariable Long shipmentId, @Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
+    public ResponseEntity<NavaShipmentResponse> buyShipment(@PathVariable Long shipmentId, @Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
         NavaShipment navaShipment = shipmentService.retrieveShipment(shipmentId);
-        // TODO if using auto gen id, check if user has right even tho it's redundant if we use the easypost id
+        // TODO check if resource belongs to user, even if we decide to use easypostId which is a UUID
+        // We still don't want the a logged in user to access another one's resource if he doesn't own the resource
+        // TODO Check the passed easypostShipmentId is the correct id associated with NavaShipment
         try {
             Map<String, Object> results = easyPostService.buyShipmentRate(
                     buyShipmentRateRequest.getEasypostShipmentId(),
@@ -81,24 +84,35 @@ public class ShipmentController {
             Shipment shipment = (Shipment) results.get("boughtShipment");
             Rate rate = (Rate) results.get("boughtRate");
 
+//            NavaRate navaRate = new NavaRate();
+//            navaRate.setId(rate.getId());
+//            navaRate.setCarrier(rate.getCarrier());
+//            navaRate.setCarrier(rate.getCarrier());
+//            navaRate.setRate(BigDecimal.valueOf(rate.getRate()));
+//            navaRate.setCurrency(rate.getCurrency());
+//            navaRate.setDeliveryDays(0);
+//            navaRate.setEstDeliveryDays(0);
+//            navaRate.setDeliveryDateGuaranteed(rate.getDeliveryDateGuaranteed());
+
             // Modify shipment with new attributes trackingCode and labelUrl
             navaShipment.setTrackingCode(shipment.getTrackingCode());
-            navaShipment.setPostageLabelUrl(shipment.getLabelUrl());
-
-            // Set the bought rate to the shipment
-            NavaRate navaRate = rateService.convertToNavaRate(rate);
-            navaShipment.setRate(navaRate);
-
-            // Update status
+            navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
             navaShipment.setStatus(ShipmentStatus.PURCHASED);
 
-            // Save
+            NavaRate navaRate = rateService.convertToNavaRate(rate);
+            rateService.createRate(navaRate);
+            // Set the bought rate to the shipment
+            navaShipment.setRate(navaRate);
+
+            // Update Shipment
             shipmentService.modifyShipment(navaShipment);
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        return new ResponseEntity<>(navaShipment, HttpStatus.OK);
+        return new ResponseEntity<>(
+                shipmentService.convertToNavaShipmentResponse(navaShipment),
+                HttpStatus.OK);
     }
 
     @GetMapping("/rates/{shipmentId}")
