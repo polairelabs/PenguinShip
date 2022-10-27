@@ -84,16 +84,6 @@ public class ShipmentController {
             Shipment shipment = (Shipment) results.get("boughtShipment");
             Rate rate = (Rate) results.get("boughtRate");
 
-//            NavaRate navaRate = new NavaRate();
-//            navaRate.setId(rate.getId());
-//            navaRate.setCarrier(rate.getCarrier());
-//            navaRate.setCarrier(rate.getCarrier());
-//            navaRate.setRate(BigDecimal.valueOf(rate.getRate()));
-//            navaRate.setCurrency(rate.getCurrency());
-//            navaRate.setDeliveryDays(0);
-//            navaRate.setEstDeliveryDays(0);
-//            navaRate.setDeliveryDateGuaranteed(rate.getDeliveryDateGuaranteed());
-
             // Modify shipment with new attributes trackingCode and labelUrl
             navaShipment.setTrackingCode(shipment.getTrackingCode());
             navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());

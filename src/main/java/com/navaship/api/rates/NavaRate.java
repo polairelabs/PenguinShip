@@ -15,6 +15,7 @@ import java.util.Date;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
+@Table(name = "rate")
 public class NavaRate {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
