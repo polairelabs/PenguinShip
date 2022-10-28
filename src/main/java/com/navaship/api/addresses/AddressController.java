@@ -2,10 +2,8 @@ package com.navaship.api.addresses;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
-import com.navaship.api.packages.Package;
 import com.navaship.api.verificationtoken.VerificationTokenException;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -13,45 +11,70 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping(path = "api/v1/addresses")
 public class AddressController {
-    private final AddressService addressService;
-    private final AppUserService appUserService;
+    private AddressService addressService;
+    private AppUserService appUserService;
 
+
+    @GetMapping("/{addressId}")
+    public AddressResponse getAddressById(JwtAuthenticationToken principal,
+                                          @PathVariable Long addressId) {
+        Address address = addressService.retrieveAddress(addressId);
+        checkResourceBelongsToUser(principal, address);
+        return addressService.convertToAddressResponse(address);
+    }
 
     @GetMapping
-    public ResponseEntity<List<Address>> getAllAddressesForUser(JwtAuthenticationToken principal) {
+    public ResponseEntity<List<AddressResponse>> getAllAddressesByUser(JwtAuthenticationToken principal) {
         AppUser user = retrieveUserFromJwt(principal);
-        return new ResponseEntity<>(addressService.getAllAddresses(user), HttpStatus.OK);
+        List<AddressResponse> addresses = addressService.findAllAddresses(user)
+                .stream().map(addressService::convertToAddressResponse)
+                .toList();
+        return new ResponseEntity<>(addresses, HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<AddressResponse> addAddress(JwtAuthenticationToken principal,
-                                              @Valid @RequestBody Address newAddress) {
+                                                      @Valid @RequestBody AddressRequest addressRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Address address = addressService.saveAddress(newAddress, user);
-        return new ResponseEntity<>(new AddressResponse(address), HttpStatus.CREATED);
+        Address address = addressService.createAddress(addressService.convertToAddress(addressRequest), user);
+        return new ResponseEntity<>(addressService.convertToAddressResponse(address), HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<Address> updateAddress(JwtAuthenticationToken principal,
-                                                 @PathVariable Long id,
-                                                 @Valid @RequestBody Address updatedAddress) {
-        Address address = addressService.retrieveAddress(id);
+    @PutMapping("/{addressId}")
+    public ResponseEntity<AddressResponse> updateAddress(JwtAuthenticationToken principal,
+                                                         @PathVariable Long addressId,
+                                                         @Valid @RequestBody AddressRequest addressRequest) {
+        AppUser user = retrieveUserFromJwt(principal);
+        Address address = addressService.retrieveAddress(addressId);
         checkResourceBelongsToUser(principal, address);
-        return new ResponseEntity<>(addressService.modifyAddress(updatedAddress), HttpStatus.OK);
+
+        Address convertedAddress = addressService.convertToAddress(addressRequest);
+        convertedAddress.setUser(user);
+        convertedAddress.setId(addressId);
+
+        Address updatedAddress = addressService.modifyAddress(convertedAddress);
+        return new ResponseEntity<>(addressService.convertToAddressResponse(updatedAddress), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Address> deletePackage(JwtAuthenticationToken principal,
-                                                 @PathVariable Long id) {
-        Address address = addressService.retrieveAddress(id);
+    @DeleteMapping("/{addressId}")
+    public ResponseEntity<Map<String, String>> deleteAddress(JwtAuthenticationToken principal,
+                                                             @PathVariable Long addressId) {
+        Address address = addressService.retrieveAddress(addressId);
         checkResourceBelongsToUser(principal, address);
-        return new ResponseEntity<>(addressService.deleteAddress(address), HttpStatus.ACCEPTED);
+
+        addressService.deleteAddress(addressId);
+
+        Map<String, String> message = new HashMap<>();
+        message.put("message", String.format("Successfully deleted address %d", addressId));
+        return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
     }
 
     private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {

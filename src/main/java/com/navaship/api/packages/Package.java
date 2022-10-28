@@ -27,8 +27,7 @@ public class Package {
     private BigDecimal length;
     private BigDecimal width;
     private BigDecimal height;
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     private AppUser user;
 
 

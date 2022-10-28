@@ -31,7 +31,7 @@ public class Address {
     @Column(nullable = false)
     private String country;
     private Boolean residential;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private AppUser user;
 
     // Info to reach the person/organization (The more information, the better)
