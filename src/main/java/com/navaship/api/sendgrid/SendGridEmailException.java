@@ -1,8 +1,11 @@
 package com.navaship.api.sendgrid;
 
-public class SendGridEmailException extends RuntimeException {
+import java.io.IOException;
 
-    public SendGridEmailException(String message) {
-        super(message);
+public class SendGridEmailException extends RuntimeException {
+    String debugMessage;
+
+    public SendGridEmailException(String message, IOException e) {
+        super(message, e);
     }
 }

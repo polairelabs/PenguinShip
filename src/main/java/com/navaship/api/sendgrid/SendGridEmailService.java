@@ -32,7 +32,7 @@ public class SendGridEmailService {
             mail.personalization.get(0).addDynamicTemplateData("{{Verify_Account_Link}}", emailVerificationToken);
             sendEmail(mail);
         } catch (IOException e) {
-            throw new SendGridEmailException("A problem occurred while sending email");
+            throw new SendGridEmailException("A problem occurred while sending email", e);
         }
     }
 
@@ -45,7 +45,7 @@ public class SendGridEmailService {
             mail.personalization.get(0).addDynamicTemplateData("{{Sender_Name}}", firstName);
             sendEmail(mail);
         } catch (IOException e) {
-            throw new SendGridEmailException("A problem occurred while sending email");
+            throw new SendGridEmailException("A problem occurred while sending email", e);
         }
     }
 
