@@ -1,5 +1,6 @@
 package com.navaship.api.security.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -7,6 +8,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfiguration {
+    @Value("${navaship.webapp.url}")
+    private String webAppUrl;
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
@@ -14,7 +18,7 @@ public class CorsConfiguration {
             public void addCorsMappings(CorsRegistry registry) {
                 registry
                         .addMapping("/api/v*/**")
-                        .allowedOrigins("http://localhost:3000")
+                        .allowedOrigins(webAppUrl)
                         .allowedMethods("*");
             }
         };
