@@ -46,6 +46,8 @@ public class SecurityConfig {
                 .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/account/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
+                .cors()
+                .and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(Customizer.withDefaults())
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
