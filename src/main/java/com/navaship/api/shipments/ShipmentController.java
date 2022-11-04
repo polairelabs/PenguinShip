@@ -45,15 +45,13 @@ public class ShipmentController {
 
     @PostMapping()
     public ResponseEntity<Shipment> createShipment(JwtAuthenticationToken principal,
-                                                   @RequestParam Long fromAddressId,
-                                                   @RequestParam Long toAddressId,
-                                                   @RequestParam Long parcelId) {
+                                                   @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
         // TODO check fromAddressId and toAddressId cannot be the same (elementary check)
         // TODO check if all resources belong to user
         AppUser user = retrieveUserFromJwt(principal);
-        Address fromAddress = addressService.retrieveAddress(fromAddressId);
-        Address toAddress = addressService.retrieveAddress(toAddressId);
-        Package parcel = packageService.retrievePackage(parcelId);
+        Address fromAddress = addressService.retrieveAddress(createShipmentRequest.fromAddressId);
+        Address toAddress = addressService.retrieveAddress(createShipmentRequest.toAddressId);
+        Package parcel = packageService.retrievePackage(createShipmentRequest.parcelId);
 
         Shipment shipment = null;
         try {

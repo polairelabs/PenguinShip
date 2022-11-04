@@ -44,6 +44,7 @@ public class DummyData implements CommandLineRunner {
         address2.setUser(admin);
         addressRepository.save(address2);
         Package parcel = new Package();
+        parcel.setName("My cool package");
         parcel.setWeight(BigDecimal.valueOf(12));
         parcel.setUser(admin);
         packageRepository.save(parcel);
