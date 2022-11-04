@@ -47,4 +47,10 @@ public class ShipmentService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")
         );
     }
+    public NavaShipment retrieveShipment(String easypostShipmentId) {
+        return shipmentRepository.findShipmentByEasypostShipmentId(easypostShipmentId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")
+        );
+    }
+
 }

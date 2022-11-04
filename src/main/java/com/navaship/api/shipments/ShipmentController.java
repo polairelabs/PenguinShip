@@ -67,9 +67,10 @@ public class ShipmentController {
         return new ResponseEntity<>(shipment, HttpStatus.OK);
     }
 
-    @PostMapping("/buy/{shipmentId}")
-    public ResponseEntity<NavaShipmentResponse> buyShipment(@PathVariable Long shipmentId, @Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
-        NavaShipment navaShipment = shipmentService.retrieveShipment(shipmentId);
+    @PostMapping("/buy")
+    public ResponseEntity<NavaShipmentResponse> buyShipment(@Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
+        // TODO PUT THIS BACK NavaShipment navaShipment = shipmentService.retrieveShipment(shipmentId);
+        NavaShipment navaShipment = shipmentService.retrieveShipment(buyShipmentRateRequest.getEasypostShipmentId());
         // TODO check if resource belongs to user, even if we decide to use easypostId which is a UUID
         // We still don't want the a logged in user to access another one's resource if he doesn't own the resource
         // TODO Check the passed easypostShipmentId is the correct id associated with NavaShipment
