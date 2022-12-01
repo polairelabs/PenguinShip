@@ -1,6 +1,6 @@
 package com.navaship.api.registration;
 
-import com.navaship.api.password.Password;
+import com.navaship.api.validators.Password;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;

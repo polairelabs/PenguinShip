@@ -1,19 +1,19 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class PackageService {
-    private final PackageRepository packageRepository;
-
+    private PackageRepository packageRepository;
+    private ModelMapper modelMapper;
 
     public Package savePackage(Package parcel, AppUser user) {
         parcel.setUser(user);
@@ -37,5 +37,9 @@ public class PackageService {
         return packageRepository.findById(parcelId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parcel not found")
         );
+    }
+
+    public Package convertToPackage(PackageRequest packageRequest) {
+        return modelMapper.map(packageRequest, Package.class);
     }
 }

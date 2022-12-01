@@ -26,7 +26,7 @@ public class AddressRequest {
     private String state;
     @NotBlank
     @NotNull
-    @Size(max = 5)
+    @Size(max = 7)
     @NotBlank
     @NotNull
     private String zip;

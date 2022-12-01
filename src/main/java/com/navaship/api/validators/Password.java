@@ -1,4 +1,4 @@
-package com.navaship.api.password;
+package com.navaship.api.validators;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

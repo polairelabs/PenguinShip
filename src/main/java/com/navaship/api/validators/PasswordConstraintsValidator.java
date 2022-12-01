@@ -1,4 +1,4 @@
-package com.navaship.api.password;
+package com.navaship.api.validators;
 
 import org.passay.*;
 

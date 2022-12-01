@@ -29,18 +29,18 @@ public class PackageController {
 
     @PostMapping
     public ResponseEntity<Package> addPackage(JwtAuthenticationToken principal,
-                                              @Valid @RequestBody Package parcel) {
+                                              @Valid @RequestBody PackageRequest parcel) {
         AppUser user = retrieveUserFromJwt(principal);
-        return new ResponseEntity<>(packageService.savePackage(parcel, user), HttpStatus.CREATED);
+        return new ResponseEntity<>(packageService.savePackage(packageService.convertToPackage(parcel), user), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Package> updatePackage(JwtAuthenticationToken principal,
                                                  @PathVariable Long id,
-                                                 @Valid @RequestBody Package updatedParcel) {
+                                                 @Valid @RequestBody PackageRequest updatedParcel) {
         Package parcel = packageService.retrievePackage(id);
         checkResourceBelongsToUser(principal, parcel);
-        return new ResponseEntity<>(packageService.modifyPackage(updatedParcel), HttpStatus.OK);
+        return new ResponseEntity<>(packageService.modifyPackage(packageService.convertToPackage(updatedParcel)), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
