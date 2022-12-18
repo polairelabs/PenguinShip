@@ -1,5 +1,6 @@
 package com.navaship.api.shipments;
 
+import com.easypost.model.Shipment;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
@@ -22,11 +23,13 @@ public class ShipmentService {
                                        AppUser user,
                                        Address fromAddress,
                                        Address toAddress,
-                                       Package parcel) {
+                                       Package parcel,
+                                       String additionalInfoJson) {
         shipment.setUser(user);
         shipment.setFromAddress(fromAddress);
         shipment.setToAddress(toAddress);
         shipment.setParcel(parcel);
+        shipment.setAdditionalInfoJson(additionalInfoJson);
         return shipmentRepository.save(shipment);
     }
 
@@ -36,10 +39,6 @@ public class ShipmentService {
 
     public void modifyShipment(NavaShipment shipment) {
         shipmentRepository.save(shipment);
-    }
-
-    public NavaShipmentResponse convertToNavaShipmentResponse(NavaShipment shipment) {
-        return modelMapper.map(shipment, NavaShipmentResponse.class);
     }
 
     public NavaShipment retrieveShipment(Long shipmentId) {
@@ -53,4 +52,11 @@ public class ShipmentService {
         );
     }
 
+    public BuyShipmentResponse convertToBuyShipmentResponse(NavaShipment shipment) {
+        return modelMapper.map(shipment, BuyShipmentResponse.class);
+    }
+
+    public ShipmentResponse convertToShipmentResponse(Shipment easypostShipment) {
+        return modelMapper.map(easypostShipment, ShipmentResponse.class);
+    }
 }

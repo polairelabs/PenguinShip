@@ -31,8 +31,11 @@ public class NavaRate {
     @Column(nullable = false)
     private String currency;
     private String service;
+    private String serviceCode;
     private Date deliveryDate;
     private Integer deliveryDays;
     private Integer estDeliveryDays;
     private Boolean deliveryDateGuaranteed;
+    private String carrierAccountId;
+    private BigDecimal retailRate;
 }

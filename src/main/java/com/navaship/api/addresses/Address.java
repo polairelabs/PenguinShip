@@ -1,12 +1,16 @@
 package com.navaship.api.addresses;
 
+import com.google.gson.JsonObject;
 import com.navaship.api.appuser.AppUser;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +38,13 @@ public class Address {
     @ManyToOne
     private AppUser user;
 
-    // Info to reach the person/organization (The more information, the better)
+    @Column(updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    // Additional info to reach the person/organization (The more information, the better)
     private String name;
     private String company;
     private String phone;
@@ -49,11 +59,20 @@ public class Address {
         addressMap.put("state", state);
         addressMap.put("country", country);
         addressMap.put("zip", zip);
-        addressMap.put("residential", residential);
+        // addressMap.put("residential", residential);
         addressMap.put("name", name);
         addressMap.put("company", company);
         addressMap.put("phone", phone);
         addressMap.put("email", email);
         return addressMap;
+    }
+
+    public JsonObject additionalInfoToJson() {
+        JsonObject item = new JsonObject();
+        item.addProperty("name", name);
+        item.addProperty("company", company);
+        item.addProperty("phone", phone);
+        item.addProperty("email", email);
+        return item;
     }
 }

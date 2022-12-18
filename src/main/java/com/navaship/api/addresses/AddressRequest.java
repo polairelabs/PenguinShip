@@ -12,33 +12,29 @@ import javax.validation.constraints.Size;
 public class AddressRequest {
     @NotBlank
     @NotNull
-    @Size(max = 95)
+    @Size(max = 100)
     private String street1;
+    @Size(max = 100)
     private String street2;
     @NotBlank
     @NotNull
-    @Size(max = 35)
+    @Size(max = 40)
     private String city;
     @NotBlank
     @NotNull
-    @Size(max = 35)
-    @Size(max = 35)
+    @Size(max = 40)
+    @Size(max = 40)
     private String state;
     @NotBlank
     @NotNull
-    @Size(max = 7)
+    @Size(max = 8)
     @NotBlank
     @NotNull
     private String zip;
     @NotBlank
     @NotNull
-    @Size(max = 35)
+    @Size(max = 40)
     @NotBlank
     @NotNull
     private String country;
-    private Boolean residential;
-    private String name;
-    private String company;
-    private String phone;
-    private String email;
 }

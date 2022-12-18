@@ -27,6 +27,13 @@ public class PackageController {
         return new ResponseEntity<>(packageService.getAllPackages(user), HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Package> getPackage(JwtAuthenticationToken principal, @PathVariable Long id) {
+        Package parcel = packageService.retrievePackage(id);
+        checkResourceBelongsToUser(principal, parcel);
+        return new ResponseEntity<>(parcel, HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<Package> addPackage(JwtAuthenticationToken principal,
                                               @Valid @RequestBody PackageRequest parcel) {

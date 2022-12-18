@@ -5,9 +5,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +32,12 @@ public class Package {
     private BigDecimal height;
     @ManyToOne(fetch = FetchType.LAZY)
     private AppUser user;
+    @Column(updatable = false)
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
 
     public Map<String, Object> toPackageMap() {

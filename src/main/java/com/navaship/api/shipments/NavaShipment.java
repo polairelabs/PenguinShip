@@ -8,8 +8,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -47,7 +50,20 @@ public class NavaShipment {
     @JoinColumn(name = "rate_id")
     private NavaRate rate;
 
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
     // Gets populated when a rate gets bought for the current shipment
     private String trackingCode;
     private String postageLabelUrl;
+
+    private String easypostShipmentStatus;
+
+    // tracker object
+    private String publicTrackingUrl;
+
+    // Serialized as JSON string: contains info about sender and receiver name, company, email and phone
+    private String additionalInfoJson;
 }

@@ -3,6 +3,7 @@ package com.navaship.api.shipments;
 import com.easypost.exception.EasyPostException;
 import com.easypost.model.Rate;
 import com.easypost.model.Shipment;
+import com.google.gson.JsonObject;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.addresses.AddressService;
 import com.navaship.api.appuser.AppUser;
@@ -23,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @AllArgsConstructor
@@ -44,14 +45,35 @@ public class ShipmentController {
     }
 
     @PostMapping()
-    public ResponseEntity<Shipment> createShipment(JwtAuthenticationToken principal,
-                                                   @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
-        // TODO check fromAddressId and toAddressId cannot be the same (elementary check)
-        // TODO check if all resources belong to user
+    public ResponseEntity<ShipmentResponse> createShipment(JwtAuthenticationToken principal,
+                                                           @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
         AppUser user = retrieveUserFromJwt(principal);
         Address fromAddress = addressService.retrieveAddress(createShipmentRequest.fromAddressId);
+        checkAddressBelongsToUser(principal, fromAddress);
+
         Address toAddress = addressService.retrieveAddress(createShipmentRequest.toAddressId);
+        checkAddressBelongsToUser(principal, toAddress);
+
         Package parcel = packageService.retrievePackage(createShipmentRequest.parcelId);
+        checkParcelBelongsToUser(principal, parcel);
+
+        if (Objects.equals(fromAddress.getId(), toAddress.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and delivery address cannot be the same");
+        }
+
+        fromAddress.setName(createShipmentRequest.senderName);
+        fromAddress.setCompany(createShipmentRequest.senderCompany);
+        fromAddress.setPhone(createShipmentRequest.senderPhone);
+        fromAddress.setEmail(createShipmentRequest.senderEmail);
+
+        toAddress.setName(createShipmentRequest.receiverName);
+        toAddress.setCompany(createShipmentRequest.receiverCompany);
+        toAddress.setPhone(createShipmentRequest.receiverPhone);
+        toAddress.setEmail(createShipmentRequest.receiverEmail);
+
+        JsonObject additionalInfo = new JsonObject();
+        additionalInfo.add("sender", fromAddress.additionalInfoToJson());
+        additionalInfo.add("receiver", toAddress.additionalInfoToJson());
 
         Shipment shipment = null;
         try {
@@ -59,33 +81,39 @@ public class ShipmentController {
 
             NavaShipment navaShipment = new NavaShipment();
             navaShipment.setEasypostShipmentId(shipment.getId());
-            shipmentService.createShipment(navaShipment, user, fromAddress, toAddress, parcel);
+            shipmentService.createShipment(navaShipment, user, fromAddress, toAddress, parcel, additionalInfo.toString());
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        return new ResponseEntity<>(shipment, HttpStatus.OK);
+        // A rates array is return with Shipment object
+        ShipmentResponse sr = shipmentService.convertToShipmentResponse(shipment);
+        return new ResponseEntity<>(sr, HttpStatus.OK);
     }
 
     @PostMapping("/buy")
-    public ResponseEntity<NavaShipmentResponse> buyShipment(@Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
-        // TODO PUT THIS BACK NavaShipment navaShipment = shipmentService.retrieveShipment(shipmentId);
+    public ResponseEntity<BuyShipmentResponse> buyShipmentRate(JwtAuthenticationToken principal,
+                                                               @Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
         NavaShipment navaShipment = shipmentService.retrieveShipment(buyShipmentRateRequest.getEasypostShipmentId());
-        // TODO check if resource belongs to user, even if we decide to use easypostId which is a UUID
-        // We still don't want the a logged in user to access another one's resource if he doesn't own the resource
-        // TODO Check the passed easypostShipmentId is the correct id associated with NavaShipment
+        checkNavaShipmentBelongsToUser(principal, navaShipment);
+
         try {
-            Map<String, Object> results = easyPostService.buyShipmentRate(
+            Shipment shipment = easyPostService.buyShipmentRate(
                     buyShipmentRateRequest.getEasypostShipmentId(),
                     buyShipmentRateRequest.getEasypostRateId()
             );
 
-            Shipment shipment = (Shipment) results.get("boughtShipment");
-            Rate rate = (Rate) results.get("boughtRate");
+            Rate rate = shipment.getSelectedRate();
 
             // Modify shipment with new attributes trackingCode and labelUrl
             navaShipment.setTrackingCode(shipment.getTrackingCode());
-            navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
+            if (shipment.getPostageLabel() != null) {
+                navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
+            }
+            if (shipment.getTracker() != null) {
+                navaShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
+            }
+            navaShipment.setEasypostShipmentStatus(shipment.getStatus());
             navaShipment.setStatus(ShipmentStatus.PURCHASED);
 
             NavaRate navaRate = rateService.convertToNavaRate(rate);
@@ -100,7 +128,7 @@ public class ShipmentController {
         }
 
         return new ResponseEntity<>(
-                shipmentService.convertToNavaShipmentResponse(navaShipment),
+                shipmentService.convertToBuyShipmentResponse(navaShipment),
                 HttpStatus.OK);
     }
 
@@ -122,5 +150,29 @@ public class ShipmentController {
         return appUserService.findById(userId).orElseThrow(
                 () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
         );
+    }
+
+    private void checkNavaShipmentBelongsToUser(JwtAuthenticationToken principal,
+                                                NavaShipment navaShipment) {
+        Long userId = (Long) principal.getTokenAttributes().get("id");
+        if (!navaShipment.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
+        }
+    }
+
+    private void checkAddressBelongsToUser(JwtAuthenticationToken principal,
+                                            Address address) {
+        Long userId = (Long) principal.getTokenAttributes().get("id");
+        if (!address.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
+        }
+    }
+
+    private void checkParcelBelongsToUser(JwtAuthenticationToken principal,
+                                            Package parcel) {
+        Long userId = (Long) principal.getTokenAttributes().get("id");
+        if (!parcel.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
+        }
     }
 }
