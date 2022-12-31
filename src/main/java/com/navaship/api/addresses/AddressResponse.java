@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -22,4 +24,6 @@ public class AddressResponse {
     private String company;
     private String phone;
     private String email;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

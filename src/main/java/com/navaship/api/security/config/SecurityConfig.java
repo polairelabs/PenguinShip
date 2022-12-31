@@ -9,7 +9,6 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -43,7 +42,7 @@ public class SecurityConfig {
         // https://github.com/spring-projects/spring-security-samples/blob/main/servlet/spring-boot/java/jwt/login/src/main/java/example/RestConfig.java
         http.
                 authorizeRequests()
-                .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/account/**").permitAll()
+                .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/account/**", "/api/v*/subscriptions/prices").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .cors()

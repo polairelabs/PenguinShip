@@ -36,6 +36,15 @@ public class AppUserService implements UserDetailsService {
         return user;
     }
 
+    //    @Transactional
+    //    public int updateStripeCustomerIdForUser(String stripeCustomerId, Long userId) {
+    //        return appUserRepository.setStripeCustomerId(stripeCustomerId, userId);
+    //    }
+
+    public AppUser modifyUser(AppUser user) {
+        return appUserRepository.save(user);
+    }
+
     public void enableUserAccount(AppUser user) {
         user.setEnabled(true);
         appUserRepository.save(user);

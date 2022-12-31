@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,8 @@ public class AddressController {
         Address convertedAddress = addressService.convertToAddress(addressRequest);
         convertedAddress.setUser(user);
         convertedAddress.setId(addressId);
+        convertedAddress.setCreatedAt(address.getCreatedAt());
+        convertedAddress.setUpdatedAt(LocalDateTime.now());
 
         Address updatedAddress = addressService.modifyAddress(convertedAddress);
         return new ResponseEntity<>(addressService.convertToAddressResponse(updatedAddress), HttpStatus.OK);

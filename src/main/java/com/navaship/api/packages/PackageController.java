@@ -11,7 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,41 +24,58 @@ public class PackageController {
     private final AppUserService appUserService;
 
 
-    @GetMapping
-    public ResponseEntity<List<Package>> getAllPackagesForUser(JwtAuthenticationToken principal) {
-        AppUser user = retrieveUserFromJwt(principal);
-        return new ResponseEntity<>(packageService.getAllPackages(user), HttpStatus.OK);
+    @GetMapping("/{packageId}")
+    public ResponseEntity<PackageResponse> getPackage(JwtAuthenticationToken principal, @PathVariable Long packageId) {
+        Package parcel = packageService.retrievePackage(packageId);
+        checkResourceBelongsToUser(principal, parcel);
+        return new ResponseEntity<>(packageService.convertToPackagesResponse(parcel), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Package> getPackage(JwtAuthenticationToken principal, @PathVariable Long id) {
-        Package parcel = packageService.retrievePackage(id);
-        checkResourceBelongsToUser(principal, parcel);
-        return new ResponseEntity<>(parcel, HttpStatus.OK);
+    @GetMapping
+    public ResponseEntity<List<PackageResponse>> getAllPackagesByUser(JwtAuthenticationToken principal) {
+        AppUser user = retrieveUserFromJwt(principal);
+        List<PackageResponse> parcels = packageService.getAllPackages(user)
+                .stream().map(packageService::convertToPackagesResponse)
+                .toList();
+        return new ResponseEntity<>(parcels, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Package> addPackage(JwtAuthenticationToken principal,
-                                              @Valid @RequestBody PackageRequest parcel) {
+    public ResponseEntity<PackageResponse> addPackage(JwtAuthenticationToken principal,
+                                              @Valid @RequestBody PackageRequest packageRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        return new ResponseEntity<>(packageService.savePackage(packageService.convertToPackage(parcel), user), HttpStatus.CREATED);
+        Package parcel = packageService.savePackage(packageService.convertToPackage(packageRequest), user);
+        return new ResponseEntity<>(packageService.convertToPackagesResponse(parcel), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Package> updatePackage(JwtAuthenticationToken principal,
-                                                 @PathVariable Long id,
-                                                 @Valid @RequestBody PackageRequest updatedParcel) {
-        Package parcel = packageService.retrievePackage(id);
+    @PutMapping("/{packageId}")
+    public ResponseEntity<PackageResponse> updatePackage(JwtAuthenticationToken principal,
+                                                 @PathVariable Long packageId,
+                                                 @Valid @RequestBody PackageRequest packageRequest) {
+        AppUser user = retrieveUserFromJwt(principal);
+        Package parcel = packageService.retrievePackage(packageId);
         checkResourceBelongsToUser(principal, parcel);
-        return new ResponseEntity<>(packageService.modifyPackage(packageService.convertToPackage(updatedParcel)), HttpStatus.OK);
+
+        Package convertedPackage = packageService.convertToPackage(packageRequest);
+        convertedPackage.setUser(user);
+        convertedPackage.setCreatedAt(parcel.getCreatedAt());
+        convertedPackage.setUpdatedAt(LocalDateTime.now());
+
+        Package updatedPackage = packageService.modifyPackage(convertedPackage);
+        return new ResponseEntity<>(packageService.convertToPackagesResponse(updatedPackage), HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Package> deletePackage(JwtAuthenticationToken principal,
-                                                 @PathVariable Long id) {
-        Package parcel = packageService.retrievePackage(id);
+    @DeleteMapping("/{packageId}")
+    public ResponseEntity<Map<String, String>> deletePackage(JwtAuthenticationToken principal,
+                                                 @PathVariable Long packageId) {
+        Package parcel = packageService.retrievePackage(packageId);
         checkResourceBelongsToUser(principal, parcel);
-        return new ResponseEntity<>(packageService.deletePackage(parcel), HttpStatus.ACCEPTED);
+
+        packageService.deletePackage(parcel);
+
+        Map<String, String> message = new HashMap<>();
+        message.put("message", String.format("Successfully deleted package %d", packageId));
+        return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
     }
 
     private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {

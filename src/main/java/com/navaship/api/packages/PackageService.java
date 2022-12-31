@@ -42,4 +42,8 @@ public class PackageService {
     public Package convertToPackage(PackageRequest packageRequest) {
         return modelMapper.map(packageRequest, Package.class);
     }
+
+    public PackageResponse convertToPackagesResponse(Package parcel) {
+        return modelMapper.map(parcel, PackageResponse.class);
+    }
 }

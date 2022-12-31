@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.auth.AuthViews;
 import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,10 @@ public class AppUser implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Address> addresses = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private SubscriptionDetail subscriptionDetail;
 
 
     public AppUser(String firstName, String lastName, String email, String password, AppUserRole role) {
