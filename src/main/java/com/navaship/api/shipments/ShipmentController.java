@@ -39,14 +39,17 @@ public class ShipmentController {
 
 
     @GetMapping
-    public List<NavaShipment> listShipments(JwtAuthenticationToken principal) {
+    public ResponseEntity<List<ShipmentResponse>> getAllUserShipments(JwtAuthenticationToken principal) {
         AppUser user = retrieveUserFromJwt(principal);
-        return shipmentService.findAllShipments(user);
+        List<ShipmentResponse> shipments = shipmentService.findAllShipments(user)
+                .stream().map(shipmentService::convertToShipmentResponse)
+                .toList();
+        return new ResponseEntity<>(shipments, HttpStatus.OK);
     }
 
     @PostMapping()
-    public ResponseEntity<ShipmentResponse> createShipment(JwtAuthenticationToken principal,
-                                                           @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
+    public ResponseEntity<ShipmentCreatedResponse> createShipment(JwtAuthenticationToken principal,
+                                                                  @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
         AppUser user = retrieveUserFromJwt(principal);
         Address fromAddress = addressService.retrieveAddress(createShipmentRequest.fromAddressId);
         checkAddressBelongsToUser(principal, fromAddress);
@@ -81,26 +84,27 @@ public class ShipmentController {
 
             NavaShipment navaShipment = new NavaShipment();
             navaShipment.setEasypostShipmentId(shipment.getId());
+            navaShipment.setStatus(ShipmentStatus.DRAFT);
             shipmentService.createShipment(navaShipment, user, fromAddress, toAddress, parcel, additionalInfo.toString());
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        // A rates array is return with Shipment object
-        ShipmentResponse sr = shipmentService.convertToShipmentResponse(shipment);
-        return new ResponseEntity<>(sr, HttpStatus.OK);
+        // A rates array is return with ShipmentCreatedResponse object
+        ShipmentCreatedResponse shipmentCreatedResponse = shipmentService.convertToShipmentCreateResponse(shipment);
+        return new ResponseEntity<>(shipmentCreatedResponse, HttpStatus.OK);
     }
 
     @PostMapping("/buy")
     public ResponseEntity<BuyShipmentResponse> buyShipmentRate(JwtAuthenticationToken principal,
-                                                               @Valid @RequestBody BuyShipmentRateRequest buyShipmentRateRequest) {
-        NavaShipment navaShipment = shipmentService.retrieveShipment(buyShipmentRateRequest.getEasypostShipmentId());
+                                                               @Valid @RequestBody BuyRateRequest buyRateRequest) {
+        NavaShipment navaShipment = shipmentService.retrieveShipment(buyRateRequest.getEasypostShipmentId());
         checkNavaShipmentBelongsToUser(principal, navaShipment);
 
         try {
             Shipment shipment = easyPostService.buyShipmentRate(
-                    buyShipmentRateRequest.getEasypostShipmentId(),
-                    buyShipmentRateRequest.getEasypostRateId()
+                    buyRateRequest.getEasypostShipmentId(),
+                    buyRateRequest.getEasypostRateId()
             );
 
             Rate rate = shipment.getSelectedRate();
@@ -120,7 +124,6 @@ public class ShipmentController {
             rateService.createRate(navaRate);
             // Set the bought rate to the shipment
             navaShipment.setRate(navaRate);
-
             // Update Shipment
             shipmentService.modifyShipment(navaShipment);
         } catch (EasyPostException e) {
@@ -161,7 +164,7 @@ public class ShipmentController {
     }
 
     private void checkAddressBelongsToUser(JwtAuthenticationToken principal,
-                                            Address address) {
+                                           Address address) {
         Long userId = (Long) principal.getTokenAttributes().get("id");
         if (!address.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
@@ -169,7 +172,7 @@ public class ShipmentController {
     }
 
     private void checkParcelBelongsToUser(JwtAuthenticationToken principal,
-                                            Package parcel) {
+                                          Package parcel) {
         Long userId = (Long) principal.getTokenAttributes().get("id");
         if (!parcel.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");

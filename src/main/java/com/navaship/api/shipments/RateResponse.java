@@ -12,8 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RateResponse {
-    // easypost rate id
-    private String id;
+    private String id; // easypost rate id
     private String carrier;
     private String service;
     private String serviceCode;

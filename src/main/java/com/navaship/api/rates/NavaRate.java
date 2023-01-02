@@ -20,6 +20,7 @@ public class NavaRate {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @JsonProperty("id")
+    @Column(name = "id", nullable = false)
     private Long navaRateId;
     @Column(name = "easypost_rate_id", nullable = false)
     @JsonProperty("easyPostRateId")

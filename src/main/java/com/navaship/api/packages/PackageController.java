@@ -32,9 +32,9 @@ public class PackageController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PackageResponse>> getAllPackagesByUser(JwtAuthenticationToken principal) {
+    public ResponseEntity<List<PackageResponse>> getAllUserPackages(JwtAuthenticationToken principal) {
         AppUser user = retrieveUserFromJwt(principal);
-        List<PackageResponse> parcels = packageService.getAllPackages(user)
+        List<PackageResponse> parcels = packageService.findAllPackages(user)
                 .stream().map(packageService::convertToPackagesResponse)
                 .toList();
         return new ResponseEntity<>(parcels, HttpStatus.OK);

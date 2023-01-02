@@ -33,7 +33,7 @@ public class AddressController {
     }
 
     @GetMapping
-    public ResponseEntity<List<AddressResponse>> getAllAddressesByUser(JwtAuthenticationToken principal) {
+    public ResponseEntity<List<AddressResponse>> getAllUserAddresses(JwtAuthenticationToken principal) {
         AppUser user = retrieveUserFromJwt(principal);
         List<AddressResponse> addresses = addressService.findAllAddresses(user)
                 .stream().map(addressService::convertToAddressResponse)

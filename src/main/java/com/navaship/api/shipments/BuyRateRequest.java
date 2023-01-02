@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @AllArgsConstructor
-public class BuyShipmentRateRequest {
+public class BuyRateRequest {
     @NotBlank
     @NotNull
     private String easypostShipmentId;

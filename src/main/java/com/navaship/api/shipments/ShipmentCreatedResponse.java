@@ -11,7 +11,7 @@ import java.util.ArrayList;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShipmentResponse {
+public class ShipmentCreatedResponse {
     // easypost shipment id
     private String id;
     private ArrayList<RateResponse> rates;

@@ -20,7 +20,7 @@ public class PackageService {
         return packageRepository.save(parcel);
     }
 
-    public List<Package> getAllPackages(AppUser user) {
+    public List<Package> findAllPackages(AppUser user) {
         return packageRepository.findAllByUser(user);
     }
 
