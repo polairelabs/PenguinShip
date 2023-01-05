@@ -1,5 +1,6 @@
 package com.navaship.api.shipments;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.navaship.api.addresses.AddressResponse;
 import com.navaship.api.packages.PackageResponse;
 import lombok.AllArgsConstructor;
@@ -19,13 +20,14 @@ public class ShipmentResponse {
     private AddressResponse toAddress;
     private AddressResponse fromAddress;
     private PackageResponse parcel;
-    private ShipmentStatus shipmentStatus;
+    @JsonProperty("navashipShipmentStatus")
+    private ShipmentStatus status;
+    private String easypostShipmentStatus;
     private RateResponse rate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String trackingCode;
     private String postageLabelUrl;
-    private String easypostShipmentStatus;
     private String publicTrackingUrl;
     private String additionalInfoJson;
 }
