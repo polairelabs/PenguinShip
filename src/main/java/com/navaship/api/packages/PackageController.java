@@ -57,6 +57,7 @@ public class PackageController {
         checkResourceBelongsToUser(principal, parcel);
 
         Package convertedPackage = packageService.convertToPackage(packageRequest);
+        convertedPackage.setId(packageId);
         convertedPackage.setUser(user);
         convertedPackage.setCreatedAt(parcel.getCreatedAt());
         convertedPackage.setUpdatedAt(LocalDateTime.now());
@@ -70,7 +71,6 @@ public class PackageController {
                                                  @PathVariable Long packageId) {
         Package parcel = packageService.retrievePackage(packageId);
         checkResourceBelongsToUser(principal, parcel);
-
         packageService.deletePackage(parcel);
 
         Map<String, String> message = new HashMap<>();

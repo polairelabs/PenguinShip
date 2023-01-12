@@ -1,5 +1,6 @@
 package com.navaship.api.packages;
 
+import com.google.gson.JsonObject;
 import com.navaship.api.appuser.AppUser;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -49,4 +50,13 @@ public class Package {
         packageMap.put("length", length);
         return packageMap;
     }
+
+//    public JsonObject additionalInfoToJson() {
+//        JsonObject item = new JsonObject();
+//        item.addProperty("name", name);
+//        item.addProperty("company", company);
+//        item.addProperty("phone", phone);
+//        item.addProperty("email", email);
+//        return item;
+//    }
 }

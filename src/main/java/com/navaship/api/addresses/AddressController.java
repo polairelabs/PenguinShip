@@ -58,8 +58,8 @@ public class AddressController {
         checkResourceBelongsToUser(principal, address);
 
         Address convertedAddress = addressService.convertToAddress(addressRequest);
-        convertedAddress.setUser(user);
         convertedAddress.setId(addressId);
+        convertedAddress.setUser(user);
         convertedAddress.setCreatedAt(address.getCreatedAt());
         convertedAddress.setUpdatedAt(LocalDateTime.now());
 

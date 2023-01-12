@@ -6,6 +6,8 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -35,6 +37,10 @@ public class ShipmentService {
 
     public List<NavaShipment> findAllShipments(AppUser user) {
         return shipmentRepository.findAllByUser(user);
+    }
+
+    public Page<NavaShipment> findAllShipmentsPagination(AppUser user, int offset, int pageSize) {
+        return shipmentRepository.findAllByUser(user, PageRequest.of(offset, pageSize));
     }
 
     public void modifyShipment(NavaShipment shipment) {
