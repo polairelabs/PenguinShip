@@ -42,23 +42,23 @@ public class ShipmentController {
 
     @GetMapping
     public ResponseEntity<ListShipmentsResponse> getAllUserShipments(JwtAuthenticationToken principal,
-                                                                     @RequestParam("offset") Optional<Integer> offset,
-                                                                     @RequestParam("pageSize") Optional<Integer> pageSize) {
+                                                                     @RequestParam("page") Optional<Integer> page,
+                                                                     @RequestParam("size") Optional<Integer> size) {
         AppUser user = retrieveUserFromJwt(principal);
         ListShipmentsResponse listShipmentsResponse = new ListShipmentsResponse();
 
-        if (offset.isEmpty() && pageSize.isEmpty()) {
+        if (page.isEmpty() && size.isEmpty()) {
             List<ShipmentResponse> shipments = shipmentService.findAllShipments(user)
                     .stream().map(shipmentService::convertToShipmentResponse)
                     .toList();
             listShipmentsResponse.setData(shipments);
         } else {
-            Page<NavaShipment> shipmentsWithPagination = shipmentService.findAllShipmentsPagination(user, offset.get(), pageSize.get());
+            Page<NavaShipment> shipmentsWithPagination = shipmentService.findAllShipmentsPagination(user, page.get(), size.get());
             List<ShipmentResponse> shipments = shipmentsWithPagination
                     .map(shipmentService::convertToShipmentResponse)
                     .toList();
             listShipmentsResponse.setData(shipments);
-            listShipmentsResponse.setCurrentPage(offset.get());
+            listShipmentsResponse.setCurrentPage(page.get());
             listShipmentsResponse.setTotalPages(shipmentsWithPagination.getTotalPages());
         }
 
