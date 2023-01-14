@@ -1,6 +1,8 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.shipments.ShipmentRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -13,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class PackageService {
     private PackageRepository packageRepository;
+    private ShipmentRepository shipmentRepository;
     private ModelMapper modelMapper;
 
     public Package savePackage(Package parcel, AppUser user) {
@@ -28,9 +31,13 @@ public class PackageService {
         return packageRepository.save(parcel);
     }
 
-    public Package deletePackage(Package parcel) {
+    public void deletePackage(Package parcel) {
+        // Set parcel to null to all shipments that used that parcel
+        for (NavaShipment shipment : parcel.getShipments()) {
+            shipment.setParcel(null);
+            shipmentRepository.save(shipment);
+        }
         packageRepository.delete(parcel);
-        return parcel;
     }
 
     public Package retrievePackage(Long parcelId) {

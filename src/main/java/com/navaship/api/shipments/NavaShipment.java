@@ -32,16 +32,13 @@ public class NavaShipment {
     @ManyToOne
     private AppUser user;
 
-    @OneToOne
-    @JoinColumn(name = "to_address_id", nullable = false)
-    private Address toAddress;
-
-    @OneToOne
-    @JoinColumn(name = "from_address_id", nullable = false)
+    @ManyToOne
     private Address fromAddress;
 
-    @OneToOne
-    @JoinColumn(name = "package_id", nullable = false)
+    @ManyToOne
+    private Address toAddress;
+
+    @ManyToOne
     private Package parcel;
 
     @OneToOne

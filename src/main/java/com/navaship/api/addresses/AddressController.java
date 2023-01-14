@@ -73,8 +73,7 @@ public class AddressController {
         Address address = addressService.retrieveAddress(addressId);
         checkResourceBelongsToUser(principal, address);
 
-        addressService.deleteAddress(addressId);
-
+        addressService.deleteAddress(address);
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Successfully deleted address %d", addressId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);

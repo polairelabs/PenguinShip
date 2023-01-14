@@ -1,7 +1,7 @@
 package com.navaship.api.packages;
 
-import com.google.gson.JsonObject;
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.shipments.NavaShipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -34,12 +36,12 @@ public class Package {
     @ManyToOne(fetch = FetchType.LAZY)
     private AppUser user;
     @Column(updatable = false)
-
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
+    @OneToMany(mappedBy = "parcel")
+    private List<NavaShipment> shipments = new ArrayList<>();
 
     public Map<String, Object> toPackageMap() {
         Map<String, Object> packageMap = new HashMap<>();

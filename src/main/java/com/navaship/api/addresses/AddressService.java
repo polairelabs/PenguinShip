@@ -1,8 +1,9 @@
 package com.navaship.api.addresses;
 
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.shipments.ShipmentRepository;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AddressService {
     private AddressRepository addressRepository;
+    private ShipmentRepository shipmentRepository;
     private ModelMapper modelMapper;
 
 
@@ -30,8 +32,17 @@ public class AddressService {
         return addressRepository.save(address);
     }
 
-    public void deleteAddress(Long addressId) {
-        addressRepository.deleteById(addressId);
+    public void deleteAddress(Address address) {
+        // Set address to null to all shipments that used that address
+        for (NavaShipment shipment : address.getFromAddressShipments()) {
+            shipment.setFromAddress(null);
+            shipmentRepository.save(shipment);
+        }
+        for (NavaShipment shipment : address.getToAddressShipments()) {
+            shipment.setToAddress(null);
+            shipmentRepository.save(shipment);
+        }
+        addressRepository.delete(address);
     }
 
     public Address retrieveAddress(Long addressId) {

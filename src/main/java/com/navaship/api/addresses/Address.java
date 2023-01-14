@@ -2,6 +2,7 @@ package com.navaship.api.addresses;
 
 import com.google.gson.JsonObject;
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.shipments.NavaShipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -43,6 +46,14 @@ public class Address {
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    // Shipments where the current address is used as source
+    @OneToMany(mappedBy = "fromAddress")
+    private List<NavaShipment> fromAddressShipments = new ArrayList<>();
+
+    // Shipments where the current address is used as destination
+    @OneToMany(mappedBy = "toAddress")
+    private List<NavaShipment> toAddressShipments = new ArrayList<>();
 
     // Additional info to reach the person/organization (The more information, the better)
     private String name;
