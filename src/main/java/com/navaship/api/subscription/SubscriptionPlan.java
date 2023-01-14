@@ -16,7 +16,7 @@ import javax.persistence.Id;
 @NoArgsConstructor
 @Entity
 /**
- * Contains the data related to the subscription/membership. The admin can edit these settings in the web app
+ * Contains the data related to the subscription/membership. The admin can edit these settings in the webapp
  */
 public class SubscriptionPlan {
     @Id

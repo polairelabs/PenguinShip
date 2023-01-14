@@ -35,9 +35,12 @@ public class StripeService {
     public List<Price> retrievePrices() throws StripeException {
         Stripe.apiKey = stripeApiKey;
         Map<String, Object> params = new HashMap<>();
-        params.put("limit", 3);
-
         return Price.list(params).getData();
+    }
+
+    public Price retrievePrice(String priceId) throws StripeException {
+        Stripe.apiKey = stripeApiKey;
+        return Price.retrieve(priceId);
     }
 
     public Session createCheckoutSession(String price) throws StripeException {

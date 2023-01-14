@@ -11,7 +11,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +34,32 @@ import java.util.Map;
 public class SubscriptionController {
     private final StripeService stripeService;
     private final AppUserService appUserService;
+    private final SubscriptionPlanService subscriptionPlanService;
     private final SubscriptionDetailService subscriptionDetailService;
     @Value("${navaship.app.stripe.webhook.endpoint.secret}")
     private String webhookEndpointSecret;
 
+    @GetMapping("/memberships")
+    public ResponseEntity<List<SubscriptionPlanResponse>> retrieveSubscriptions() {
+        // Used to retrieve membership details/data + price, will need to create an endpoint to edit these fields for admin
+        List<SubscriptionPlanResponse> subscriptionPlanResponses = new ArrayList<>();
+        List<SubscriptionPlan> subscriptionPlans = subscriptionPlanService.retrieveSubscriptionPlans();
+        try {
+            for (SubscriptionPlan subscriptionPlan : subscriptionPlans) {
+                SubscriptionPlanResponse subscriptionPlanResponse = new SubscriptionPlanResponse();
+                subscriptionPlanResponse.setName(subscriptionPlan.getName());
+                subscriptionPlanResponse.setDescription(subscriptionPlan.getDescription());
+                Price price = stripeService.retrievePrice(subscriptionPlan.getStripePriceId());
+                subscriptionPlanResponse.setUnitAmount(price.getUnitAmount());
+                subscriptionPlanResponse.setCurrency(price.getCurrency());
+                subscriptionPlanResponses.add(subscriptionPlanResponse);
+            }
+        } catch (StripeException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Retrieving memberships error");
+        }
+
+        return new ResponseEntity<>(subscriptionPlanResponses, HttpStatus.OK);
+    }
 
     @PostMapping("/create-checkout-session")
     public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String price) {
