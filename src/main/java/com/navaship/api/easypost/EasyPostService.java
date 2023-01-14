@@ -2,10 +2,10 @@ package com.navaship.api.easypost;
 
 import com.easypost.EasyPost;
 import com.easypost.exception.EasyPostException;
+import com.easypost.model.Event;
 import com.easypost.model.Rate;
 import com.easypost.model.Shipment;
-import com.easypost.model.Tracker;
-import com.easypost.model.TrackerCollection;
+import com.easypost.model.Webhook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +21,10 @@ public class EasyPostService {
 
     @Value("${navaship.app.easypost.apikey}")
     private String easyPostApiKey;
+    @Value("${navaship.app.easypost.webhook.endpoint.secret}")
+    private String webhookSecret;
+    @Value("${navaship.app.easypost.webhook.endpoint.url}")
+    private String webhookUrl;
 
     public Shipment createShipment(com.navaship.api.addresses.Address fromAddress, com.navaship.api.addresses.Address toAddress, com.navaship.api.packages.Package parcel) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
@@ -53,21 +57,17 @@ public class EasyPostService {
         return shipment;
     }
 
-    public Tracker retrieveTrackingDetail(String trackingCode, String carrier) throws EasyPostException {
+    public Webhook createWebhook() throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
-        HashMap<String, Object> params = new HashMap<String, Object>();
-        params.put("tracking_code", trackingCode);
-        params.put("carrier", carrier);
-
-        return Tracker.create(params);
+        Map<String, Object> paramMap = new HashMap<String, Object>();
+        paramMap.put("url", webhookUrl);
+        paramMap.put("webhook_secret", webhookSecret);
+        return Webhook.create(paramMap);
     }
 
-    public TrackerCollection retrieveTrackers(int limit) throws EasyPostException {
+    public Event validateWebhook(byte[] eventBody, Map<String, Object> headers) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
-        HashMap<String, Object> params = new HashMap<>();
-        params.put("page_size", limit);
-
-        return Tracker.all(params);
+        return Webhook.validateWebhook(eventBody, headers, webhookSecret);
     }
 
     public Shipment refund(String easypostShipmentId, Rate rate) throws EasyPostException {

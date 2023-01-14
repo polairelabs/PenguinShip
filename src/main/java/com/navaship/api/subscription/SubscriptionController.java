@@ -56,7 +56,7 @@ public class SubscriptionController {
         return new ResponseEntity<>(stripeUrls, HttpStatus.OK);
     }
 
-    @PostMapping("/webhook")
+    @PostMapping("/stripe-webhook")
     public ResponseEntity<Map<String, String>> provisionSubscriber(JwtAuthenticationToken principal, @RequestBody String payload, HttpServletRequest request) {
         // Webhook to provision or de-provision customer
         // e.g. once customer pays via /create-checkout-session, it's time to provision the subscription to the customer (set stripe customer id + the stripe subscription id to the current user)

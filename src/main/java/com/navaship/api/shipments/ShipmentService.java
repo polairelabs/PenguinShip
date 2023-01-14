@@ -58,14 +58,14 @@ public class ShipmentService {
         );
     }
 
-    // Return this response when user buys a rate
-    public BuyShipmentResponse convertToBuyShipmentResponse(NavaShipment shipment) {
-        return modelMapper.map(shipment, BuyShipmentResponse.class);
-    }
-
     // Return this response when user creates a shipment
     public ShipmentCreatedResponse convertToShipmentCreateResponse(Shipment easypostShipment) {
         return modelMapper.map(easypostShipment, ShipmentCreatedResponse.class);
+    }
+
+    // Return this response when user buys a rate
+    public BuyShipmentResponse convertToBuyShipmentResponse(NavaShipment shipment) {
+        return modelMapper.map(shipment, BuyShipmentResponse.class);
     }
 
     // Return this response to return database entries of shipment

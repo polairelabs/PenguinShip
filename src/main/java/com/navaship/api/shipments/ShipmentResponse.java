@@ -22,7 +22,7 @@ public class ShipmentResponse {
     private PackageResponse parcel;
     @JsonProperty("navashipShipmentStatus")
     private ShipmentStatus status;
-    private String easypostShipmentStatus;
+    private EasyPostShipmentStatus easypostShipmentStatus;
     private RateResponse rate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

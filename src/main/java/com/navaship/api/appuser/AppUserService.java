@@ -1,6 +1,6 @@
 package com.navaship.api.appuser;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AppUserService implements UserDetailsService {
-    private final AppUserRepository appUserRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private AppUserRepository appUserRepository;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
 
     @Override

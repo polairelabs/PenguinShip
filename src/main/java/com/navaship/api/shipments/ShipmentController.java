@@ -1,6 +1,7 @@
 package com.navaship.api.shipments;
 
 import com.easypost.exception.EasyPostException;
+import com.easypost.model.Event;
 import com.easypost.model.Rate;
 import com.easypost.model.Shipment;
 import com.google.gson.JsonObject;
@@ -22,11 +23,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @AllArgsConstructor
@@ -46,23 +45,37 @@ public class ShipmentController {
                                                                      @RequestParam("size") Optional<Integer> size) {
         AppUser user = retrieveUserFromJwt(principal);
         ListShipmentsResponse listShipmentsResponse = new ListShipmentsResponse();
+        List<ShipmentResponse> shipmentResponseList;
 
         if (page.isEmpty() && size.isEmpty()) {
-            List<ShipmentResponse> shipments = shipmentService.findAllShipments(user)
+            shipmentResponseList = shipmentService.findAllShipments(user)
                     .stream().map(shipmentService::convertToShipmentResponse)
                     .toList();
-            listShipmentsResponse.setData(shipments);
         } else {
             Page<NavaShipment> shipmentsWithPagination = shipmentService.findAllShipmentsPagination(user, page.get(), size.get());
-            List<ShipmentResponse> shipments = shipmentsWithPagination
+            shipmentResponseList = shipmentsWithPagination
                     .map(shipmentService::convertToShipmentResponse)
                     .toList();
-            listShipmentsResponse.setData(shipments);
             listShipmentsResponse.setCurrentPage(page.get());
             listShipmentsResponse.setTotalPages(shipmentsWithPagination.getTotalPages());
         }
 
+        listShipmentsResponse.setData(shipmentResponseList);
         return new ResponseEntity<>(listShipmentsResponse, HttpStatus.OK);
+    }
+
+    @PostMapping("/easypost-webhook")
+    public ResponseEntity<String> easyPostWebhook(@RequestBody byte[] eventBody, HttpServletRequest request) {
+        // Webhook to listen for events and update shipments from easypost
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("X-Hmac-Signature", request.getHeader("X-Hmac-Signature"));
+        try {
+            Event event = easyPostService.validateWebhook(eventBody, headers);
+            // Do something with the event
+            return new ResponseEntity<>("Webhook event received and handled, current status " + event.getStatus(), HttpStatus.OK);
+        } catch (EasyPostException e) {
+            return new ResponseEntity<>("Invalid webhook signature", HttpStatus.UNAUTHORIZED);
+        }
     }
 
     @PostMapping()
@@ -125,18 +138,18 @@ public class ShipmentController {
                     buyRateRequest.getEasypostRateId()
             );
 
+            navaShipment.setStatus(ShipmentStatus.PURCHASED);
             Rate rate = shipment.getSelectedRate();
 
-            // Modify shipment with new attributes trackingCode and labelUrl
+            // Modify shipment with new generated (from easypost) attributes trackingCode and labelUrl
             navaShipment.setTrackingCode(shipment.getTrackingCode());
             if (shipment.getPostageLabel() != null) {
                 navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
             }
+
             if (shipment.getTracker() != null) {
                 navaShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
             }
-            navaShipment.setEasypostShipmentStatus(shipment.getStatus());
-            navaShipment.setStatus(ShipmentStatus.PURCHASED);
 
             NavaRate navaRate = rateService.convertToNavaRate(rate);
             rateService.createRate(navaRate);

@@ -14,6 +14,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -43,9 +44,6 @@ public class NavaShipment {
     @JoinColumn(name = "package_id", nullable = false)
     private Package parcel;
 
-    @Column(nullable = false)
-    private ShipmentStatus status = ShipmentStatus.DRAFT;
-
     @OneToOne
     @JoinColumn(name = "rate_id")
     private NavaRate rate;
@@ -59,7 +57,11 @@ public class NavaShipment {
     private String trackingCode;
     private String postageLabelUrl;
 
-    private String easypostShipmentStatus;
+    @Column(nullable = false)
+    private ShipmentStatus status = ShipmentStatus.DRAFT;
+
+    // Retrieved from easypost webhook
+    private EasyPostShipmentStatus easypostShipmentStatus;
 
     // tracker object
     private String publicTrackingUrl;
