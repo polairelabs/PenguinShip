@@ -49,6 +49,7 @@ public class SubscriptionController {
                 SubscriptionPlanResponse subscriptionPlanResponse = new SubscriptionPlanResponse();
                 subscriptionPlanResponse.setName(subscriptionPlan.getName());
                 subscriptionPlanResponse.setDescription(subscriptionPlan.getDescription());
+                subscriptionPlanResponse.setStripePriceId(subscriptionPlan.getStripePriceId());
                 Price price = stripeService.retrievePrice(subscriptionPlan.getStripePriceId());
                 subscriptionPlanResponse.setUnitAmount(price.getUnitAmount());
                 subscriptionPlanResponse.setCurrency(price.getCurrency());
