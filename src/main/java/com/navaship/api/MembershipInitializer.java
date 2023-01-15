@@ -24,17 +24,17 @@ public class MembershipInitializer {
         SubscriptionPlan subscriptionPlanBasic = new SubscriptionPlan();
         subscriptionPlanBasic.setName("Basic");
         subscriptionPlanBasic.setDescription("Up to 200 packages a month");
-        subscriptionPlanBasic.setStripePriceId("price_1MGykRBGBO0gISTgtVAocLVV");
+        subscriptionPlanBasic.setStripePriceId("price_1MQSUQDra7bwCGnFTvefPBTj");
 
         SubscriptionPlan subscriptionPlanStandard = new SubscriptionPlan();
         subscriptionPlanStandard.setName("Standard");
         subscriptionPlanStandard.setDescription("Up to 300 packages a month");
-        subscriptionPlanStandard.setStripePriceId("price_1MGykRBGBO0gISTgAzsoxDmk");
+        subscriptionPlanStandard.setStripePriceId("price_1MQbykDra7bwCGnF9qBAiMo2");
 
         SubscriptionPlan subscriptionPlanPremium = new SubscriptionPlan();
         subscriptionPlanPremium.setName("Premium");
         subscriptionPlanPremium.setDescription("Up to 500 packages a month");
-        subscriptionPlanPremium.setStripePriceId("price_1MGykRBGBO0gISTgNPL2QZLh");
+        subscriptionPlanPremium.setStripePriceId("price_1MQbzWDra7bwCGnFdXnoiJv3");
 
         subscriptionPlanService.createSubscriptionPlan(subscriptionPlanBasic);
         subscriptionPlanService.createSubscriptionPlan(subscriptionPlanStandard);

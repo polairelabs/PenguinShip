@@ -38,7 +38,11 @@ public class RegistrationController {
                 registrationRequest.getLastName(),
                 registrationRequest.getEmail(),
                 registrationRequest.getPassword(),
-                AppUserRole.USER
+                registrationRequest.getPhoneNumber(),
+                registrationRequest.getCity(),
+                registrationRequest.getState(),
+                registrationRequest.getAddress(),
+                AppUserRole.UNPAYED_USER
         );
 
         // Newly created user
