@@ -3,7 +3,7 @@ package com.navaship.api.shipments;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
-import com.navaship.api.rates.NavaRate;
+import com.navaship.api.rates.Rate;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "shipment")
-public class NavaShipment {
+public class Shipment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -43,7 +43,7 @@ public class NavaShipment {
 
     @OneToOne
     @JoinColumn(name = "rate_id")
-    private NavaRate rate;
+    private Rate rate;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

@@ -46,13 +46,10 @@ public class SubscriptionController {
         List<SubscriptionPlan> subscriptionPlans = subscriptionPlanService.retrieveSubscriptionPlans();
         try {
             for (SubscriptionPlan subscriptionPlan : subscriptionPlans) {
-                SubscriptionPlanResponse subscriptionPlanResponse = new SubscriptionPlanResponse();
-                subscriptionPlanResponse.setName(subscriptionPlan.getName());
-                subscriptionPlanResponse.setDescription(subscriptionPlan.getDescription());
-                subscriptionPlanResponse.setStripePriceId(subscriptionPlan.getStripePriceId());
+                SubscriptionPlanResponse subscriptionPlanResponse = subscriptionPlanService.convertToSubscriptionPlanResponse(subscriptionPlan);
                 Price price = stripeService.retrievePrice(subscriptionPlan.getStripePriceId());
-                subscriptionPlanResponse.setUnitAmount(price.getUnitAmount());
                 subscriptionPlanResponse.setCurrency(price.getCurrency());
+                subscriptionPlanResponse.setUnitAmount(price.getUnitAmount());
                 subscriptionPlanResponses.add(subscriptionPlanResponse);
             }
         } catch (StripeException e) {

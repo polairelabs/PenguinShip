@@ -2,10 +2,8 @@ package com.navaship.api.rates;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(readOnly = true)
-public interface RateRepository extends JpaRepository<NavaRate, Long> {
+public interface RateRepository extends JpaRepository<Rate, Long> {
 
 }

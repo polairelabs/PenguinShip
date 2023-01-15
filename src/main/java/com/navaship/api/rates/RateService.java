@@ -1,9 +1,6 @@
 package com.navaship.api.rates;
 
-import com.easypost.model.Rate;
-import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,11 +16,11 @@ public class RateService {
         // this.modelMapper.addMappings(mapper -> mapper.skip(NavaRate::setId));
     }
 
-    public NavaRate createRate(NavaRate rate) {
+    public Rate createRate(Rate rate) {
         return rateRepository.save(rate);
     }
 
-    public NavaRate convertToNavaRate(Rate rate) {
-        return modelMapper.map(rate, NavaRate.class);
+    public Rate convertToNavaRate(com.easypost.model.Rate rate) {
+        return modelMapper.map(rate, Rate.class);
     }
 }

@@ -5,15 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Transactional(readOnly = true)
-public interface ShipmentRepository extends PagingAndSortingRepository<NavaShipment, Long> {
-    List<NavaShipment> findAllByUser(AppUser user);
-    Page<NavaShipment> findAllByUser(AppUser user, Pageable pageable);
-    Optional<NavaShipment> findShipmentByEasypostShipmentId(String easypostShipmentId);
+public interface ShipmentRepository extends PagingAndSortingRepository<Shipment, Long> {
+    Page<Shipment> findAllByUser(AppUser user, Pageable pageable);
+    Optional<Shipment> findShipmentByEasypostShipmentId(String easypostShipmentId);
+    int countByUser(AppUser user);
 }

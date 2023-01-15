@@ -1,15 +1,16 @@
 package com.navaship.api.addresses;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.shipments.Shipment;
 import com.navaship.api.shipments.ShipmentRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,8 +25,12 @@ public class AddressService {
         return addressRepository.save(address);
     }
 
-    public List<Address> findAllAddresses(AppUser user) {
-        return addressRepository.findAllByUser(user);
+    public Page<Address> findAllAddresses(AppUser user, int pageNumber, int pageSize, String field, Sort.Direction direction) {
+        return addressRepository.findAllByUser(user, PageRequest.of(pageNumber, pageSize).withSort(Sort.by(direction, field)));
+    }
+
+    public int retrieveUserAddressesCount(AppUser user) {
+        return addressRepository.countByUser(user);
     }
 
     public Address modifyAddress(Address address) {
@@ -34,11 +39,11 @@ public class AddressService {
 
     public void deleteAddress(Address address) {
         // Set address to null to all shipments that used that address
-        for (NavaShipment shipment : address.getFromAddressShipments()) {
+        for (Shipment shipment : address.getFromAddressShipments()) {
             shipment.setFromAddress(null);
             shipmentRepository.save(shipment);
         }
-        for (NavaShipment shipment : address.getToAddressShipments()) {
+        for (Shipment shipment : address.getToAddressShipments()) {
             shipment.setToAddress(null);
             shipmentRepository.save(shipment);
         }

@@ -2,7 +2,7 @@ package com.navaship.api.addresses;
 
 import com.google.gson.JsonObject;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.shipments.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,11 +49,11 @@ public class Address {
 
     // Shipments where the current address is used as source
     @OneToMany(mappedBy = "fromAddress")
-    private List<NavaShipment> fromAddressShipments = new ArrayList<>();
+    private List<Shipment> fromAddressShipments = new ArrayList<>();
 
     // Shipments where the current address is used as destination
     @OneToMany(mappedBy = "toAddress")
-    private List<NavaShipment> toAddressShipments = new ArrayList<>();
+    private List<Shipment> toAddressShipments = new ArrayList<>();
 
     // Additional info to reach the person/organization (The more information, the better)
     private String name;

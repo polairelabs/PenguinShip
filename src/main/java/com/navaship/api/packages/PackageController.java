@@ -2,8 +2,11 @@ package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
+import com.navaship.api.common.ListApiResponse;
 import com.navaship.api.verificationtoken.VerificationTokenException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -13,8 +16,9 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import static com.navaship.api.common.ListApiConstants.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,17 +36,42 @@ public class PackageController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PackageResponse>> getAllUserPackages(JwtAuthenticationToken principal) {
+    public ResponseEntity<ListApiResponse<PackageResponse>> getAllUserPackages(JwtAuthenticationToken principal,
+                                                                               @RequestParam(value = "page", defaultValue = DEFAULT_PAGE_NUMBER + "") int pageNumber,
+                                                                               @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
+                                                                               @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
+                                                                               @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
         AppUser user = retrieveUserFromJwt(principal);
-        List<PackageResponse> parcels = packageService.findAllPackages(user)
-                .stream().map(packageService::convertToPackagesResponse)
-                .toList();
-        return new ResponseEntity<>(parcels, HttpStatus.OK);
+        ListApiResponse<PackageResponse> listApiResponse = new ListApiResponse<>();
+
+        // Validate page size
+        if (pageSize > DEFAULT_PAGE_SIZE) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+
+        // Decrement page number to match zero-based index
+        int zeroBasedPageNumber = pageNumber - 1;
+
+        try {
+            // Retrieve addresses with pagination
+            Page<Package> addressesWithPagination = packageService.findAllPackages(user, zeroBasedPageNumber, pageSize, sortField, Sort.Direction.valueOf(sortDirection.toUpperCase()));
+            listApiResponse.setData(addressesWithPagination.map(packageService::convertToPackagesResponse).toList());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+
+        // Calculate total pages
+        int totalPages = (int) Math.round(packageService.retrieveUserPackagesCount(user) / (double) pageSize);
+        listApiResponse.setTotalPages(totalPages);
+        listApiResponse.setCount(listApiResponse.getData().size());
+        listApiResponse.setCurrentPage(zeroBasedPageNumber + 1);
+
+        return new ResponseEntity<>(listApiResponse, HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<PackageResponse> addPackage(JwtAuthenticationToken principal,
-                                              @Valid @RequestBody PackageRequest packageRequest) {
+                                                      @Valid @RequestBody PackageRequest packageRequest) {
         AppUser user = retrieveUserFromJwt(principal);
         Package parcel = packageService.savePackage(packageService.convertToPackage(packageRequest), user);
         return new ResponseEntity<>(packageService.convertToPackagesResponse(parcel), HttpStatus.CREATED);
@@ -50,8 +79,8 @@ public class PackageController {
 
     @PutMapping("/{packageId}")
     public ResponseEntity<PackageResponse> updatePackage(JwtAuthenticationToken principal,
-                                                 @PathVariable Long packageId,
-                                                 @Valid @RequestBody PackageRequest packageRequest) {
+                                                         @PathVariable Long packageId,
+                                                         @Valid @RequestBody PackageRequest packageRequest) {
         AppUser user = retrieveUserFromJwt(principal);
         Package parcel = packageService.retrievePackage(packageId);
         checkResourceBelongsToUser(principal, parcel);
@@ -68,7 +97,7 @@ public class PackageController {
 
     @DeleteMapping("/{packageId}")
     public ResponseEntity<Map<String, String>> deletePackage(JwtAuthenticationToken principal,
-                                                 @PathVariable Long packageId) {
+                                                             @PathVariable Long packageId) {
         Package parcel = packageService.retrievePackage(packageId);
         checkResourceBelongsToUser(principal, parcel);
         packageService.deletePackage(parcel);

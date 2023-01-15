@@ -1,7 +1,7 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.shipments.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,7 +41,7 @@ public class Package {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
     @OneToMany(mappedBy = "parcel")
-    private List<NavaShipment> shipments = new ArrayList<>();
+    private List<Shipment> shipments = new ArrayList<>();
 
     public Map<String, Object> toPackageMap() {
         Map<String, Object> packageMap = new HashMap<>();

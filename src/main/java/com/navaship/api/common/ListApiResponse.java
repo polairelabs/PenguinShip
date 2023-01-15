@@ -1,4 +1,4 @@
-package com.navaship.api.shipments;
+package com.navaship.api.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,8 +11,9 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ListShipmentsResponse {
-    private int currentPage = 1;
-    private int totalPages = 1;
-    private List<ShipmentResponse> data;
+public class ListApiResponse<T> {
+    private int count;
+    private int currentPage;
+    private int totalPages;
+    private List<T> data;
 }

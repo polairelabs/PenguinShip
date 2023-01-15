@@ -1,15 +1,16 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.NavaShipment;
+import com.navaship.api.shipments.Shipment;
 import com.navaship.api.shipments.ShipmentRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -23,8 +24,12 @@ public class PackageService {
         return packageRepository.save(parcel);
     }
 
-    public List<Package> findAllPackages(AppUser user) {
-        return packageRepository.findAllByUser(user);
+    public Page<Package> findAllPackages(AppUser user, int pageNumber, int pageSize, String field, Sort.Direction direction) {
+        return packageRepository.findAllByUser(user, PageRequest.of(pageNumber, pageSize).withSort(Sort.by(direction, field)));
+    }
+
+    public int retrieveUserPackagesCount(AppUser user) {
+        return packageRepository.countByUser(user);
     }
 
     public Package modifyPackage(Package parcel) {
@@ -33,7 +38,7 @@ public class PackageService {
 
     public void deletePackage(Package parcel) {
         // Set parcel to null to all shipments that used that parcel
-        for (NavaShipment shipment : parcel.getShipments()) {
+        for (Shipment shipment : parcel.getShipments()) {
             shipment.setParcel(null);
             shipmentRepository.save(shipment);
         }
