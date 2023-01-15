@@ -44,7 +44,6 @@ public class PackageController {
         AppUser user = retrieveUserFromJwt(principal);
         ListApiResponse<PackageResponse> listApiResponse = new ListApiResponse<>();
 
-        // Validate page size
         if (pageSize > DEFAULT_PAGE_SIZE) {
             pageSize = DEFAULT_PAGE_SIZE;
         }
@@ -53,14 +52,12 @@ public class PackageController {
         int zeroBasedPageNumber = pageNumber - 1;
 
         try {
-            // Retrieve addresses with pagination
             Page<Package> addressesWithPagination = packageService.findAllPackages(user, zeroBasedPageNumber, pageSize, sortField, Sort.Direction.valueOf(sortDirection.toUpperCase()));
             listApiResponse.setData(addressesWithPagination.map(packageService::convertToPackagesResponse).toList());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        // Calculate total pages
         int totalPages = (int) Math.round(packageService.retrieveUserPackagesCount(user) / (double) pageSize);
         listApiResponse.setTotalPages(totalPages);
         listApiResponse.setCount(listApiResponse.getData().size());

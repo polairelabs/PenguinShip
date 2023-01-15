@@ -52,7 +52,6 @@ public class ShipmentController {
         AppUser user = retrieveUserFromJwt(principal);
         ListApiResponse<ShipmentResponse> listApiResponse = new ListApiResponse<>();
 
-        // Validate page size
         if (pageSize > DEFAULT_PAGE_SIZE) {
             pageSize = DEFAULT_PAGE_SIZE;
         }
@@ -61,14 +60,12 @@ public class ShipmentController {
         int zeroBasedPageNumber = pageNumber - 1;
 
         try {
-            // Retrieve addresses with pagination
             Page<Shipment> shipmentsWithPagination = shipmentService.findAllShipments(user, zeroBasedPageNumber, pageSize, sortField, Sort.Direction.valueOf(sortDirection.toUpperCase()));
             listApiResponse.setData(shipmentsWithPagination.map(shipmentService::convertToShipmentResponse).toList());
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        // Calculate total pages
         int totalPages = (int) Math.round(shipmentService.retrieveUserShipmentsCount(user) / (double) pageSize);
         listApiResponse.setTotalPages(totalPages);
         listApiResponse.setCount(listApiResponse.getData().size());
