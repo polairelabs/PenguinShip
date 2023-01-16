@@ -56,9 +56,13 @@ public class Address {
     private List<Shipment> toAddressShipments = new ArrayList<>();
 
     // Additional info to reach the person/organization (The more information, the better)
+    @Transient
     private String name;
+    @Transient
     private String company;
+    @Transient
     private String phone;
+    @Transient
     private String email;
 
 

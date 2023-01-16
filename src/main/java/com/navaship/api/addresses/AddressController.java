@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.navaship.api.common.ListApiConstants.*;
@@ -65,6 +66,14 @@ public class AddressController {
         listApiResponse.setCurrentPage(zeroBasedPageNumber + 1);
 
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<AddressResponse>> search(JwtAuthenticationToken principal,
+                                                      @RequestParam String query) {
+        AppUser user = retrieveUserFromJwt(principal);
+        List<AddressResponse> results = addressService.searchAddresses(user, query.toLowerCase()).stream().map(addressService::convertToAddressResponse).toList();
+        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
     @PostMapping

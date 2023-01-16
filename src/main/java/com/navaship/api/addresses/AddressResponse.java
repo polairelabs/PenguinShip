@@ -20,10 +20,6 @@ public class AddressResponse {
     private String zip;
     private String country;
     private Boolean residential;
-    private String name;
-    private String company;
-    private String phone;
-    private String email;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
