@@ -174,6 +174,7 @@ public class SubscriptionController {
         subscriptionDetail.setStripeCustomerId(subscription.getCustomer());
         subscriptionDetail.setStartDate(subscription.getStartDate());
         // Update user role to verified
+        // TODO: Add more validation to validate the user
         user.setRole(AppUserRole.USER);
         return subscriptionDetailService.createSubscriptionDetail(subscriptionDetail);
     }
