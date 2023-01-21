@@ -31,7 +31,7 @@ public class Package {
     @Column(nullable = false)
     private BigDecimal weight;
     private BigDecimal value;
-    private BigDecimal length;
+    private BigDecimal lengthObj;
     private BigDecimal width;
     private BigDecimal height;
     @ManyToOne(fetch = FetchType.LAZY)
@@ -50,7 +50,7 @@ public class Package {
         packageMap.put("weight", weight);
         packageMap.put("height", height);
         packageMap.put("width", width);
-        packageMap.put("length", length);
+        packageMap.put("length", lengthObj);
         return packageMap;
     }
 

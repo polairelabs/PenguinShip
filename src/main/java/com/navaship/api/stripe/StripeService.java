@@ -51,8 +51,8 @@ public class StripeService {
                 .addLineItem(
                         SessionCreateParams.LineItem.builder().setPrice(price).setQuantity(1L).build())
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl(domain + "?success=true&session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(domain + "?canceled=true")
+                .setSuccessUrl(domain + "/register/?success=true&session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(domain + "/register/?canceled=true")
                 .build();
 
         return Session.create(params);

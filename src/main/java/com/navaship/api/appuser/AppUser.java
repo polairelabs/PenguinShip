@@ -41,6 +41,14 @@ public class AppUser implements UserDetails {
     private String email;
     @Column(name = "password", nullable = false)
     private String password;
+    @Column(name = "phoneNumber", nullable = false)
+    private String phoneNumber;
+    @Column(name = "city", nullable = false)
+    private String city;
+    @Column(name = "state", nullable = false)
+    private String state;
+    @Column(name = "address", nullable = false)
+    private String address;
     @Enumerated(EnumType.STRING)
     @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
@@ -71,12 +79,15 @@ public class AppUser implements UserDetails {
     @PrimaryKeyJoinColumn
     private SubscriptionDetail subscriptionDetail;
 
-
-    public AppUser(String firstName, String lastName, String email, String password, AppUserRole role) {
+    public AppUser(String firstName, String lastName, String email, String password, String phoneNumber, String city, String state, String address, AppUserRole role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.city = city;
+        this.state = state;
+        this.address = address;
         this.role = role;
     }
 

@@ -11,6 +11,7 @@ import com.navaship.api.security.PasswordEncoder;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
@@ -21,11 +22,12 @@ public class DummyData implements CommandLineRunner {
     private AddressRepository addressRepository;
     private PackageRepository packageRepository;
     private PasswordEncoder passwordEncoder;
+    private MembershipInitializer membershipInitializer;
 
 
     @Override
     public void run(String...args) {
-        AppUser admin = new AppUser("admin", "admin", "admin@lol.com", passwordEncoder.bCryptPasswordEncoder().encode("admin123"), AppUserRole.ADMIN);
+        AppUser admin = new AppUser("admin", "admin", "admin@lol.com", passwordEncoder.bCryptPasswordEncoder().encode("admin123"), "5146662222", "New york", "NY", "899 road", AppUserRole.ADMIN);
         appUserRepository.save(admin);
         Address address1 = new Address();
         address1.setStreet1("417 MONTGOMERY ST STE 500");
@@ -47,6 +49,8 @@ public class DummyData implements CommandLineRunner {
         parcel.setName("My cool package");
         parcel.setWeight(BigDecimal.valueOf(12));
         parcel.setUser(admin);
+        parcel.setLengthObj(BigDecimal.valueOf(12));
         packageRepository.save(parcel);
+        membershipInitializer.createMembershipsData();
     }
 }

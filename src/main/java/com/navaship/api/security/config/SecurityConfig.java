@@ -42,7 +42,7 @@ public class SecurityConfig {
         // https://github.com/spring-projects/spring-security-samples/blob/main/servlet/spring-boot/java/jwt/login/src/main/java/example/RestConfig.java
         http.
                 authorizeRequests()
-                .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/account/**", "/api/v*/subscriptions/memberships", "/api/v*/subscriptions/prices").permitAll()
+                .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/account/**", "/api/v*/subscriptions/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .cors()

@@ -1,6 +1,10 @@
 package com.navaship.api.subscription;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.appuser.AppUserRole;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
@@ -77,10 +81,20 @@ public class SubscriptionController {
     }
 
     @PostMapping("/stripe-webhook")
-    public ResponseEntity<Map<String, String>> provisionSubscriber(JwtAuthenticationToken principal, @RequestBody String payload, HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> provisionSubscriber(@RequestBody String payload, HttpServletRequest request) {
         // Webhook to provision or de-provision customer
         // e.g. once customer pays via /create-checkout-session, it's time to provision the subscription to the customer (set stripe customer id + the stripe subscription id to the current user)
-        AppUser user = retrieveUserFromJwt(principal);
+
+        String email = null;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = null;
+            jsonNode = objectMapper.readTree(payload);
+            email = jsonNode.get("email").asText();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        AppUser user = retrieveUserFromEmail(email);
 
         Event event = null;
         String sigHeader = request.getHeader("Stripe-Signature");
@@ -156,6 +170,9 @@ public class SubscriptionController {
         subscriptionDetail.setSubscriptionId(subscription.getId());
         subscriptionDetail.setStripeCustomerId(subscription.getCustomer());
         subscriptionDetail.setStartDate(subscription.getStartDate());
+        // Update user role to verified
+        // TODO: Add more validation to validate the user
+        user.setRole(AppUserRole.USER);
         return subscriptionDetailService.createSubscriptionDetail(subscriptionDetail);
     }
 
@@ -166,6 +183,11 @@ public class SubscriptionController {
     private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
         Long userId = (Long) principal.getTokenAttributes().get("id");
         return appUserService.findById(userId).orElseThrow(
+                () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
+        );
+    }
+    private AppUser retrieveUserFromEmail(String email) {
+        return appUserService.findByEmail(email).orElseThrow(
                 () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
         );
     }
