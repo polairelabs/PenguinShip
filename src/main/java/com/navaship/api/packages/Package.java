@@ -28,6 +28,7 @@ public class Package {
     @Column(name = "id")
     private Long id;
     private String name;
+    @Column(nullable = false)
     private BigDecimal weight;
     private BigDecimal value;
     private BigDecimal length;

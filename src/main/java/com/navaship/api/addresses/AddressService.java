@@ -12,10 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-
-import static com.navaship.api.common.SearchApiConstants.*;
-
 @Service
 @AllArgsConstructor
 public class AddressService {
@@ -39,12 +35,6 @@ public class AddressService {
 
     public Address modifyAddress(Address address) {
         return addressRepository.save(address);
-    }
-
-    public List<Address> searchAddresses(AppUser user, String query) {
-        return addressRepository.findByUserAndStreet1ContainingIgnoreCase(user, query,
-                                    PageRequest.of(DEFAULT_SEARCH_PAGE_NUMBER - 1, DEFAULT_SEARCH_PAGE_SIZE)
-                                    .withSort(Sort.by(DEFAULT_SEARCH_DIRECTION, DEFAULT_SEARCH_SORT_FIELD)));
     }
 
     public void deleteAddress(Address address) {

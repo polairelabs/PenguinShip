@@ -6,6 +6,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
 import com.stripe.model.Subscription;
+import com.stripe.model.UsageRecord;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ public class StripeService {
     private String stripeApiKey;
     @Value("${navaship.webapp.url}")
     private String domain;
+
 
     public Customer createCustomer(AppUser user) throws StripeException {
         Stripe.apiKey = stripeApiKey;
@@ -77,5 +79,20 @@ public class StripeService {
         params.put("items", items);
 
         return Subscription.create(params);
+    }
+
+    private void incrementUsage(AppUser user) throws StripeException {
+        Stripe.apiKey = stripeApiKey;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("quantity", 100);
+        params.put("timestamp", 1571252444);
+
+        UsageRecord usageRecord =
+                UsageRecord.createOnSubscriptionItem(
+                        "si_NCtqpkE6BQCV3v",
+                        params,
+                        null
+                );
     }
 }

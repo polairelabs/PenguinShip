@@ -22,7 +22,6 @@ public class PackageRequest {
     @NotNull
     @BigDecimalLength(maxLength = 6)
     private BigDecimal weight;
-    @NotNull
     @BigDecimalLength(maxLength = 6)
     private BigDecimal value;
     @BigDecimalLength(maxLength = 6)

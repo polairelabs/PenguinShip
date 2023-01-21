@@ -37,7 +37,7 @@ public class PackageController {
 
     @GetMapping
     public ResponseEntity<ListApiResponse<PackageResponse>> getAllUserPackages(JwtAuthenticationToken principal,
-                                                                               @RequestParam(value = "page", defaultValue = DEFAULT_PAGE_NUMBER + "") int pageNumber,
+                                                                               @RequestParam(value = "offset", defaultValue = DEFAULT_PAGE_NUMBER + "") int offset,
                                                                                @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
                                                                                @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
                                                                                @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
@@ -49,7 +49,7 @@ public class PackageController {
         }
 
         // Decrement page number to match zero-based index
-        int zeroBasedPageNumber = pageNumber - 1;
+        int zeroBasedPageNumber = offset - 1;
 
         try {
             Page<Package> addressesWithPagination = packageService.findAllPackages(user, zeroBasedPageNumber, pageSize, sortField, Sort.Direction.valueOf(sortDirection.toUpperCase()));

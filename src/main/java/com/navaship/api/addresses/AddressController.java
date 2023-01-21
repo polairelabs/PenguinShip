@@ -16,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.navaship.api.common.ListApiConstants.*;
@@ -39,7 +38,7 @@ public class AddressController {
 
     @GetMapping
     public ResponseEntity<ListApiResponse<AddressResponse>> getAllUserAddresses(JwtAuthenticationToken principal,
-                                                                                 @RequestParam(value = "page", defaultValue = DEFAULT_PAGE_NUMBER + "") int pageNumber,
+                                                                                 @RequestParam(value = "offset", defaultValue = DEFAULT_PAGE_NUMBER + "") int offset,
                                                                                  @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
                                                                                  @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
                                                                                  @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
@@ -51,7 +50,7 @@ public class AddressController {
         }
 
         // Decrement page number to match zero-based index
-        int zeroBasedPageNumber = pageNumber - 1;
+        int zeroBasedPageNumber = offset - 1;
 
         try {
             Page<Address> addressesWithPagination = addressService.findAllAddresses(user, zeroBasedPageNumber, pageSize, sortField, Sort.Direction.valueOf(sortDirection.toUpperCase()));
@@ -66,14 +65,6 @@ public class AddressController {
         listApiResponse.setCurrentPage(zeroBasedPageNumber + 1);
 
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<AddressResponse>> search(JwtAuthenticationToken principal,
-                                                      @RequestParam String query) {
-        AppUser user = retrieveUserFromJwt(principal);
-        List<AddressResponse> results = addressService.searchAddresses(user, query.toLowerCase()).stream().map(addressService::convertToAddressResponse).toList();
-        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
     @PostMapping
