@@ -27,6 +27,7 @@ public class RegistrationController {
     private SendGridEmailService sendGridEmailService;
 
 
+    // TODO: Add captcha
     @PostMapping("/register")
     public ResponseEntity<AppUser> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
         if (appUserService.findByEmail(registrationRequest.getEmail()).isPresent()) {
@@ -38,7 +39,11 @@ public class RegistrationController {
                 registrationRequest.getLastName(),
                 registrationRequest.getEmail(),
                 registrationRequest.getPassword(),
-                AppUserRole.USER
+                registrationRequest.getPhoneNumber(),
+                registrationRequest.getCity(),
+                registrationRequest.getState(),
+                registrationRequest.getAddress(),
+                AppUserRole.UNPAYED_USER
         );
 
         // Newly created user
