@@ -50,11 +50,9 @@ public class EasyPostService {
         return shipment.getRates();
     }
 
-    public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
+    public Rate retrieveRate(String easypostRateId) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
-        Shipment shipment = Shipment.retrieve(easypostShipmentId);
-        shipment.insure(amountInUSD);
-        return shipment;
+        return Rate.retrieve(easypostRateId);
     }
 
     public Webhook createWebhook() throws EasyPostException {
@@ -70,8 +68,16 @@ public class EasyPostService {
         return Webhook.validateWebhook(eventBody, headers, webhookSecret);
     }
 
+    public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
+        // TODO finish this
+        EasyPost.apiKey = easyPostApiKey;
+        Shipment shipment = Shipment.retrieve(easypostShipmentId);
+        shipment.insure(amountInUSD);
+        return shipment;
+    }
+
     public Shipment refund(String easypostShipmentId, Rate rate) throws EasyPostException {
-        // TODO finish this or delete
+        // TODO Finish this
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
         shipment.refund();

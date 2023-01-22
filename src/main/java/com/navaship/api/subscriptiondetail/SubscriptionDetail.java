@@ -1,6 +1,8 @@
 package com.navaship.api.subscriptiondetail;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.auth.AuthViews;
 import com.navaship.api.subscription.SubscriptionPlan;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -24,6 +26,7 @@ public class SubscriptionDetail {
     @JoinColumn(name = "user_id")
     private AppUser user;
 
+    @JsonView(AuthViews.Default.class)
     private String stripeCustomerId;
     private String subscriptionId;
 

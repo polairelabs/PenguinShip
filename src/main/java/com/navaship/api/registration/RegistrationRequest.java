@@ -37,4 +37,7 @@ public class RegistrationRequest {
     private String phoneNumber;
     @Password
     private String password;
+    @NotNull(message = "A subscription needs to be selected")
+    @NotEmpty(message = "A subscription needs to be set")
+    private String stripePriceId;
 }

@@ -3,10 +3,7 @@ package com.navaship.api.stripe;
 import com.navaship.api.appuser.AppUser;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Price;
-import com.stripe.model.Subscription;
-import com.stripe.model.UsageRecord;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,15 +42,42 @@ public class StripeService {
         return Price.retrieve(priceId);
     }
 
-    public Session createCheckoutSession(String price) throws StripeException {
+    public Session createCheckoutSession(String priceId, String stripeCustomerId) throws StripeException {
         Stripe.apiKey = stripeApiKey;
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .addLineItem(
-                        SessionCreateParams.LineItem.builder().setPrice(price).setQuantity(1L).build())
+                        SessionCreateParams.LineItem.builder().setPrice(priceId).setQuantity(1L).build())
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                 .setSuccessUrl(domain + "/register/?success=true&session_id={CHECKOUT_SESSION_ID}")
                 .setCancelUrl(domain + "/register/?canceled=true")
+                .setCustomer(stripeCustomerId)
                 .build();
+
+//
+//        List<Object> lineItems = new ArrayList<>();
+//        Map<String, Object> lineItem1 = new HashMap<>();
+//        lineItem1.put("price", priceId);
+//        lineItem1.put("quantity", 1);
+//        lineItems.add(lineItem1);
+//        Map<String, Object> params = new HashMap<>();
+//        params.put("customer", stripeCustomerId);
+//        params.put(
+//                "success_url",
+//                domain + "/register/?success=true&session_id={CHECKOUT_SESSION_ID}"
+//        );
+//        params.put(
+//                "cancel_url",
+//                domain + "/register/?canceled=true"
+//        );
+//        params.put("line_items", lineItems);
+//        params.put("mode", "subscription");
+//
+//        Map<String, Object> paymentIntentParams = new HashMap<>();
+//        paymentIntentParams.put("setup_future_usage", "on_session");
+//        params.put("payment_intent_data", paymentIntentParams);
+
+        // PaymentIntentData paymentIntentData = PaymentIntentData.create(paymentIntentParams);
 
         return Session.create(params);
     }
@@ -65,6 +89,22 @@ public class StripeService {
         params.put("return_url", domain);
 
         return com.stripe.model.billingportal.Session.create(params);
+    }
+
+    public PaymentIntent createPaymentIntent(String customerId, int amountInCents, String currency) throws StripeException {
+        Stripe.apiKey = stripeApiKey;
+
+        Customer customer = Customer.retrieve(customerId);
+        String defaultPaymentMethodId = customer.getInvoiceSettings().getDefaultPaymentMethod();
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("amount", amountInCents);
+        params.put("currency", currency);
+        // Will retrieve the default source payment of the customer
+        params.put("payment_method", defaultPaymentMethodId);
+        params.put("customer", customerId);
+
+        return PaymentIntent.create(params);
     }
 
     public Subscription subscribe(String customerId, String price) throws StripeException {
