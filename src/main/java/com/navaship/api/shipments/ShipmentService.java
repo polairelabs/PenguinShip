@@ -3,6 +3,7 @@ package com.navaship.api.shipments;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
+import com.navaship.api.stripe.StripeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class ShipmentService {
     private ShipmentRepository shipmentRepository;
     private ModelMapper modelMapper;
+    private StripeService stripeService;
 
 
     public Shipment createShipment(Shipment shipment,
@@ -50,6 +52,7 @@ public class ShipmentService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")
         );
     }
+
     public Shipment retrieveShipment(String easypostShipmentId) {
         return shipmentRepository.findShipmentByEasypostShipmentId(easypostShipmentId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")

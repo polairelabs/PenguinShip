@@ -13,7 +13,10 @@ import com.navaship.api.packages.Package;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.rates.Rate;
 import com.navaship.api.rates.RateService;
+import com.navaship.api.stripe.StripeService;
 import com.navaship.api.verificationtoken.VerificationTokenException;
+import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -25,10 +28,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static com.navaship.api.common.ListApiConstants.*;
-import static com.navaship.api.common.ListApiConstants.DEFAULT_PAGE_SIZE;
 
 @RestController
 @AllArgsConstructor
@@ -40,14 +45,15 @@ public class ShipmentController {
     private PackageService packageService;
     private AppUserService appUserService;
     private RateService rateService;
+    private StripeService stripeService;
 
 
     @GetMapping
     public ResponseEntity<ListApiResponse<ShipmentResponse>> getAllUserShipments(JwtAuthenticationToken principal,
-                                                                                @RequestParam(value = "offset", defaultValue = DEFAULT_PAGE_NUMBER + "") int offset,
-                                                                                @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
-                                                                                @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
-                                                                                @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
+                                                                                 @RequestParam(value = "offset", defaultValue = DEFAULT_PAGE_NUMBER + "") int offset,
+                                                                                 @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
+                                                                                 @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
+                                                                                 @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
         AppUser user = retrieveUserFromJwt(principal);
         ListApiResponse<ShipmentResponse> listApiResponse = new ListApiResponse<>();
 
@@ -138,9 +144,11 @@ public class ShipmentController {
     @PostMapping("/buy")
     public ResponseEntity<BuyShipmentResponse> buyShipmentRate(JwtAuthenticationToken principal,
                                                                @Valid @RequestBody BuyRateRequest buyRateRequest) {
+        AppUser user = retrieveUserFromJwt(principal);
         Shipment navaShipment = shipmentService.retrieveShipment(buyRateRequest.getEasypostShipmentId());
-        checkNavaShipmentBelongsToUser(principal, navaShipment);
+        checkShipmentBelongsToUser(principal, navaShipment);
 
+        // I think this code should go in the webhook now
         try {
             com.easypost.model.Shipment shipment = easyPostService.buyShipmentRate(
                     buyRateRequest.getEasypostShipmentId(),
@@ -150,22 +158,37 @@ public class ShipmentController {
             navaShipment.setStatus(ShipmentStatus.PURCHASED);
             com.easypost.model.Rate rate = shipment.getSelectedRate();
 
-            // Modify shipment with new generated (from easypost) attributes trackingCode and labelUrl
-            navaShipment.setTrackingCode(shipment.getTrackingCode());
-            if (shipment.getPostageLabel() != null) {
-                navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
-            }
+            // Create payment intent
+            int rateInCents = Math.round(rate.getRate() * 100);
+            String customerId = user.getSubscriptionDetail().getStripeCustomerId();
+            PaymentIntent paymentIntent = stripeService.createPaymentIntent(customerId, rateInCents, "USD");
 
-            if (shipment.getTracker() != null) {
-                navaShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
-            }
+            Map<String, Object> confirmParams = new HashMap<>();
+            // confirmParams.put("return_url", "https://your-website.com/success");
+            PaymentIntent confirmedPaymentIntent = paymentIntent.confirm(confirmParams);
 
-            Rate navaRate = rateService.convertToNavaRate(rate);
-            rateService.createRate(navaRate);
-            // Set the bought rate to the shipment
-            navaShipment.setRate(navaRate);
-            shipmentService.modifyShipment(navaShipment);
+            if (confirmedPaymentIntent.getStatus().equals("succeeded")) {
+                // Modify shipment with new generated (from easypost) attributes trackingCode and labelUrl
+                navaShipment.setTrackingCode(shipment.getTrackingCode());
+                if (shipment.getPostageLabel() != null) {
+                    navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
+                }
+
+                if (shipment.getTracker() != null) {
+                    navaShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
+                }
+
+                Rate navaRate = rateService.convertToNavaRate(rate);
+                rateService.createRate(navaRate);
+                // Set the bought rate to the shipment
+                navaShipment.setRate(navaRate);
+                shipmentService.modifyShipment(navaShipment);
+            } else {
+                System.out.println("Payment failed!!!");
+            }
         } catch (EasyPostException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (StripeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
@@ -194,8 +217,8 @@ public class ShipmentController {
         );
     }
 
-    private void checkNavaShipmentBelongsToUser(JwtAuthenticationToken principal,
-                                                Shipment navaShipment) {
+    private void checkShipmentBelongsToUser(JwtAuthenticationToken principal,
+                                            Shipment navaShipment) {
         Long userId = (Long) principal.getTokenAttributes().get("id");
         if (!navaShipment.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
