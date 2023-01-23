@@ -59,9 +59,10 @@ public class AddressController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        int totalPages = (int) Math.round(addressService.retrieveUserAddressesCount(user) / (double) pageSize);
+        int totalCount = addressService.retrieveUserAddressesCount(user);
+        int totalPages = (int) Math.round(totalCount / (double) pageSize);
+        listApiResponse.setTotalCount(totalCount);
         listApiResponse.setTotalPages(totalPages);
-        listApiResponse.setCount(listApiResponse.getData().size());
         listApiResponse.setCurrentPage(zeroBasedPageNumber + 1);
 
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);

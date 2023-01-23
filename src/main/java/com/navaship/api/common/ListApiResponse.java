@@ -12,8 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ListApiResponse<T> {
-    private int count;
     private int currentPage;
+    private int totalCount;
     private int totalPages;
     private List<T> data;
 }

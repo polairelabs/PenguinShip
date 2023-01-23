@@ -37,6 +37,7 @@ public class Address {
     private String zip; // zip or postal code
     @Column(nullable = false)
     private String country;
+    @Column(nullable = false)
     private Boolean residential;
     @ManyToOne
     private AppUser user;
@@ -74,7 +75,7 @@ public class Address {
         addressMap.put("state", state);
         addressMap.put("country", country);
         addressMap.put("zip", zip);
-        // addressMap.put("residential", residential);
+        addressMap.put("residential", residential);
         addressMap.put("name", name);
         addressMap.put("company", company);
         addressMap.put("phone", phone);

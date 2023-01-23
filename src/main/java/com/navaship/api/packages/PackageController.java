@@ -58,9 +58,10 @@ public class PackageController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        int totalPages = (int) Math.round(packageService.retrieveUserPackagesCount(user) / (double) pageSize);
+        int totalCount = packageService.retrieveUserPackagesCount(user);
+        int totalPages = (int) Math.round(totalCount / (double) pageSize);
+        listApiResponse.setTotalCount(totalCount);
         listApiResponse.setTotalPages(totalPages);
-        listApiResponse.setCount(listApiResponse.getData().size());
         listApiResponse.setCurrentPage(zeroBasedPageNumber + 1);
 
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);

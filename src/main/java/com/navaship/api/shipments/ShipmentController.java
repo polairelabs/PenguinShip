@@ -2,6 +2,9 @@ package com.navaship.api.shipments;
 
 import com.easypost.exception.EasyPostException;
 import com.easypost.model.Event;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.addresses.AddressService;
@@ -32,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.navaship.api.common.ListApiConstants.*;
 
@@ -71,9 +76,10 @@ public class ShipmentController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        int totalPages = (int) Math.round(shipmentService.retrieveUserShipmentsCount(user) / (double) pageSize);
+        int totalCount = shipmentService.retrieveUserShipmentsCount(user);
+        int totalPages = (int) Math.round(totalCount / (double) pageSize);
+        listApiResponse.setTotalCount(totalCount);
         listApiResponse.setTotalPages(totalPages);
-        listApiResponse.setCount(listApiResponse.getData().size());
         listApiResponse.setCurrentPage(zeroBasedPageNumber + 1);
 
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);
@@ -148,18 +154,15 @@ public class ShipmentController {
         Shipment navaShipment = shipmentService.retrieveShipment(buyRateRequest.getEasypostShipmentId());
         checkShipmentBelongsToUser(principal, navaShipment);
 
-        // I think this code should go in the webhook now
         try {
-            com.easypost.model.Shipment shipment = easyPostService.buyShipmentRate(
-                    buyRateRequest.getEasypostShipmentId(),
-                    buyRateRequest.getEasypostRateId()
-            );
-
-            navaShipment.setStatus(ShipmentStatus.PURCHASED);
-            com.easypost.model.Rate rate = shipment.getSelectedRate();
-
             // Create payment intent
+            com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(buyRateRequest.getEasypostRateId());
             int rateInCents = Math.round(rate.getRate() * 100);
+
+            if (user.getSubscriptionDetail() == null || user.getSubscriptionDetail().getStripeCustomerId() == null) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User is not a customer");
+            }
+
             String customerId = user.getSubscriptionDetail().getStripeCustomerId();
             PaymentIntent paymentIntent = stripeService.createPaymentIntent(customerId, rateInCents, "USD");
 
@@ -168,6 +171,14 @@ public class ShipmentController {
             PaymentIntent confirmedPaymentIntent = paymentIntent.confirm(confirmParams);
 
             if (confirmedPaymentIntent.getStatus().equals("succeeded")) {
+                com.easypost.model.Shipment shipment = easyPostService.buyShipmentRate(
+                        buyRateRequest.getEasypostShipmentId(),
+                        buyRateRequest.getEasypostRateId()
+                );
+
+                navaShipment.setStatus(ShipmentStatus.PURCHASED);
+                rate = shipment.getSelectedRate();
+
                 // Modify shipment with new generated (from easypost) attributes trackingCode and labelUrl
                 navaShipment.setTrackingCode(shipment.getTrackingCode());
                 if (shipment.getPostageLabel() != null) {
@@ -187,7 +198,7 @@ public class ShipmentController {
                 System.out.println("Payment failed!!!");
             }
         } catch (EasyPostException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
         } catch (StripeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -239,5 +250,26 @@ public class ShipmentController {
         if (!parcel.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
         }
+    }
+
+    private String extractEasypostErrorMessage(String errorMessage) {
+        String message = "Error";
+        try {
+            Pattern pattern = Pattern.compile("Response body: (\\{.*\\})");
+            Matcher matcher = pattern.matcher(errorMessage);
+            if (matcher.find()) {
+                String jsonString = matcher.group(1);
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonNode = mapper.readTree(jsonString);
+                JsonNode error = jsonNode.get("error");
+                message = error.get("message").asText();
+                if (message.endsWith(".")) {
+                    message = message.substring(0, message.length() - 1);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Easypost Error");
+        }
+        return message;
     }
 }

@@ -37,4 +37,7 @@ public class AddressRequest {
     @NotBlank
     @NotNull
     private String country;
+    @NotBlank
+    @NotNull
+    private String residential;
 }

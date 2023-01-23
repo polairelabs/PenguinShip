@@ -35,6 +35,7 @@ public class DummyData implements CommandLineRunner {
         address1.setState("CA");
         address1.setZip("94104");
         address1.setCountry("US");
+        address1.setResidential(false);
         address1.setUser(admin);
         addressRepository.save(address1);
         Address address2 = new Address();
@@ -43,6 +44,7 @@ public class DummyData implements CommandLineRunner {
         address2.setState("CA");
         address2.setZip("94105");
         address2.setCountry("US");
+        address2.setResidential(false);
         address2.setUser(admin);
         addressRepository.save(address2);
         Package parcel = new Package();
