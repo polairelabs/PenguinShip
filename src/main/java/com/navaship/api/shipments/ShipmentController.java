@@ -151,7 +151,7 @@ public class ShipmentController {
     public ResponseEntity<BuyShipmentResponse> buyShipmentRate(JwtAuthenticationToken principal,
                                                                @Valid @RequestBody BuyRateRequest buyRateRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Shipment navaShipment = shipmentService.retrieveShipment(buyRateRequest.getEasypostShipmentId());
+        Shipment navaShipment = shipmentService.retrieveShipmentFromEasypostId(buyRateRequest.getEasypostShipmentId());
         checkShipmentBelongsToUser(principal, navaShipment);
 
         try {
@@ -209,8 +209,11 @@ public class ShipmentController {
     }
 
     @GetMapping("/rates/{shipmentId}")
-    public ResponseEntity<List<com.easypost.model.Rate>> getRates(@PathVariable Long shipmentId) {
+    public ResponseEntity<List<com.easypost.model.Rate>> getRates(JwtAuthenticationToken principal,
+                                                                  @PathVariable Long shipmentId) {
         Shipment navaShipment = shipmentService.retrieveShipment(shipmentId);
+        checkShipmentBelongsToUser(principal, navaShipment);
+
         List<com.easypost.model.Rate> rates;
         try {
             rates = easyPostService.getShipmentRates(navaShipment.getEasypostShipmentId());
@@ -219,6 +222,21 @@ public class ShipmentController {
         }
 
         return new ResponseEntity<>(rates, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{shipmentId}")
+    public ResponseEntity<Map<String, String>> deleteShipment(JwtAuthenticationToken principal,
+                                                             @PathVariable Long shipmentId) {
+        Shipment navaShipment = shipmentService.retrieveShipment(shipmentId);
+        checkShipmentBelongsToUser(principal, navaShipment);
+        if (navaShipment.getStatus() != ShipmentStatus.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cannot delete a shipment with status " + navaShipment.getStatus());
+        }
+
+        shipmentService.deleteShipment(navaShipment);
+        Map<String, String> message = new HashMap<>();
+        message.put("message", String.format("Successfully deleted shipment %d", shipmentId));
+        return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
     }
 
     private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {

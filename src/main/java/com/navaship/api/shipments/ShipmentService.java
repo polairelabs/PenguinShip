@@ -47,13 +47,17 @@ public class ShipmentService {
         shipmentRepository.save(shipment);
     }
 
+    public void deleteShipment(Shipment shipment) {
+        shipmentRepository.delete(shipment);
+    }
+
     public Shipment retrieveShipment(Long shipmentId) {
         return shipmentRepository.findById(shipmentId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")
         );
     }
 
-    public Shipment retrieveShipment(String easypostShipmentId) {
+    public Shipment retrieveShipmentFromEasypostId(String easypostShipmentId) {
         return shipmentRepository.findShipmentByEasypostShipmentId(easypostShipmentId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")
         );
