@@ -53,32 +53,6 @@ public class StripeService {
                 .setCancelUrl(domain + "/register/?canceled=true")
                 .setCustomer(stripeCustomerId)
                 .build();
-
-//
-//        List<Object> lineItems = new ArrayList<>();
-//        Map<String, Object> lineItem1 = new HashMap<>();
-//        lineItem1.put("price", priceId);
-//        lineItem1.put("quantity", 1);
-//        lineItems.add(lineItem1);
-//        Map<String, Object> params = new HashMap<>();
-//        params.put("customer", stripeCustomerId);
-//        params.put(
-//                "success_url",
-//                domain + "/register/?success=true&session_id={CHECKOUT_SESSION_ID}"
-//        );
-//        params.put(
-//                "cancel_url",
-//                domain + "/register/?canceled=true"
-//        );
-//        params.put("line_items", lineItems);
-//        params.put("mode", "subscription");
-//
-//        Map<String, Object> paymentIntentParams = new HashMap<>();
-//        paymentIntentParams.put("setup_future_usage", "on_session");
-//        params.put("payment_intent_data", paymentIntentParams);
-
-        // PaymentIntentData paymentIntentData = PaymentIntentData.create(paymentIntentParams);
-
         return Session.create(params);
     }
 

@@ -26,6 +26,7 @@ public class EasyPostService {
     @Value("${navaship.app.easypost.webhook.endpoint.url}")
     private String webhookUrl;
 
+
     public Shipment createShipment(com.navaship.api.addresses.Address fromAddress, com.navaship.api.addresses.Address toAddress, com.navaship.api.packages.Package parcel) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         Map<String, Object> shipmentMap = new HashMap<String, Object>();
@@ -38,7 +39,6 @@ public class EasyPostService {
 
     public Shipment buyShipmentRate(String easypostShipmentId, String easypostRateId) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
-
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
         Rate rate = Rate.retrieve(easypostRateId);
         return shipment.buy(rate);
@@ -69,7 +69,7 @@ public class EasyPostService {
     }
 
     public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
-        // TODO finish this
+        // Easypost charge 0.5% of the value, with a 50 cent minimum, and handle all the claims. All the claims are paid out within 10 days.
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
         shipment.insure(amountInUSD);
