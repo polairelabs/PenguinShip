@@ -23,12 +23,10 @@ public class SubscriptionDetail {
     @Id
     @Column(name = "user_id")
     private Long id;
-
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
     private AppUser user;
-
     @JsonView(AuthViews.Default.class)
     private String stripeCustomerId;
     private String subscriptionId;
