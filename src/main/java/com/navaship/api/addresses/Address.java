@@ -82,13 +82,4 @@ public class Address {
         addressMap.put("email", email);
         return addressMap;
     }
-
-    public JsonObject additionalInfoToJson() {
-        JsonObject item = new JsonObject();
-        item.addProperty("name", name);
-        item.addProperty("company", company);
-        item.addProperty("phone", phone);
-        item.addProperty("email", email);
-        return item;
-    }
 }

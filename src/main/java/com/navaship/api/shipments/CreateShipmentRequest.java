@@ -18,7 +18,6 @@ public class CreateShipmentRequest {
     @NotNull
     Long parcelId;
 
-    // from
     @Size(max = 60)
     String senderName;
     @Size(max = 60)
@@ -27,12 +26,12 @@ public class CreateShipmentRequest {
     String senderPhone;
     @Size(max = 60)
     String senderEmail;
-    // to
+
     @Size(max = 60)
     String receiverName;
     @Size(max = 60)
     String receiverCompany;
-    @Size(max = 18)
+    @Size(max = 20)
     String receiverPhone;
     @Size(max = 60)
     String receiverEmail;

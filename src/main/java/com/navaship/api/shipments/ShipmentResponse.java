@@ -3,12 +3,14 @@ package com.navaship.api.shipments;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.navaship.api.addresses.AddressResponse;
 import com.navaship.api.packages.PackageResponse;
+import com.navaship.api.person.PersonResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,5 +31,5 @@ public class ShipmentResponse {
     private String trackingCode;
     private String postageLabelUrl;
     private String publicTrackingUrl;
-    private String additionalInfoJson;
+    private List<PersonResponse> persons;
 }

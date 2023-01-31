@@ -21,17 +21,19 @@ public class ShipmentService {
     private StripeService stripeService;
 
 
-    public Shipment createShipment(Shipment shipment,
+    public Shipment createShipment(String easypostShipmentId,
+                                   ShipmentStatus status,
                                    AppUser user,
                                    Address fromAddress,
                                    Address toAddress,
-                                   Package parcel,
-                                   String additionalInfoJson) {
+                                   Package parcel) {
+        Shipment shipment = new Shipment();
+        shipment.setEasypostShipmentId(easypostShipmentId);
+        shipment.setStatus(status);
         shipment.setUser(user);
         shipment.setFromAddress(fromAddress);
         shipment.setToAddress(toAddress);
         shipment.setParcel(parcel);
-        shipment.setAdditionalInfoJson(additionalInfoJson);
         return shipmentRepository.save(shipment);
     }
 

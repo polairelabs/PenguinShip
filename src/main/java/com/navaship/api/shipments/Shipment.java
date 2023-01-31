@@ -51,17 +51,16 @@ public class Shipment {
     private String postageLabelUrl;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ShipmentStatus status = ShipmentStatus.DRAFT;
-
     // Retrieved from easypost webhook
+    @Enumerated(EnumType.STRING)
     private EasyPostShipmentStatus easypostShipmentStatus;
 
-    // tracker object
+    // Tracker object
     private String publicTrackingUrl;
 
-    // Serialized as JSON string: contains info about sender and receiver name, company, email and phone
-    private String additionalInfoJson;
-
-    @ManyToMany
+    // Person contains info about sender and receiver name, company, email and phone
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<Person> persons = new ArrayList<>();
 }

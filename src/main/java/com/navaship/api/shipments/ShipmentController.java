@@ -5,7 +5,6 @@ import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.addresses.AddressService;
 import com.navaship.api.appuser.AppUser;
@@ -14,6 +13,8 @@ import com.navaship.api.common.ListApiResponse;
 import com.navaship.api.easypost.EasyPostService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.packages.PackageService;
+import com.navaship.api.person.PersonService;
+import com.navaship.api.person.PersonType;
 import com.navaship.api.rates.Rate;
 import com.navaship.api.rates.RateService;
 import com.navaship.api.stripe.StripeService;
@@ -21,6 +22,7 @@ import com.navaship.api.verificationtoken.VerificationTokenException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import lombok.AllArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -51,6 +53,7 @@ public class ShipmentController {
     private AppUserService appUserService;
     private RateService rateService;
     private StripeService stripeService;
+    private PersonService personService;
 
 
     @GetMapping
@@ -102,7 +105,6 @@ public class ShipmentController {
     @PostMapping()
     public ResponseEntity<ShipmentCreatedResponse> createShipment(JwtAuthenticationToken principal,
                                                                   @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
-        AppUser user = retrieveUserFromJwt(principal);
         Address fromAddress = addressService.retrieveAddress(createShipmentRequest.fromAddressId);
         checkAddressBelongsToUser(principal, fromAddress);
 
@@ -112,33 +114,49 @@ public class ShipmentController {
         Package parcel = packageService.retrievePackage(createShipmentRequest.parcelId);
         checkParcelBelongsToUser(principal, parcel);
 
-        // TODO Check other values as well, street, country, city and postal code (if all equal)
-        if (Objects.equals(fromAddress.getId(), toAddress.getId())) {
+        boolean isSameAddress = fromAddress.getStreet1().equals(toAddress.getStreet1())
+                && fromAddress.getCity().equals(toAddress.getCity())
+                && fromAddress.getState().equals(toAddress.getState())
+                && fromAddress.getCountry().equals(toAddress.getCountry())
+                && fromAddress.getZip().equals(toAddress.getZip());
+
+        if (Objects.equals(fromAddress.getId(), toAddress.getId()) || isSameAddress) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and delivery address cannot be the same");
         }
 
-        fromAddress.setName(createShipmentRequest.senderName);
-        fromAddress.setCompany(createShipmentRequest.senderCompany);
-        fromAddress.setPhone(createShipmentRequest.senderPhone);
-        fromAddress.setEmail(createShipmentRequest.senderEmail);
-
-        toAddress.setName(createShipmentRequest.receiverName);
-        toAddress.setCompany(createShipmentRequest.receiverCompany);
-        toAddress.setPhone(createShipmentRequest.receiverPhone);
-        toAddress.setEmail(createShipmentRequest.receiverEmail);
-
-        JsonObject additionalInfo = new JsonObject();
-        additionalInfo.add("sender", fromAddress.additionalInfoToJson());
-        additionalInfo.add("receiver", toAddress.additionalInfoToJson());
-
+        AppUser user = retrieveUserFromJwt(principal);
         com.easypost.model.Shipment shipment = null;
         try {
             shipment = easyPostService.createShipment(fromAddress, toAddress, parcel);
+            Shipment navaShipment = shipmentService.createShipment(
+                    shipment.getId(),
+                    ShipmentStatus.DRAFT,
+                    user,
+                    fromAddress,
+                    toAddress,
+                    parcel
+            );
+            if (isPersonInformationPresent(createShipmentRequest, PersonType.SENDER)) {
+                personService.createPerson(
+                        navaShipment,
+                        createShipmentRequest.senderName,
+                        createShipmentRequest.senderCompany,
+                        createShipmentRequest.senderPhone,
+                        createShipmentRequest.senderEmail,
+                        PersonType.SENDER
+                );
+            }
 
-            Shipment navaShipment = new Shipment();
-            navaShipment.setEasypostShipmentId(shipment.getId());
-            navaShipment.setStatus(ShipmentStatus.DRAFT);
-            shipmentService.createShipment(navaShipment, user, fromAddress, toAddress, parcel, additionalInfo.toString());
+            if (isPersonInformationPresent(createShipmentRequest, PersonType.RECEIVER)) {
+                personService.createPerson(
+                        navaShipment,
+                        createShipmentRequest.receiverName,
+                        createShipmentRequest.receiverCompany,
+                        createShipmentRequest.receiverPhone,
+                        createShipmentRequest.receiverEmail,
+                        PersonType.RECEIVER
+                );
+            }
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters supplied");
         }
@@ -227,7 +245,7 @@ public class ShipmentController {
 
     @DeleteMapping("/{shipmentId}")
     public ResponseEntity<Map<String, String>> deleteShipment(JwtAuthenticationToken principal,
-                                                             @PathVariable Long shipmentId) {
+                                                              @PathVariable Long shipmentId) {
         Shipment navaShipment = shipmentService.retrieveShipment(shipmentId);
         checkShipmentBelongsToUser(principal, navaShipment);
         if (navaShipment.getStatus() != ShipmentStatus.DRAFT) {
@@ -290,5 +308,18 @@ public class ShipmentController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Easypost Error");
         }
         return message;
+    }
+
+    private boolean isPersonInformationPresent(CreateShipmentRequest createShipmentRequest, PersonType type) {
+        return switch (type) {
+            case SENDER -> Strings.isNotBlank(createShipmentRequest.getSenderName()) ||
+                    Strings.isNotBlank(createShipmentRequest.getSenderCompany()) ||
+                    Strings.isNotBlank(createShipmentRequest.getSenderPhone()) ||
+                    Strings.isNotBlank(createShipmentRequest.getSenderEmail());
+            case RECEIVER -> Strings.isNotBlank(createShipmentRequest.getReceiverName()) ||
+                    Strings.isNotBlank(createShipmentRequest.getReceiverCompany()) ||
+                    Strings.isNotBlank(createShipmentRequest.getReceiverPhone()) ||
+                    Strings.isNotBlank(createShipmentRequest.getReceiverEmail());
+        };
     }
 }
