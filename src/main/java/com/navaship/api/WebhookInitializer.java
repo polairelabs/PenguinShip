@@ -14,6 +14,9 @@ import javax.annotation.PostConstruct;
 @Component
 @RequiredArgsConstructor
 public class WebhookInitializer {
+    enum WebhookType {
+        EASYPOST
+    }
     private final EasyPostService easyPostService;
     private final WebhookService webhookService;
     @Value("${navaship.app.easypost.create.webhook}")
@@ -28,7 +31,7 @@ public class WebhookInitializer {
             Webhook webhook = easyPostService.createWebhook();
             com.navaship.api.webhook.Webhook easypostWebhook = new com.navaship.api.webhook.Webhook();
             easypostWebhook.setWebhookId(webhook.getId());
-            easypostWebhook.setType("EASYPOST");
+            easypostWebhook.setType(WebhookType.EASYPOST.name());
             webhookService.createWebhook(easypostWebhook);
         } catch (EasyPostException e) {
             throw new RuntimeException(e);

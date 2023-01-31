@@ -25,4 +25,5 @@ public class SubscriptionPlan {
     private String name;
     private String description;
     private String stripePriceId;
+    private int limit;
 }

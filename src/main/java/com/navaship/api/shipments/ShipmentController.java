@@ -112,6 +112,7 @@ public class ShipmentController {
         Package parcel = packageService.retrievePackage(createShipmentRequest.parcelId);
         checkParcelBelongsToUser(principal, parcel);
 
+        // TODO Check other values as well, street, country, city and postal code (if all equal)
         if (Objects.equals(fromAddress.getId(), toAddress.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and delivery address cannot be the same");
         }

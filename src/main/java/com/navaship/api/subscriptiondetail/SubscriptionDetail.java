@@ -16,6 +16,9 @@ import javax.persistence.*;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Entity
+/**
+ * Contains the data related to the subscription/membership the user subscribed to.
+ */
 public class SubscriptionDetail {
     @Id
     @Column(name = "user_id")
@@ -29,6 +32,7 @@ public class SubscriptionDetail {
     @JsonView(AuthViews.Default.class)
     private String stripeCustomerId;
     private String subscriptionId;
+    private int currentLimit;
 
     @OneToOne
     private SubscriptionPlan subscriptionPlan;
