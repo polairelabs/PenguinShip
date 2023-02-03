@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.navaship.api.addresses.AddressResponse;
 import com.navaship.api.packages.PackageResponse;
 import com.navaship.api.person.PersonResponse;
+import com.navaship.api.rates.RateResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,7 @@ public class ShipmentResponse {
     private PackageResponse parcel;
     @JsonProperty("navashipShipmentStatus")
     private ShipmentStatus status;
-    private EasyPostShipmentStatus easypostShipmentStatus;
+    private ShipmentStatusEasyPost easypostShipmentStatusEasyPost;
     private RateResponse rate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

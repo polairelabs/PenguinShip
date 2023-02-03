@@ -18,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class ShipmentService {
     private ShipmentRepository shipmentRepository;
     private ModelMapper modelMapper;
-    private StripeService stripeService;
 
 
     public Shipment createShipment(String easypostShipmentId,
@@ -31,8 +30,8 @@ public class ShipmentService {
         shipment.setEasypostShipmentId(easypostShipmentId);
         shipment.setStatus(status);
         shipment.setUser(user);
-        shipment.setFromAddress(fromAddress);
-        shipment.setToAddress(toAddress);
+        shipment.setSourceAddress(fromAddress);
+        shipment.setDeliveryAddress(toAddress);
         shipment.setParcel(parcel);
         return shipmentRepository.save(shipment);
     }
@@ -71,8 +70,8 @@ public class ShipmentService {
     }
 
     // Return this response when user buys a rate
-    public BuyShipmentResponse convertToBuyShipmentResponse(Shipment shipment) {
-        return modelMapper.map(shipment, BuyShipmentResponse.class);
+    public ShipmentBoughtResponse convertToBuyShipmentResponse(Shipment shipment) {
+        return modelMapper.map(shipment, ShipmentBoughtResponse.class);
     }
 
     // Return this response to return database entries of shipment

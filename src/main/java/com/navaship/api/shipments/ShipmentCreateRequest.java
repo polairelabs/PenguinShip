@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateShipmentRequest {
+public class ShipmentCreateRequest {
     @NotNull
     Long fromAddressId;
     @NotNull

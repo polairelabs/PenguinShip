@@ -25,7 +25,6 @@ import java.util.Map;
 public class Package {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
     private Long id;
     private String name;
     @Column(nullable = false)
@@ -34,15 +33,15 @@ public class Package {
     private BigDecimal length;
     private BigDecimal width;
     private BigDecimal height;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private AppUser user;
+    @OneToMany(mappedBy = "parcel")
+    private List<Shipment> shipments = new ArrayList<>();
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "parcel")
-    private List<Shipment> shipments = new ArrayList<>();
 
     public Map<String, Object> toPackageMap() {
         Map<String, Object> packageMap = new HashMap<>();
@@ -53,13 +52,4 @@ public class Package {
         packageMap.put("length", length);
         return packageMap;
     }
-
-//    public JsonObject additionalInfoToJson() {
-//        JsonObject item = new JsonObject();
-//        item.addProperty("name", name);
-//        item.addProperty("company", company);
-//        item.addProperty("phone", phone);
-//        item.addProperty("email", email);
-//        return item;
-//    }
 }

@@ -1,5 +1,6 @@
 package com.navaship.api.shipments;
 
+import com.navaship.api.rates.RateResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ShipmentCreatedResponse {
-    // easypost shipment id
-    private String id;
+    private String id; // easypost shipment id
     private ArrayList<RateResponse> rates;
 }

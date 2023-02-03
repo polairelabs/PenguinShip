@@ -104,14 +104,14 @@ public class ShipmentController {
 
     @PostMapping()
     public ResponseEntity<ShipmentCreatedResponse> createShipment(JwtAuthenticationToken principal,
-                                                                  @Valid @RequestBody CreateShipmentRequest createShipmentRequest) {
-        Address fromAddress = addressService.retrieveAddress(createShipmentRequest.fromAddressId);
+                                                                  @Valid @RequestBody ShipmentCreateRequest shipmentCreateRequest) {
+        Address fromAddress = addressService.retrieveAddress(shipmentCreateRequest.fromAddressId);
         checkAddressBelongsToUser(principal, fromAddress);
 
-        Address toAddress = addressService.retrieveAddress(createShipmentRequest.toAddressId);
+        Address toAddress = addressService.retrieveAddress(shipmentCreateRequest.toAddressId);
         checkAddressBelongsToUser(principal, toAddress);
 
-        Package parcel = packageService.retrievePackage(createShipmentRequest.parcelId);
+        Package parcel = packageService.retrievePackage(shipmentCreateRequest.parcelId);
         checkParcelBelongsToUser(principal, parcel);
 
         boolean isSameAddress = fromAddress.getStreet1().equals(toAddress.getStreet1())
@@ -123,6 +123,16 @@ public class ShipmentController {
         if (Objects.equals(fromAddress.getId(), toAddress.getId()) || isSameAddress) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and delivery address cannot be the same");
         }
+
+        fromAddress.setName(shipmentCreateRequest.senderName);
+        fromAddress.setCompany(shipmentCreateRequest.senderCompany);
+        fromAddress.setPhone(shipmentCreateRequest.senderPhone);
+        fromAddress.setEmail(shipmentCreateRequest.senderEmail);
+
+        toAddress.setName(shipmentCreateRequest.receiverName);
+        toAddress.setCompany(shipmentCreateRequest.receiverCompany);
+        toAddress.setPhone(shipmentCreateRequest.receiverPhone);
+        toAddress.setEmail(shipmentCreateRequest.receiverEmail);
 
         AppUser user = retrieveUserFromJwt(principal);
         com.easypost.model.Shipment shipment = null;
@@ -136,24 +146,25 @@ public class ShipmentController {
                     toAddress,
                     parcel
             );
-            if (isPersonInformationPresent(createShipmentRequest, PersonType.SENDER)) {
+
+            if (isPersonInformationPresent(shipmentCreateRequest, PersonType.SENDER)) {
                 personService.createPerson(
                         navaShipment,
-                        createShipmentRequest.senderName,
-                        createShipmentRequest.senderCompany,
-                        createShipmentRequest.senderPhone,
-                        createShipmentRequest.senderEmail,
+                        shipmentCreateRequest.senderName,
+                        shipmentCreateRequest.senderCompany,
+                        shipmentCreateRequest.senderPhone,
+                        shipmentCreateRequest.senderEmail,
                         PersonType.SENDER
                 );
             }
 
-            if (isPersonInformationPresent(createShipmentRequest, PersonType.RECEIVER)) {
+            if (isPersonInformationPresent(shipmentCreateRequest, PersonType.RECEIVER)) {
                 personService.createPerson(
                         navaShipment,
-                        createShipmentRequest.receiverName,
-                        createShipmentRequest.receiverCompany,
-                        createShipmentRequest.receiverPhone,
-                        createShipmentRequest.receiverEmail,
+                        shipmentCreateRequest.receiverName,
+                        shipmentCreateRequest.receiverCompany,
+                        shipmentCreateRequest.receiverPhone,
+                        shipmentCreateRequest.receiverEmail,
                         PersonType.RECEIVER
                 );
             }
@@ -167,15 +178,15 @@ public class ShipmentController {
     }
 
     @PostMapping("/buy")
-    public ResponseEntity<BuyShipmentResponse> buyShipmentRate(JwtAuthenticationToken principal,
-                                                               @Valid @RequestBody BuyRateRequest buyRateRequest) {
+    public ResponseEntity<ShipmentBoughtResponse> buyShipmentRate(JwtAuthenticationToken principal,
+                                                                  @Valid @RequestBody ShipmentBuyRateRequest shipmentBuyRateRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Shipment navaShipment = shipmentService.retrieveShipmentFromEasypostId(buyRateRequest.getEasypostShipmentId());
+        Shipment navaShipment = shipmentService.retrieveShipmentFromEasypostId(shipmentBuyRateRequest.getEasypostShipmentId());
         checkShipmentBelongsToUser(principal, navaShipment);
 
         try {
             // Create payment intent
-            com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(buyRateRequest.getEasypostRateId());
+            com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(shipmentBuyRateRequest.getEasypostRateId());
             int rateInCents = Math.round(rate.getRate() * 100);
 
             if (user.getSubscriptionDetail() == null || user.getSubscriptionDetail().getStripeCustomerId() == null) {
@@ -191,8 +202,8 @@ public class ShipmentController {
 
             if (confirmedPaymentIntent.getStatus().equals("succeeded")) {
                 com.easypost.model.Shipment shipment = easyPostService.buyShipmentRate(
-                        buyRateRequest.getEasypostShipmentId(),
-                        buyRateRequest.getEasypostRateId()
+                        shipmentBuyRateRequest.getEasypostShipmentId(),
+                        shipmentBuyRateRequest.getEasypostRateId()
                 );
 
                 navaShipment.setStatus(ShipmentStatus.PURCHASED);
@@ -310,16 +321,16 @@ public class ShipmentController {
         return message;
     }
 
-    private boolean isPersonInformationPresent(CreateShipmentRequest createShipmentRequest, PersonType type) {
+    private boolean isPersonInformationPresent(ShipmentCreateRequest shipmentCreateRequest, PersonType type) {
         return switch (type) {
-            case SENDER -> Strings.isNotBlank(createShipmentRequest.getSenderName()) ||
-                    Strings.isNotBlank(createShipmentRequest.getSenderCompany()) ||
-                    Strings.isNotBlank(createShipmentRequest.getSenderPhone()) ||
-                    Strings.isNotBlank(createShipmentRequest.getSenderEmail());
-            case RECEIVER -> Strings.isNotBlank(createShipmentRequest.getReceiverName()) ||
-                    Strings.isNotBlank(createShipmentRequest.getReceiverCompany()) ||
-                    Strings.isNotBlank(createShipmentRequest.getReceiverPhone()) ||
-                    Strings.isNotBlank(createShipmentRequest.getReceiverEmail());
+            case SENDER -> Strings.isNotBlank(shipmentCreateRequest.getSenderName()) ||
+                    Strings.isNotBlank(shipmentCreateRequest.getSenderCompany()) ||
+                    Strings.isNotBlank(shipmentCreateRequest.getSenderPhone()) ||
+                    Strings.isNotBlank(shipmentCreateRequest.getSenderEmail());
+            case RECEIVER -> Strings.isNotBlank(shipmentCreateRequest.getReceiverName()) ||
+                    Strings.isNotBlank(shipmentCreateRequest.getReceiverCompany()) ||
+                    Strings.isNotBlank(shipmentCreateRequest.getReceiverPhone()) ||
+                    Strings.isNotBlank(shipmentCreateRequest.getReceiverEmail());
         };
     }
 }

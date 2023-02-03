@@ -1,5 +1,6 @@
 package com.navaship.api.shipments;
 
+import com.easypost.model.Parcel;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
@@ -32,15 +33,29 @@ public class Shipment {
     private String easypostShipmentId;
     @ManyToOne
     private AppUser user;
-    @ManyToOne
-    private Address fromAddress;
-    @ManyToOne
-    private Address toAddress;
-    @ManyToOne
-    private Package parcel;
-    @OneToOne
-    @JoinColumn(name = "rate_id")
+
+    // Contains both the source and destination addresses
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
+    private List<ShipmentAddress> addresses = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "package_id", referencedColumnName = "id")
+    private ShipmentPackage parcel;
+
+    @OneToOne(cascade = CascadeType.ALL)
     private Rate rate;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ShipmentStatus status = ShipmentStatus.DRAFT;
+
+    @Enumerated(EnumType.STRING)
+    private ShipmentStatusEasyPost easypostShipmentStatusEasyPost; // Retrieved from easypost webhook
+
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
+    private List<Person> persons = new ArrayList<>();
+
+    @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
@@ -49,18 +64,25 @@ public class Shipment {
     // Gets populated when a rate gets bought for the current shipment
     private String trackingCode;
     private String postageLabelUrl;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ShipmentStatus status = ShipmentStatus.DRAFT;
-    // Retrieved from easypost webhook
-    @Enumerated(EnumType.STRING)
-    private EasyPostShipmentStatus easypostShipmentStatus;
-
-    // Tracker object
     private String publicTrackingUrl;
 
-    // Person contains info about sender and receiver name, company, email and phone
-    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
-    private List<Person> persons = new ArrayList<>();
+
+    // Once Shipment is saved/created, the parcel will be transformed into a ShipmentParcel as to never change the original Parcel
+    public void setParcel(Package parcel) {
+        this.parcel = new ShipmentPackage(parcel);
+        this.parcel.setShipment(this);
+    }
+
+    // Once Shipment is saved/created, the Address will be transformed to ShipmentAddress
+    public void setSourceAddress(Address sourceAddress) {
+        ShipmentAddress address = new ShipmentAddress(sourceAddress, ShipmentAddressType.SOURCE);
+        address.setShipment(this);
+        addresses.add(address);
+    }
+
+    public void setDeliveryAddress(Address deliveryAddress) {
+        ShipmentAddress address = new ShipmentAddress(deliveryAddress, ShipmentAddressType.DESTINATION);
+        address.setShipment(this);
+        addresses.add(address);
+    }
 }
