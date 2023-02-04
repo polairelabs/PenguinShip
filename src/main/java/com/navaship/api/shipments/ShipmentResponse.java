@@ -20,11 +20,10 @@ import java.util.List;
 public class ShipmentResponse {
     private Long id;
     private String easypostShipmentId;
-    private AddressResponse toAddress;
-    private AddressResponse fromAddress;
-    private PackageResponse parcel;
-    @JsonProperty("navashipShipmentStatus")
+    private List<ShipmentAddressResponse> addresses;
+    private ShipmentPackageResponse parcel;
     private ShipmentStatus status;
+    @JsonProperty("easypost_status")
     private ShipmentStatusEasyPost easypostShipmentStatusEasyPost;
     private RateResponse rate;
     private LocalDateTime createdAt;

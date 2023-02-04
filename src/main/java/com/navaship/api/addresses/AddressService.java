@@ -38,15 +38,6 @@ public class AddressService {
     }
 
     public void deleteAddress(Address address) {
-        // Set address to null to all shipments that used that address
-//        for (Shipment shipment : address.getFromAddressShipments()) {
-//            shipment.setFromAddress(null);
-//            shipmentRepository.save(shipment);
-//        }
-//        for (Shipment shipment : address.getToAddressShipments()) {
-//            shipment.setToAddress(null);
-//            shipmentRepository.save(shipment);
-//        }
         addressRepository.delete(address);
     }
 
