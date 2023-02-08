@@ -2,10 +2,7 @@ package com.navaship.api.easypost;
 
 import com.easypost.EasyPost;
 import com.easypost.exception.EasyPostException;
-import com.easypost.model.Event;
-import com.easypost.model.Rate;
-import com.easypost.model.Shipment;
-import com.easypost.model.Webhook;
+import com.easypost.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -69,10 +66,13 @@ public class EasyPostService {
     }
 
     public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
-        // Easypost charge 0.5% of the value, with a 50 cent minimum, and handle all the claims. All the claims are paid out within 10 days.
+        // To be used in a separate insure endpoint
+        // Easypost charge 0.5% of the value, with a 50 cent minimum, and handle all the claims. All the claims are paid out within 10 days
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
-        shipment.insure(amountInUSD);
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("amount", amountInUSD);
+        shipment.insure(params);
         return shipment;
     }
 

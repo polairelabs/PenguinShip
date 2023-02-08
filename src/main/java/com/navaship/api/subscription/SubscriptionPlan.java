@@ -5,10 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -25,5 +23,8 @@ public class SubscriptionPlan {
     private String name;
     private String description;
     private String stripePriceId;
-    // private int limit;
+    // The precision attribute sets the total number of digits stored, and the scale attribute sets the number of digits to the right of the decimal point
+    @Column(precision = 4, scale = 2)
+    private BigDecimal shipmentHandlingFee;
+    private int maxLimit;
 }

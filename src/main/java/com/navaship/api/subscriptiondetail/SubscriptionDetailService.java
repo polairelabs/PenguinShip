@@ -25,8 +25,4 @@ public class SubscriptionDetailService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Stripe customer not found")
         );
     }
-
-    public void deleteSubscriptionDetail(AppUser user) {
-        subscriptionDetailRepository.deleteById(user.getId());
-    }
 }

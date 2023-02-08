@@ -1,38 +1,42 @@
 package com.navaship.api.shipments;
 
+import com.navaship.api.validators.BigDecimalLength;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class ShipmentCreateRequest {
     @NotNull
-    Long fromAddressId;
+    private Long fromAddressId;
     @NotNull
-    Long toAddressId;
+    private Long toAddressId;
     @NotNull
-    Long parcelId;
-
+    private Long parcelId;
     @Size(max = 60)
-    String senderName;
+    private String senderName;
     @Size(max = 60)
-    String senderCompany;
+    private String senderCompany;
     @Size(max = 20)
-    String senderPhone;
+    private String senderPhone;
     @Size(max = 60)
-    String senderEmail;
-
+    private String senderEmail;
     @Size(max = 60)
-    String receiverName;
+    private String receiverName;
     @Size(max = 60)
-    String receiverCompany;
+    private String receiverCompany;
     @Size(max = 20)
-    String receiverPhone;
+    private String receiverPhone;
     @Size(max = 60)
-    String receiverEmail;
+    private String receiverEmail;
+    @NotNull
+    private Boolean insured;
+    @BigDecimalLength(maxLength = 6)
+    private BigDecimal amountToInsure;
 }

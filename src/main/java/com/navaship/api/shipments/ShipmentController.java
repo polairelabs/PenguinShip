@@ -18,6 +18,8 @@ import com.navaship.api.person.PersonType;
 import com.navaship.api.rates.Rate;
 import com.navaship.api.rates.RateService;
 import com.navaship.api.stripe.StripeService;
+import com.navaship.api.subscriptiondetail.SubscriptionDetail;
+import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
 import com.navaship.api.verificationtoken.VerificationTokenException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
@@ -54,6 +56,7 @@ public class ShipmentController {
     private RateService rateService;
     private StripeService stripeService;
     private PersonService personService;
+    private final SubscriptionDetailService subscriptionDetailService;
 
 
     @GetMapping
@@ -105,13 +108,20 @@ public class ShipmentController {
     @PostMapping()
     public ResponseEntity<ShipmentCreatedResponse> createShipment(JwtAuthenticationToken principal,
                                                                   @Valid @RequestBody ShipmentCreateRequest shipmentCreateRequest) {
-        Address fromAddress = addressService.retrieveAddress(shipmentCreateRequest.fromAddressId);
+        AppUser user = retrieveUserFromJwt(principal);
+
+        SubscriptionDetail subscriptionDetail = user.getSubscriptionDetail();
+        if (subscriptionDetail.getCurrentLimit() == subscriptionDetail.getSubscriptionPlan().getMaxLimit()) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Monthly shipment creation limit reached. Please consider deleting some unused shipments or upgrading your plan");
+        }
+
+        Address fromAddress = addressService.retrieveAddress(shipmentCreateRequest.getFromAddressId());
         checkAddressBelongsToUser(principal, fromAddress);
 
-        Address toAddress = addressService.retrieveAddress(shipmentCreateRequest.toAddressId);
+        Address toAddress = addressService.retrieveAddress(shipmentCreateRequest.getToAddressId());
         checkAddressBelongsToUser(principal, toAddress);
 
-        Package parcel = packageService.retrievePackage(shipmentCreateRequest.parcelId);
+        Package parcel = packageService.retrievePackage(shipmentCreateRequest.getParcelId());
         checkParcelBelongsToUser(principal, parcel);
 
         boolean isSameAddress = fromAddress.getStreet1().equals(toAddress.getStreet1())
@@ -124,20 +134,20 @@ public class ShipmentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and delivery address cannot be the same");
         }
 
-        fromAddress.setName(shipmentCreateRequest.senderName);
-        fromAddress.setCompany(shipmentCreateRequest.senderCompany);
-        fromAddress.setPhone(shipmentCreateRequest.senderPhone);
-        fromAddress.setEmail(shipmentCreateRequest.senderEmail);
+        fromAddress.setName(shipmentCreateRequest.getSenderName());
+        fromAddress.setCompany(shipmentCreateRequest.getSenderCompany());
+        fromAddress.setPhone(shipmentCreateRequest.getSenderPhone());
+        fromAddress.setEmail(shipmentCreateRequest.getSenderEmail());
 
-        toAddress.setName(shipmentCreateRequest.receiverName);
-        toAddress.setCompany(shipmentCreateRequest.receiverCompany);
-        toAddress.setPhone(shipmentCreateRequest.receiverPhone);
-        toAddress.setEmail(shipmentCreateRequest.receiverEmail);
+        toAddress.setName(shipmentCreateRequest.getReceiverName());
+        toAddress.setCompany(shipmentCreateRequest.getReceiverCompany());
+        toAddress.setPhone(shipmentCreateRequest.getReceiverPhone());
+        toAddress.setEmail(shipmentCreateRequest.getReceiverEmail());
 
-        AppUser user = retrieveUserFromJwt(principal);
         com.easypost.model.Shipment shipment = null;
         try {
             shipment = easyPostService.createShipment(fromAddress, toAddress, parcel);
+
             Shipment navaShipment = shipmentService.createShipment(
                     shipment.getId(),
                     ShipmentStatus.DRAFT,
@@ -150,10 +160,10 @@ public class ShipmentController {
             if (isPersonInformationPresent(shipmentCreateRequest, PersonType.SENDER)) {
                 personService.createPerson(
                         navaShipment,
-                        shipmentCreateRequest.senderName,
-                        shipmentCreateRequest.senderCompany,
-                        shipmentCreateRequest.senderPhone,
-                        shipmentCreateRequest.senderEmail,
+                        shipmentCreateRequest.getSenderName(),
+                        shipmentCreateRequest.getSenderCompany(),
+                        shipmentCreateRequest.getSenderPhone(),
+                        shipmentCreateRequest.getSenderEmail(),
                         PersonType.SENDER
                 );
             }
@@ -161,15 +171,19 @@ public class ShipmentController {
             if (isPersonInformationPresent(shipmentCreateRequest, PersonType.RECEIVER)) {
                 personService.createPerson(
                         navaShipment,
-                        shipmentCreateRequest.receiverName,
-                        shipmentCreateRequest.receiverCompany,
-                        shipmentCreateRequest.receiverPhone,
-                        shipmentCreateRequest.receiverEmail,
+                        shipmentCreateRequest.getReceiverName(),
+                        shipmentCreateRequest.getReceiverCompany(),
+                        shipmentCreateRequest.getReceiverPhone(),
+                        shipmentCreateRequest.getReceiverEmail(),
                         PersonType.RECEIVER
                 );
             }
+
+            // Increment currentLimit
+            subscriptionDetail.setCurrentLimit(subscriptionDetail.getCurrentLimit() + 1);
+            subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
         } catch (EasyPostException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid parameters supplied");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
         }
 
         // A rates array is return with ShipmentCreatedResponse object

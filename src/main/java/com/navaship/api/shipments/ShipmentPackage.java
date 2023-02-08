@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "shipment")
 @NoArgsConstructor
 @Entity
 public class ShipmentPackage {

@@ -88,7 +88,6 @@ public class AddressController {
         convertedAddress.setId(addressId);
         convertedAddress.setUser(user);
         convertedAddress.setCreatedAt(address.getCreatedAt());
-        convertedAddress.setUpdatedAt(LocalDateTime.now());
 
         Address updatedAddress = addressService.modifyAddress(convertedAddress);
         return new ResponseEntity<>(addressService.convertToAddressResponse(updatedAddress), HttpStatus.OK);

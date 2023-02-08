@@ -87,7 +87,6 @@ public class PackageController {
         convertedPackage.setId(packageId);
         convertedPackage.setUser(user);
         convertedPackage.setCreatedAt(parcel.getCreatedAt());
-        convertedPackage.setUpdatedAt(LocalDateTime.now());
 
         Package updatedPackage = packageService.modifyPackage(convertedPackage);
         return new ResponseEntity<>(packageService.convertToPackagesResponse(updatedPackage), HttpStatus.OK);

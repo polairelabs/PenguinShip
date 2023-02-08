@@ -13,7 +13,7 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "user")
 @NoArgsConstructor
 @Entity
 /**
@@ -31,8 +31,9 @@ public class SubscriptionDetail {
     private String stripeCustomerId;
     private String subscriptionId;
     private int currentLimit;
-
     @OneToOne
     private SubscriptionPlan subscriptionPlan;
     private Long startDate;
+    private Long lastPaymentDate;
+    private Long endDate;
 }

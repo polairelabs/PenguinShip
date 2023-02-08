@@ -21,7 +21,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = "user")
 @NoArgsConstructor
 @Entity
 @Table(name = "shipment")

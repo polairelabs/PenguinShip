@@ -24,10 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 /**
  * The class will handle retrieving subscriptions/memberships,
@@ -120,8 +118,9 @@ public class SubscriptionController {
         // Handle Event
         String status = "";
         switch (event.getType()) {
-            case "invoice.payment_succeeded":
+            case "invoice.payment_succeeded" -> {
                 /*
+                    Event occurs whenever an invoice payment attempt succeeds.
                     Update the default payment method for the customers
 
                     When a Subscription is made, your user is invoiced, so it is considered a payment and will appear in the Payments dashboard.
@@ -139,26 +138,24 @@ public class SubscriptionController {
                     customerParams.put("invoice_settings", invoiceSettingsParams);
                     Customer.retrieve(invoice.getCustomer()).update(customerParams);
                 } catch (StripeException e) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice failed");
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice payment failed");
                 }
-                break;
-            case "customer.subscription.deleted":
+                handleSubscriptionPaid(subscriptionDetail);
+            }
+            case "customer.subscription.deleted" -> {
                 status = "Subscription Deleted";
-                handleSubscriptionDeleted(subscriptionDetail);
-                break;
-            case "customer.subscription.created":
-            case "customer.subscription.updated":
+                handleSubscriptionDeleted((Subscription) stripeObject, subscriptionDetail);
+            }
+            case "customer.subscription.created", "customer.subscription.updated" -> {
                 status = "Subscription Created/Updated";
-                Subscription subscription = (Subscription) stripeObject;
-                handleSubscriptionCreated(subscription, subscriptionDetail);
-                break;
-            default:
-                status = "Unhandled event type: " + event.getType();
+                handleSubscriptionCreatedOrUpdated((Subscription) stripeObject, subscriptionDetail);
+            }
+            default -> status = "Unhandled event type: " + event.getType();
         }
 
         Map<String, String> message = new HashMap<>();
         message.put("message", status);
-        return new ResponseEntity(message, HttpStatus.OK);
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
 
     @PostMapping("/create-portal-session")
@@ -188,22 +185,31 @@ public class SubscriptionController {
         }
     }
 
-    private SubscriptionDetail handleSubscriptionCreated(Subscription subscription, SubscriptionDetail subscriptionDetail) {
-        // Update user role to verified
-        // TODO: Add more validation to validate the user
+    private void handleSubscriptionPaid(SubscriptionDetail subscriptionDetail) {
+        // Reset limit Shipment creation
+        subscriptionDetail.setCurrentLimit(0);
+        subscriptionDetail.setLastPaymentDate(Instant.now().getEpochSecond());
+        subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
+    }
+
+    private SubscriptionDetail handleSubscriptionCreatedOrUpdated(Subscription subscription, SubscriptionDetail subscriptionDetail) {
         AppUser user = subscriptionDetail.getUser();
+        if (subscriptionDetail.getSubscriptionId() == null || !Objects.equals(subscription.getId(), subscriptionDetail.getSubscriptionId())) {
+            // User subscribed to plan for the first time or to a different plan
+            subscriptionDetail.setStartDate(subscription.getStartDate());
+        }
         user.setRole(AppUserRole.USER);
         subscriptionDetail.setSubscriptionId(subscription.getId());
-        subscriptionDetail.setStartDate(subscription.getStartDate());
-        // Will persist user as well as subscriptionDetail
+        subscriptionDetail.setEndDate(null);
+        // Will persist user as well as SubscriptionDetail
         return subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
     }
 
-    private void handleSubscriptionDeleted(SubscriptionDetail subscriptionDetail) {
+    private void handleSubscriptionDeleted(Subscription subscription, SubscriptionDetail subscriptionDetail) {
         AppUser user = subscriptionDetail.getUser();
         user.setRole(AppUserRole.UNPAYED_USER);
-        appUserService.modifyUser(user);
-        subscriptionDetailService.deleteSubscriptionDetail(user);
+        subscriptionDetail.setEndDate(subscription.getEndedAt());
+        subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
     }
 
     private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
