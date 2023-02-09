@@ -247,6 +247,7 @@ public class ShipmentController {
                 }
 
                 Rate myRate = rateService.convertToRate(rate);
+                myRate.setRate(currentRate);
                 rateService.createRate(myRate);
                 // Set the bought rate to the shipment
                 myShipment.setRate(myRate);
