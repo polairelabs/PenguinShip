@@ -22,10 +22,13 @@ public class RateService {
         return rateRepository.save(rate);
     }
 
-    public BigDecimal calculateRateWithAdditionalFees(com.easypost.model.Rate rate, SubscriptionPlan subscriptionPlan) {
+    public BigDecimal calculateRate(com.easypost.model.Rate rate, SubscriptionPlan subscriptionPlan) {
         // Calculate overhead % on top of Rate
         BigDecimal rateValue = new BigDecimal(Float.toString(rate.getRate()));
         BigDecimal serviceFee = subscriptionPlan.getShipmentHandlingFee();
+        if (serviceFee.compareTo(BigDecimal.ZERO) == 0) {
+            return rateValue.setScale(2, RoundingMode.HALF_UP);
+        }
         BigDecimal additionalOverheadFee = rateValue.multiply(serviceFee);
         return rateValue.add(additionalOverheadFee).setScale(2, RoundingMode.HALF_UP);
     }

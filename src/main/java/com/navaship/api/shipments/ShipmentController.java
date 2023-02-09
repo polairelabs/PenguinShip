@@ -38,7 +38,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -192,7 +191,7 @@ public class ShipmentController {
         List<RateResponse> shipmentRates = new ArrayList<>();
         for (com.easypost.model.Rate rate : shipment.getRates()) {
             Rate myRate = rateService.convertToRate(rate);
-            BigDecimal finalRate = rateService.calculateRateWithAdditionalFees(rate, subscriptionPlan);
+            BigDecimal finalRate = rateService.calculateRate(rate, subscriptionPlan);
             myRate.setRate(finalRate);
             shipmentRates.add(rateService.convertToRateResponse(myRate));
         }
@@ -214,7 +213,7 @@ public class ShipmentController {
         try {
             com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(shipmentBuyRateRequest.getEasypostRateId());
 
-            BigDecimal currentRate = rateService.calculateRateWithAdditionalFees(rate, user.getSubscriptionDetail().getSubscriptionPlan());
+            BigDecimal currentRate = rateService.calculateRate(rate, user.getSubscriptionDetail().getSubscriptionPlan());
             int rateInCents = currentRate.multiply(new BigDecimal(100)).intValue();
 
             if (user.getSubscriptionDetail() == null || user.getSubscriptionDetail().getStripeCustomerId() == null) {
