@@ -16,8 +16,10 @@ import com.navaship.api.packages.PackageService;
 import com.navaship.api.person.PersonService;
 import com.navaship.api.person.PersonType;
 import com.navaship.api.rates.Rate;
+import com.navaship.api.rates.RateResponse;
 import com.navaship.api.rates.RateService;
 import com.navaship.api.stripe.StripeService;
+import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
 import com.navaship.api.verificationtoken.VerificationTokenException;
@@ -35,10 +37,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,7 +112,9 @@ public class ShipmentController {
         AppUser user = retrieveUserFromJwt(principal);
 
         SubscriptionDetail subscriptionDetail = user.getSubscriptionDetail();
-        if (subscriptionDetail.getCurrentLimit() == subscriptionDetail.getSubscriptionPlan().getMaxLimit()) {
+        SubscriptionPlan subscriptionPlan = subscriptionDetail.getSubscriptionPlan();
+
+        if (subscriptionDetail.getCurrentLimit() == subscriptionPlan.getMaxLimit()) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Monthly shipment creation limit reached. Please consider deleting some unused shipments or upgrading your plan");
         }
 
@@ -186,8 +189,18 @@ public class ShipmentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
         }
 
+        List<RateResponse> shipmentRates = new ArrayList<>();
+        for (com.easypost.model.Rate rate : shipment.getRates()) {
+            Rate myRate = rateService.convertToRate(rate);
+            BigDecimal finalRate = rateService.calculateRateWithAdditionalFees(rate, subscriptionPlan);
+            myRate.setRate(finalRate);
+            shipmentRates.add(rateService.convertToRateResponse(myRate));
+        }
+
         // A rates array is return with ShipmentCreatedResponse object
-        ShipmentCreatedResponse shipmentCreatedResponse = shipmentService.convertToShipmentCreateResponse(shipment);
+        ShipmentCreatedResponse shipmentCreatedResponse = new ShipmentCreatedResponse();
+        shipmentCreatedResponse.setId(shipment.getId());
+        shipmentCreatedResponse.setRates(shipmentRates);
         return new ResponseEntity<>(shipmentCreatedResponse, HttpStatus.OK);
     }
 
@@ -195,13 +208,14 @@ public class ShipmentController {
     public ResponseEntity<ShipmentBoughtResponse> buyShipmentRate(JwtAuthenticationToken principal,
                                                                   @Valid @RequestBody ShipmentBuyRateRequest shipmentBuyRateRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Shipment navaShipment = shipmentService.retrieveShipmentFromEasypostId(shipmentBuyRateRequest.getEasypostShipmentId());
-        checkShipmentBelongsToUser(principal, navaShipment);
+        Shipment myShipment = shipmentService.retrieveShipmentFromEasypostId(shipmentBuyRateRequest.getEasypostShipmentId());
+        checkShipmentBelongsToUser(principal, myShipment);
 
         try {
-            // Create payment intent
             com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(shipmentBuyRateRequest.getEasypostRateId());
-            int rateInCents = Math.round(rate.getRate() * 100);
+
+            BigDecimal currentRate = rateService.calculateRateWithAdditionalFees(rate, user.getSubscriptionDetail().getSubscriptionPlan());
+            int rateInCents = currentRate.multiply(new BigDecimal(100)).intValue();
 
             if (user.getSubscriptionDetail() == null || user.getSubscriptionDetail().getStripeCustomerId() == null) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User is not a customer");
@@ -210,9 +224,9 @@ public class ShipmentController {
             String customerId = user.getSubscriptionDetail().getStripeCustomerId();
             PaymentIntent paymentIntent = stripeService.createPaymentIntent(customerId, rateInCents, "USD");
 
-            Map<String, Object> confirmParams = new HashMap<>();
+            // Map<String, Object> confirmParams = new HashMap<>();
             // confirmParams.put("return_url", "https://your-website.com/success");
-            PaymentIntent confirmedPaymentIntent = paymentIntent.confirm(confirmParams);
+            PaymentIntent confirmedPaymentIntent = paymentIntent.confirm();
 
             if (confirmedPaymentIntent.getStatus().equals("succeeded")) {
                 com.easypost.model.Shipment shipment = easyPostService.buyShipmentRate(
@@ -220,26 +234,26 @@ public class ShipmentController {
                         shipmentBuyRateRequest.getEasypostRateId()
                 );
 
-                navaShipment.setStatus(ShipmentStatus.PURCHASED);
+                myShipment.setStatus(ShipmentStatus.PURCHASED);
                 rate = shipment.getSelectedRate();
 
                 // Modify shipment with new generated (from easypost) attributes trackingCode and labelUrl
-                navaShipment.setTrackingCode(shipment.getTrackingCode());
+                myShipment.setTrackingCode(shipment.getTrackingCode());
                 if (shipment.getPostageLabel() != null) {
-                    navaShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
+                    myShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
                 }
 
                 if (shipment.getTracker() != null) {
-                    navaShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
+                    myShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
                 }
 
-                Rate navaRate = rateService.convertToNavaRate(rate);
-                rateService.createRate(navaRate);
+                Rate myRate = rateService.convertToRate(rate);
+                rateService.createRate(myRate);
                 // Set the bought rate to the shipment
-                navaShipment.setRate(navaRate);
-                shipmentService.modifyShipment(navaShipment);
+                myShipment.setRate(myRate);
+                shipmentService.modifyShipment(myShipment);
             } else {
-                System.out.println("Payment failed!!!");
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed");
             }
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
@@ -248,7 +262,7 @@ public class ShipmentController {
         }
 
         return new ResponseEntity<>(
-                shipmentService.convertToBuyShipmentResponse(navaShipment),
+                shipmentService.convertToBuyShipmentResponse(myShipment),
                 HttpStatus.OK);
     }
 

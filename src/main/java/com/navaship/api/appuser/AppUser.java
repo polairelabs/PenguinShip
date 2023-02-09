@@ -126,27 +126,4 @@ public class AppUser implements UserDetails {
     public boolean isEnabled() {
         return enabled;
     }
-
-    // For a bidirectional association, you also need to have two utility methods, like addChild
-    // These two methods ensure that both sides of the bidirectional association are in sync in Hibernate
-    //
-    //    public void addShipment(Shipment shipment) {
-    //        shipments.add(shipment);
-    //        shipment.setUser(this);
-    //    }
-    //
-    //    public void removeShipment(Shipment shipment) {
-    //        shipments.remove(shipment);
-    //        shipment.setUser(null);
-    //    }
-    //
-    //    public void addAddress(Address address) {
-    //        addresses.add(address);
-    //        address.setUser(this);
-    //    }
-    //
-    //    public void removeAddress(Address address) {
-    //        addresses.remove(address);
-    //        address.setUser(null);
-    //    }
 }

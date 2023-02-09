@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,5 +14,5 @@ import java.util.ArrayList;
 @NoArgsConstructor
 public class ShipmentCreatedResponse {
     private String id; // easypost shipment id
-    private ArrayList<RateResponse> rates;
+    private List<RateResponse> rates;
 }

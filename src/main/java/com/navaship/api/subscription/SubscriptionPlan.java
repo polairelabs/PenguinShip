@@ -24,7 +24,8 @@ public class SubscriptionPlan {
     private String description;
     private String stripePriceId;
     // The precision attribute sets the total number of digits stored, and the scale attribute sets the number of digits to the right of the decimal point
-    @Column(precision = 4, scale = 2)
+    // Maximum value capped to 1.000 (1%)
+    @Column(precision = 4, scale = 3)
     private BigDecimal shipmentHandlingFee;
     private int maxLimit;
 }

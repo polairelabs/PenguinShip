@@ -3,7 +3,6 @@ package com.navaship.api.shipments;
 import com.navaship.api.addresses.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
-import com.navaship.api.stripe.StripeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -62,11 +61,6 @@ public class ShipmentService {
         return shipmentRepository.findShipmentByEasypostShipmentId(easypostShipmentId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shipment not found")
         );
-    }
-
-    // Return this response when user creates a shipment
-    public ShipmentCreatedResponse convertToShipmentCreateResponse(com.easypost.model.Shipment easypostShipment) {
-        return modelMapper.map(easypostShipment, ShipmentCreatedResponse.class);
     }
 
     // Return this response when user buys a rate
