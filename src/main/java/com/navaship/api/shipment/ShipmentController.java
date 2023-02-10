@@ -106,8 +106,8 @@ public class ShipmentController {
     }
 
     @PostMapping()
-    public ResponseEntity<ShipmentCreatedResponse> createShipment(JwtAuthenticationToken principal,
-                                                                  @Valid @RequestBody ShipmentCreateRequest shipmentCreateRequest) {
+    public ResponseEntity<ShipmentRatesResponse> createShipment(JwtAuthenticationToken principal,
+                                                                @Valid @RequestBody ShipmentCreateRequest shipmentCreateRequest) {
         AppUser user = retrieveUserFromJwt(principal);
 
         SubscriptionDetail subscriptionDetail = user.getSubscriptionDetail();
@@ -197,10 +197,10 @@ public class ShipmentController {
         }
 
         // A rates array is return with ShipmentCreatedResponse object
-        ShipmentCreatedResponse shipmentCreatedResponse = new ShipmentCreatedResponse();
-        shipmentCreatedResponse.setId(shipment.getId());
-        shipmentCreatedResponse.setRates(shipmentRates);
-        return new ResponseEntity<>(shipmentCreatedResponse, HttpStatus.OK);
+        ShipmentRatesResponse shipmentRatesResponse = new ShipmentRatesResponse();
+        shipmentRatesResponse.setId(shipment.getId());
+        shipmentRatesResponse.setRates(calculateShipmentRates(shipment.getRates(), subscriptionPlan));
+        return new ResponseEntity<>(shipmentRatesResponse, HttpStatus.OK);
     }
 
     @PostMapping("/buy")
@@ -267,19 +267,26 @@ public class ShipmentController {
     }
 
     @GetMapping("/rates/{shipmentId}")
-    public ResponseEntity<List<com.easypost.model.Rate>> getRates(JwtAuthenticationToken principal,
-                                                                  @PathVariable Long shipmentId) {
+    public ResponseEntity<ShipmentRatesResponse> getRates(JwtAuthenticationToken principal,
+                                                          @PathVariable Long shipmentId) {
         Shipment navaShipment = shipmentService.retrieveShipment(shipmentId);
         checkShipmentBelongsToUser(principal, navaShipment);
 
-        List<com.easypost.model.Rate> rates;
+        SubscriptionDetail subscriptionDetail = navaShipment.getUser().getSubscriptionDetail();
+        SubscriptionPlan subscriptionPlan = subscriptionDetail.getSubscriptionPlan();
+
+        List<RateResponse> shipmentRates;
         try {
-            rates = easyPostService.getShipmentRates(navaShipment.getEasypostShipmentId());
+            List<com.easypost.model.Rate> rates = easyPostService.getShipmentRates(navaShipment.getEasypostShipmentId());
+            shipmentRates = calculateShipmentRates(rates, subscriptionPlan);
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
-        return new ResponseEntity<>(rates, HttpStatus.OK);
+        ShipmentRatesResponse shipmentRatesResponse = new ShipmentRatesResponse();
+        shipmentRatesResponse.setId(navaShipment.getEasypostShipmentId());
+        shipmentRatesResponse.setRates(shipmentRates);
+        return new ResponseEntity<>(shipmentRatesResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{shipmentId}")
@@ -302,6 +309,19 @@ public class ShipmentController {
         return appUserService.findById(userId).orElseThrow(
                 () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
         );
+    }
+
+    private List<RateResponse> calculateShipmentRates(List<com.easypost.model.Rate> rates, SubscriptionPlan subscriptionPlan) {
+        List<RateResponse> shipmentRates = new ArrayList<>();
+        for (com.easypost.model.Rate rate : rates) {
+            Rate myRate = rateService.convertToRate(rate);
+            BigDecimal finalRate = rateService.calculateRate(rate, subscriptionPlan);
+            myRate.setRate(finalRate);
+            shipmentRates.add(rateService.convertToRateResponse(myRate));
+        }
+        // Sort by lowest rate first
+        shipmentRates.sort(Comparator.comparing(RateResponse::getRate));
+        return shipmentRates;
     }
 
     private void checkShipmentBelongsToUser(JwtAuthenticationToken principal,

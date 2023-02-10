@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShipmentCreatedResponse {
+public class ShipmentRatesResponse {
     private String id; // easypost shipment id
     private List<RateResponse> rates;
 }

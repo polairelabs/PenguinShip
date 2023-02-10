@@ -2,10 +2,13 @@ package com.navaship.api.rate;
 
 import com.navaship.api.subscription.SubscriptionPlan;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 @Service
 public class RateService {
@@ -39,5 +42,10 @@ public class RateService {
 
     public RateResponse convertToRateResponse(Rate rate) {
         return modelMapper.map(rate, RateResponse.class);
+    }
+
+    public List<RateResponse> convertToListRateResponse(List<Rate> rates) {
+        Type listType = new TypeToken<List<RateResponse>>(){}.getType();
+        return modelMapper.map(rates, listType);
     }
 }

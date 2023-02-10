@@ -38,5 +38,7 @@ public class SubscriptionDetail {
     private Long lastPaymentDate;
     private Long endDate;
     @JsonView(AuthViews.Default.class)
+    private String cardType;
+    @JsonView(AuthViews.Default.class)
     private String cardLastFourDigits;
 }

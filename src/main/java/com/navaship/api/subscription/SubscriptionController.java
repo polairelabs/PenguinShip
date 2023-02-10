@@ -139,6 +139,7 @@ public class SubscriptionController {
                     Customer customer = Customer.retrieve(invoice.getCustomer()).update(customerParams);
                     PaymentMethod paymentMethod = PaymentMethod.retrieve(customer.getInvoiceSettings().getDefaultPaymentMethod());
                     subscriptionDetail.setCardLastFourDigits(paymentMethod.getCard().getLast4());
+                    subscriptionDetail.setCardType(paymentMethod.getCard().getBrand());
                 } catch (StripeException e) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice payment failed");
                 }
