@@ -1,4 +1,4 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipmentaddress;
 
 public enum ShipmentAddressType {
     SOURCE,

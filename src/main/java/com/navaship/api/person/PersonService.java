@@ -1,6 +1,6 @@
 package com.navaship.api.person;
 
-import com.navaship.api.shipments.Shipment;
+import com.navaship.api.shipment.Shipment;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

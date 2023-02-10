@@ -24,7 +24,7 @@ public class EasyPostService {
     private String webhookUrl;
 
 
-    public Shipment createShipment(com.navaship.api.addresses.Address fromAddress, com.navaship.api.addresses.Address toAddress, com.navaship.api.packages.Package parcel) throws EasyPostException {
+    public Shipment createShipment(com.navaship.api.address.Address fromAddress, com.navaship.api.address.Address toAddress, com.navaship.api.packages.Package parcel) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         Map<String, Object> shipmentMap = new HashMap<String, Object>();
         shipmentMap.put(FROM_ADDRESS_MAP_KEY, fromAddress.toAddressMap());

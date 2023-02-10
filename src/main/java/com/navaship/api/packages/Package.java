@@ -1,7 +1,7 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.Shipment;
+import com.navaship.api.shipment.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

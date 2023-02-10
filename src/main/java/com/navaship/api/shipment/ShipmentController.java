@@ -1,12 +1,12 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
 import com.easypost.exception.EasyPostException;
 import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.navaship.api.addresses.Address;
-import com.navaship.api.addresses.AddressService;
+import com.navaship.api.address.Address;
+import com.navaship.api.address.AddressService;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
@@ -15,9 +15,9 @@ import com.navaship.api.packages.Package;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.person.PersonService;
 import com.navaship.api.person.PersonType;
-import com.navaship.api.rates.Rate;
-import com.navaship.api.rates.RateResponse;
-import com.navaship.api.rates.RateService;
+import com.navaship.api.rate.Rate;
+import com.navaship.api.rate.RateResponse;
+import com.navaship.api.rate.RateService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;

@@ -1,4 +1,4 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
 /**
  * Status from our api: draft, purchased

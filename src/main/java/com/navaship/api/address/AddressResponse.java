@@ -1,4 +1,4 @@
-package com.navaship.api.addresses;
+package com.navaship.api.address;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

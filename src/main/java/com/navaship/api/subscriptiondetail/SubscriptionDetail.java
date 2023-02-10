@@ -27,13 +27,16 @@ public class SubscriptionDetail {
     @MapsId
     @JoinColumn(name = "user_id")
     private AppUser user;
-    @JsonView(AuthViews.Default.class)
     private String stripeCustomerId;
     private String subscriptionId;
+    @JsonView(AuthViews.Default.class)
     private int currentLimit;
     @OneToOne
+    @JsonView(AuthViews.Default.class)
     private SubscriptionPlan subscriptionPlan;
     private Long startDate;
     private Long lastPaymentDate;
     private Long endDate;
+    @JsonView(AuthViews.Default.class)
+    private String cardLastFourDigits;
 }

@@ -1,5 +1,7 @@
 package com.navaship.api.subscription;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.navaship.api.auth.AuthViews;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,7 @@ public class SubscriptionPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @JsonView(AuthViews.Default.class)
     private String name;
     private String description;
     private String stripePriceId;
@@ -27,5 +30,6 @@ public class SubscriptionPlan {
     // Maximum value capped to 1.000 (1%)
     @Column(precision = 4, scale = 3)
     private BigDecimal shipmentHandlingFee;
+    @JsonView(AuthViews.Default.class)
     private int maxLimit;
 }

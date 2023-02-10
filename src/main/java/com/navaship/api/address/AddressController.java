@@ -1,4 +1,4 @@
-package com.navaship.api.addresses;
+package com.navaship.api.address;
 
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 

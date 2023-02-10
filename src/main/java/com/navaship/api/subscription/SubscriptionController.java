@@ -119,15 +119,14 @@ public class SubscriptionController {
         String status = "";
         switch (event.getType()) {
             case "invoice.payment_succeeded" -> {
+                status = "Subscription payment success";
                 /*
                     Event occurs whenever an invoice payment attempt succeeds.
-                    Update the default payment method for the customers
-
+                    Update the default payment method for the customers.
                     When a Subscription is made, your user is invoiced, so it is considered a payment and will appear in the Payments dashboard.
                     You can retrieve the Subscription and access the latest_invoice field to obtain the Invoice object.
                     The Invoice object contains the payment_intent field.
                  */
-                status = "Subscription payment success";
                 Invoice invoice = (Invoice) stripeObject;
                 try {
                     PaymentIntent paymentIntent = PaymentIntent.retrieve(invoice.getPaymentIntent());
@@ -136,7 +135,10 @@ public class SubscriptionController {
                     Map<String, Object> invoiceSettingsParams = new HashMap<>();
                     invoiceSettingsParams.put("default_payment_method", paymentIntent.getPaymentMethod());
                     customerParams.put("invoice_settings", invoiceSettingsParams);
-                    Customer.retrieve(invoice.getCustomer()).update(customerParams);
+
+                    Customer customer = Customer.retrieve(invoice.getCustomer()).update(customerParams);
+                    PaymentMethod paymentMethod = PaymentMethod.retrieve(customer.getInvoiceSettings().getDefaultPaymentMethod());
+                    subscriptionDetail.setCardLastFourDigits(paymentMethod.getCard().getLast4());
                 } catch (StripeException e) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice payment failed");
                 }
@@ -193,12 +195,12 @@ public class SubscriptionController {
     }
 
     private SubscriptionDetail handleSubscriptionCreatedOrUpdated(Subscription subscription, SubscriptionDetail subscriptionDetail) {
+        // Provision user to correct role and subscription plan
         AppUser user = subscriptionDetail.getUser();
         if (subscriptionDetail.getSubscriptionId() == null || !Objects.equals(subscription.getId(), subscriptionDetail.getSubscriptionId())) {
             // User subscribed to plan for the first time or to a different plan
             subscriptionDetail.setStartDate(subscription.getStartDate());
         }
-        // Provision user to correct role and subscription plan
         user.setRole(AppUserRole.USER);
         subscriptionDetail.setSubscriptionId(subscription.getId());
         String priceId = subscription.getItems().getData().get(0).getPlan().getId();

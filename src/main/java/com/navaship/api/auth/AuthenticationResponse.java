@@ -3,7 +3,6 @@ package com.navaship.api.auth;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserRole;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -1,7 +1,6 @@
-package com.navaship.api.addresses;
+package com.navaship.api.address;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,9 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Getter

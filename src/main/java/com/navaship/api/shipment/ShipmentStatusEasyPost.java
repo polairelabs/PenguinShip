@@ -1,4 +1,4 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
 /**
  * <a href="https://support.easypost.com/hc/en-us/articles/360044353091-Tracking-Frequently-Asked-Questions#h_9656edcc-0b76-4851-8b09-a826d9add238">Click here!!</a>

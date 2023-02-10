@@ -1,4 +1,4 @@
-package com.navaship.api.rates;
+package com.navaship.api.rate;
 
 import com.navaship.api.subscription.SubscriptionPlan;
 import org.modelmapper.ModelMapper;

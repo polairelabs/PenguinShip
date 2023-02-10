@@ -1,4 +1,4 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
 import com.navaship.api.validators.BigDecimalLength;
 import lombok.AllArgsConstructor;

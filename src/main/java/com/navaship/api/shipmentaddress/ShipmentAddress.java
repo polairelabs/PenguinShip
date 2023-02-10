@@ -1,6 +1,7 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipmentaddress;
 
-import com.navaship.api.addresses.Address;
+import com.navaship.api.address.Address;
+import com.navaship.api.shipment.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
+/**
+ * Address will be saved as ShipmentAddress once Address is persisted in the db
+ */
 @Getter
 @Setter
 @EqualsAndHashCode

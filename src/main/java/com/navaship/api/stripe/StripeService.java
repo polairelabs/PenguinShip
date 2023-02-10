@@ -44,7 +44,6 @@ public class StripeService {
 
     public Session createCheckoutSession(String priceId, String stripeCustomerId) throws StripeException {
         Stripe.apiKey = stripeApiKey;
-
         SessionCreateParams params = SessionCreateParams.builder()
                 .addLineItem(
                         SessionCreateParams.LineItem.builder().setPrice(priceId).setQuantity(1L).build())
@@ -67,7 +66,6 @@ public class StripeService {
 
     public PaymentIntent createPaymentIntent(String customerId, int amountInCents, String currency) throws StripeException {
         Stripe.apiKey = stripeApiKey;
-
         Customer customer = Customer.retrieve(customerId);
         String defaultPaymentMethodId = customer.getInvoiceSettings().getDefaultPaymentMethod();
 
@@ -79,34 +77,5 @@ public class StripeService {
         params.put("customer", customerId);
 
         return PaymentIntent.create(params);
-    }
-
-    public Subscription subscribe(String customerId, String price) throws StripeException {
-        Stripe.apiKey = stripeApiKey;
-
-        List<Object> items = new ArrayList<>();
-        Map<String, Object> item1 = new HashMap<>();
-        item1.put("price", price);
-        items.add(item1);
-        Map<String, Object> params = new HashMap<>();
-        params.put("customer", customerId);
-        params.put("items", items);
-
-        return Subscription.create(params);
-    }
-
-    private void incrementUsage(AppUser user) throws StripeException {
-        Stripe.apiKey = stripeApiKey;
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("quantity", 100);
-        params.put("timestamp", 1571252444);
-
-        UsageRecord usageRecord =
-                UsageRecord.createOnSubscriptionItem(
-                        "si_NCtqpkE6BQCV3v",
-                        params,
-                        null
-                );
     }
 }

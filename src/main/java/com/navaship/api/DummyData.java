@@ -1,7 +1,7 @@
 package com.navaship.api;
 
-import com.navaship.api.addresses.Address;
-import com.navaship.api.addresses.AddressRepository;
+import com.navaship.api.address.Address;
+import com.navaship.api.address.AddressRepository;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRepository;
 import com.navaship.api.appuser.AppUserRole;

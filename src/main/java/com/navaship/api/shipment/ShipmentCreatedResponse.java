@@ -1,6 +1,6 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
-import com.navaship.api.rates.RateResponse;
+import com.navaship.api.rate.RateResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,5 +1,6 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipmentaddress;
 
+import com.navaship.api.shipmentaddress.ShipmentAddressType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

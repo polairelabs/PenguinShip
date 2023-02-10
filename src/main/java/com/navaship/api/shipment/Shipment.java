@@ -1,11 +1,13 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
-import com.easypost.model.Parcel;
-import com.navaship.api.addresses.Address;
+import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
 import com.navaship.api.person.Person;
-import com.navaship.api.rates.Rate;
+import com.navaship.api.rate.Rate;
+import com.navaship.api.shipmentaddress.ShipmentAddress;
+import com.navaship.api.shipmentaddress.ShipmentAddressType;
+import com.navaship.api.shipmentpackage.ShipmentPackage;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

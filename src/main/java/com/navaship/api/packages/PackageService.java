@@ -1,8 +1,8 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.shipments.Shipment;
-import com.navaship.api.shipments.ShipmentRepository;
+import com.navaship.api.shipment.Shipment;
+import com.navaship.api.shipment.ShipmentRepository;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;

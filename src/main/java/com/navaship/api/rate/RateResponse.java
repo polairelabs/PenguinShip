@@ -1,11 +1,10 @@
-package com.navaship.api.rates;
+package com.navaship.api.rate;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.Column;
 import java.math.BigDecimal;
 
 @Getter

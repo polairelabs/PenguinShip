@@ -1,4 +1,4 @@
-package com.navaship.api.rates;
+package com.navaship.api.rate;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

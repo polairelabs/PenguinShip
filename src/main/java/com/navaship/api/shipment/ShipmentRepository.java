@@ -1,4 +1,4 @@
-package com.navaship.api.addresses;
+package com.navaship.api.shipment;
 
 import com.navaship.api.appuser.AppUser;
 import org.springframework.data.domain.Page;
@@ -6,8 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
-public interface AddressRepository extends PagingAndSortingRepository<Address, Long> {
-    Page<Address> findAllByUser(AppUser user, Pageable pageable);
+public interface ShipmentRepository extends PagingAndSortingRepository<Shipment, Long> {
+    Page<Shipment> findAllByUser(AppUser user, Pageable pageable);
+    Optional<Shipment> findShipmentByEasypostShipmentId(String easypostShipmentId);
     int countByUser(AppUser user);
 }

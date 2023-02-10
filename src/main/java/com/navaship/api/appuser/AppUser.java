@@ -2,9 +2,9 @@ package com.navaship.api.appuser;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import com.navaship.api.addresses.Address;
+import com.navaship.api.address.Address;
 import com.navaship.api.auth.AuthViews;
-import com.navaship.api.shipments.Shipment;
+import com.navaship.api.shipment.Shipment;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -53,9 +53,7 @@ public class AppUser implements UserDetails {
     @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
     private AppUserRole role;
-    @JsonView(AuthViews.Default.class)
     private Boolean locked = false;
-    @JsonView(AuthViews.Default.class)
     private Boolean enabled = true;
 
     /*
@@ -75,6 +73,7 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Address> addresses = new ArrayList<>();
 
+    @JsonView(AuthViews.Default.class)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     private SubscriptionDetail subscriptionDetail;

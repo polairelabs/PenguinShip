@@ -1,4 +1,4 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

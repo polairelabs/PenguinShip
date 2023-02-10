@@ -1,6 +1,6 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
-import com.navaship.api.addresses.Address;
+import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
 import lombok.AllArgsConstructor;

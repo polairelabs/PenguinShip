@@ -1,4 +1,4 @@
-package com.navaship.api.rates;
+package com.navaship.api.rate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;

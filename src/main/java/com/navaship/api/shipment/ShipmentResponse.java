@@ -1,10 +1,9 @@
-package com.navaship.api.shipments;
+package com.navaship.api.shipment;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.navaship.api.addresses.AddressResponse;
-import com.navaship.api.packages.PackageResponse;
 import com.navaship.api.person.PersonResponse;
-import com.navaship.api.rates.RateResponse;
+import com.navaship.api.rate.RateResponse;
+import com.navaship.api.shipmentaddress.ShipmentAddressResponse;
+import com.navaship.api.shipmentpackage.ShipmentPackageResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,8 +22,7 @@ public class ShipmentResponse {
     private List<ShipmentAddressResponse> addresses;
     private ShipmentPackageResponse parcel;
     private ShipmentStatus status;
-    @JsonProperty("easypost_status")
-    private ShipmentStatusEasyPost easypostShipmentStatusEasyPost;
+    private ShipmentStatusEasyPost easyPostStatus;
     private RateResponse rate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
