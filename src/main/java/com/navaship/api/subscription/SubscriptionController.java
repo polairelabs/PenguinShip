@@ -198,8 +198,11 @@ public class SubscriptionController {
             // User subscribed to plan for the first time or to a different plan
             subscriptionDetail.setStartDate(subscription.getStartDate());
         }
+        // Provision user to correct role and subscription plan
         user.setRole(AppUserRole.USER);
         subscriptionDetail.setSubscriptionId(subscription.getId());
+        String priceId = subscription.getItems().getData().get(0).getPlan().getId();
+        subscriptionDetail.setSubscriptionPlan(subscriptionPlanService.retrieveSubscriptionPlanByPriceId(priceId));
         subscriptionDetail.setEndDate(null);
         // Will persist user as well as SubscriptionDetail
         return subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
@@ -208,6 +211,8 @@ public class SubscriptionController {
     private void handleSubscriptionDeleted(Subscription subscription, SubscriptionDetail subscriptionDetail) {
         AppUser user = subscriptionDetail.getUser();
         user.setRole(AppUserRole.UNPAYED_USER);
+        subscriptionDetail.setSubscriptionId(null);
+        subscriptionDetail.setSubscriptionPlan(null);
         subscriptionDetail.setEndDate(subscription.getEndedAt());
         subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
     }

@@ -59,7 +59,7 @@ public class RegistrationController {
                 AppUserRole.UNPAYED_USER
         );
 
-        SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlan(registrationRequest.getStripePriceId());
+        SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlanByPriceId(registrationRequest.getStripePriceId());
 
         AppUser user = appUserService.createUser(newUser);
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
@@ -68,6 +68,7 @@ public class RegistrationController {
         RegistrationResponse registrationResponse = new RegistrationResponse();
         registrationResponse.setUser(user);
 
+        // Register user as Stripe customer
         try {
             Customer customer = stripeService.createCustomer(user);
             SubscriptionDetail subscriptionDetail = new SubscriptionDetail();

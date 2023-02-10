@@ -19,7 +19,7 @@ public class SubscriptionPlanService {
         return subscriptionPlanRepository.findAll();
     }
 
-    public SubscriptionPlan retrieveSubscriptionPlan(String stripePriceId) {
+    public SubscriptionPlan retrieveSubscriptionPlanByPriceId(String stripePriceId) {
         return subscriptionPlanRepository.findSubscriptionPlanByStripePriceId(stripePriceId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription plan not found")
         );
