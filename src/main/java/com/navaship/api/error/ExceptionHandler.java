@@ -77,7 +77,7 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
                         fieldError.getField(),
                         fieldError.getDefaultMessage()
                 )).toList();
-        return buildResponseEntity(new ErrorDetails(HttpStatus.BAD_REQUEST, "Improper data submitted", validationErrors));
+        return buildResponseEntity(new ErrorDetails(HttpStatus.BAD_REQUEST, "Invalid data submitted", validationErrors));
     }
 
     private ResponseEntity<Object> buildResponseEntity(ErrorDetails errorDetails) {

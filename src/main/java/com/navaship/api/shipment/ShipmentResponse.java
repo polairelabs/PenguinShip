@@ -28,6 +28,5 @@ public class ShipmentResponse {
     private LocalDateTime updatedAt;
     private String trackingCode;
     private String postageLabelUrl;
-    private String publicTrackingUrl;
     private List<PersonResponse> persons;
 }

@@ -262,7 +262,7 @@ public class ShipmentController {
         }
 
         return new ResponseEntity<>(
-                shipmentService.convertToBuyShipmentResponse(myShipment),
+                shipmentService.convertToBoughtShipmentResponse(myShipment),
                 HttpStatus.OK);
     }
 

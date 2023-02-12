@@ -41,4 +41,6 @@ public class SubscriptionDetail {
     private String cardType;
     @JsonView(AuthViews.Default.class)
     private String cardLastFourDigits;
+    @JsonView(AuthViews.Default.class)
+    private String status;
 }

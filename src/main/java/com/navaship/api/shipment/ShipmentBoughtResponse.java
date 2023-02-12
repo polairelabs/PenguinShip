@@ -3,9 +3,9 @@ package com.navaship.api.shipment;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.navaship.api.address.Address;
 import com.navaship.api.packages.Package;
-import com.navaship.api.rate.Rate;
+import com.navaship.api.rate.RateResponse;
+import com.navaship.api.shipmentaddress.ShipmentAddress;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,18 +20,16 @@ public class ShipmentBoughtResponse {
     private String easypostShipmentId;
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
-    private Address toAddress;
+    private ShipmentAddress toAddress;
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
-    private Address fromAddress;
+    private ShipmentAddress fromAddress;
     @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
     @JsonIdentityReference(alwaysAsId = true)
     private Package parcel;
-    private Rate rate;
+    private RateResponse rate;
     private ShipmentStatus status;
     private String trackingCode;
     private String postageLabelUrl;
     private String easypostShipmentStatus;
-    private String publicTrackingUrl;
-    private String additionalInfoJson;
 }

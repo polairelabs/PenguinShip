@@ -63,7 +63,7 @@ public class SubscriptionController {
 
     @PostMapping("/create-checkout-session")
     public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String price, @RequestParam String customerId) {
-        // Generate payment and cancel link for subscription (price) for anonymous user
+        // Generate payment and cancel link for subscription (price)
         Session session = null;
         try {
             session = stripeService.createCheckoutSession(price, customerId);

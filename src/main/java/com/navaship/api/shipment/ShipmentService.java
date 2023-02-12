@@ -3,6 +3,7 @@ package com.navaship.api.shipment;
 import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.packages.Package;
+import com.navaship.api.shipmentaddress.ShipmentAddressType;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -64,8 +65,23 @@ public class ShipmentService {
     }
 
     // Return this response when user buys a rate
-    public ShipmentBoughtResponse convertToBuyShipmentResponse(Shipment shipment) {
-        return modelMapper.map(shipment, ShipmentBoughtResponse.class);
+    public ShipmentBoughtResponse convertToBoughtShipmentResponse(Shipment shipment) {
+        ShipmentBoughtResponse response = modelMapper.map(shipment, ShipmentBoughtResponse.class);
+        response.setFromAddress(
+                shipment.getAddresses()
+                        .stream()
+                        .filter(shipmentAddress -> shipmentAddress.getType().equals(ShipmentAddressType.SOURCE))
+                        .findAny()
+                        .get()
+        );
+        response.setToAddress(
+                shipment.getAddresses()
+                        .stream()
+                        .filter(shipmentAddress -> shipmentAddress.getType().equals(ShipmentAddressType.DESTINATION))
+                        .findAny()
+                        .get()
+        );
+        return response;
     }
 
     // Return this response to return database entries of shipment

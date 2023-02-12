@@ -52,7 +52,7 @@ public class Shipment {
     private ShipmentStatus status = ShipmentStatus.DRAFT;
 
     @Enumerated(EnumType.STRING)
-    private ShipmentStatusEasyPost easypostShipmentStatusEasyPost; // Retrieved from easypost webhook
+    private ShipmentStatusEasyPost easyPostStatus; // Retrieved from easypost webhook
 
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<Person> persons = new ArrayList<>();
