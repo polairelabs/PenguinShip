@@ -16,7 +16,7 @@ public class RateResponse {
     private String carrier;
     private String service;
     private String serviceCode;
-    private BigDecimal rate;
+    private String rate;
     private String currency;
     private BigDecimal listRate;
     private String listCurrency;

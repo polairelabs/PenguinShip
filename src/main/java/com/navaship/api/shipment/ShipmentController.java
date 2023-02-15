@@ -188,14 +188,6 @@ public class ShipmentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
         }
 
-        List<RateResponse> shipmentRates = new ArrayList<>();
-        for (com.easypost.model.Rate rate : shipment.getRates()) {
-            Rate myRate = rateService.convertToRate(rate);
-            BigDecimal finalRate = rateService.calculateRate(rate, subscriptionPlan);
-            myRate.setRate(finalRate);
-            shipmentRates.add(rateService.convertToRateResponse(myRate));
-        }
-
         // A rates array is return with ShipmentCreatedResponse object
         ShipmentRatesResponse shipmentRatesResponse = new ShipmentRatesResponse();
         shipmentRatesResponse.setId(shipment.getId());
@@ -213,6 +205,7 @@ public class ShipmentController {
         try {
             com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(shipmentBuyRateRequest.getEasypostRateId());
 
+            // Calculate rate in cents
             BigDecimal currentRate = rateService.calculateRate(rate, user.getSubscriptionDetail().getSubscriptionPlan());
             int rateInCents = currentRate.multiply(new BigDecimal(100)).intValue();
 

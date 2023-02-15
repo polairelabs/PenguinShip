@@ -1,14 +1,14 @@
 package com.navaship.api.rate;
 
 import com.navaship.api.subscription.SubscriptionPlan;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
+import java.text.DecimalFormat;
 
 @Service
 public class RateService {
@@ -19,6 +19,12 @@ public class RateService {
     public RateService(RateRepository rateRepository, ModelMapper modelMapper) {
         this.rateRepository = rateRepository;
         this.modelMapper = modelMapper;
+        Converter<Rate, String> rateToStringConverter = new Converter<Rate, String>() {
+            public String convert(MappingContext<Rate, String> context) {
+                return new DecimalFormat("0.00").format(context.getSource().getRate());
+            }
+        };
+        this.modelMapper.addConverter(rateToStringConverter);
     }
 
     public Rate createRate(Rate rate) {
@@ -29,11 +35,12 @@ public class RateService {
         // Calculate overhead % on top of Rate
         BigDecimal rateValue = new BigDecimal(Float.toString(rate.getRate()));
         BigDecimal serviceFee = subscriptionPlan.getShipmentHandlingFee();
-        if (serviceFee.compareTo(BigDecimal.ZERO) == 0) {
-            return rateValue.setScale(2, RoundingMode.HALF_UP);
+        if (serviceFee.compareTo(BigDecimal.ZERO) > 0) {
+            // Add overhead when service fee is not equal or less than 0
+            BigDecimal additionalOverheadFee = rateValue.multiply(serviceFee);
+            return rateValue.add(additionalOverheadFee).setScale(2, RoundingMode.HALF_UP);
         }
-        BigDecimal additionalOverheadFee = rateValue.multiply(serviceFee);
-        return rateValue.add(additionalOverheadFee).setScale(2, RoundingMode.HALF_UP);
+        return rateValue.setScale(2, RoundingMode.HALF_UP);
     }
 
     public Rate convertToRate(com.easypost.model.Rate rate) {
@@ -42,10 +49,5 @@ public class RateService {
 
     public RateResponse convertToRateResponse(Rate rate) {
         return modelMapper.map(rate, RateResponse.class);
-    }
-
-    public List<RateResponse> convertToListRateResponse(List<Rate> rates) {
-        Type listType = new TypeToken<List<RateResponse>>(){}.getType();
-        return modelMapper.map(rates, listType);
     }
 }
