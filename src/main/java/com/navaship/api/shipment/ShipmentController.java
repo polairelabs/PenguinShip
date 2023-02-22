@@ -56,7 +56,7 @@ public class ShipmentController {
     private RateService rateService;
     private StripeService stripeService;
     private PersonService personService;
-    private final SubscriptionDetailService subscriptionDetailService;
+    private SubscriptionDetailService subscriptionDetailService;
 
 
     @GetMapping
@@ -188,7 +188,6 @@ public class ShipmentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
         }
 
-        // A rates array is return with ShipmentCreatedResponse object
         ShipmentRatesResponse shipmentRatesResponse = new ShipmentRatesResponse();
         shipmentRatesResponse.setId(shipment.getId());
         shipmentRatesResponse.setRates(calculateShipmentRates(shipment.getRates(), subscriptionPlan));
@@ -313,7 +312,7 @@ public class ShipmentController {
             shipmentRates.add(rateService.convertToRateResponse(myRate));
         }
         // Sort by lowest rate first
-        shipmentRates.sort(Comparator.comparing(RateResponse::getRate));
+        shipmentRates.sort(Comparator.comparing(r -> new BigDecimal(r.getRate())));
         return shipmentRates;
     }
 
