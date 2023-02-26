@@ -35,8 +35,4 @@ public class ShipmentCreateRequest {
     private String receiverPhone;
     @Size(max = 60)
     private String receiverEmail;
-    @NotNull
-    private Boolean insured;
-    @BigDecimalLength(maxLength = 6)
-    private BigDecimal amountToInsure;
 }
