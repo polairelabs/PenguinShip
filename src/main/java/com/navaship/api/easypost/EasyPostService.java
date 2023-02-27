@@ -2,7 +2,10 @@ package com.navaship.api.easypost;
 
 import com.easypost.EasyPost;
 import com.easypost.exception.EasyPostException;
-import com.easypost.model.*;
+import com.easypost.model.Event;
+import com.easypost.model.Rate;
+import com.easypost.model.Shipment;
+import com.easypost.model.Webhook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +44,7 @@ public class EasyPostService {
         return shipment.buy(rate);
     }
 
-    public Shipment buyShipmentRareWithInsurance(String easypostShipmentId, String easypostRateId, String insuranceAmount) throws EasyPostException {
+    public Shipment buyShipmentRateWithInsurance(String easypostShipmentId, String easypostRateId, String insuranceAmount) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
         Rate rate = Rate.retrieve(easypostRateId);
@@ -57,9 +60,11 @@ public class EasyPostService {
         return shipment.getRates();
     }
 
-    public Rate retrieveRate(String easypostRateId) throws EasyPostException {
+    public Shipment refund(String easypostShipmentId) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
-        return Rate.retrieve(easypostRateId);
+        Shipment shipment = Shipment.retrieve(easypostShipmentId);
+        shipment.refund();
+        return shipment;
     }
 
     public Webhook createWebhook() throws EasyPostException {
@@ -73,23 +78,5 @@ public class EasyPostService {
     public Event validateWebhook(byte[] eventBody, Map<String, Object> headers) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         return Webhook.validateWebhook(eventBody, headers, webhookSecret);
-    }
-
-    public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
-        // Easypost charge 0.5% of the value, with a 50 cent minimum, and handle all the claims. All the claims are paid out within 10 days
-        EasyPost.apiKey = easyPostApiKey;
-        Shipment shipment = Shipment.retrieve(easypostShipmentId);
-        HashMap<String, Object> params = new HashMap<String, Object>();
-        params.put("amount", amountInUSD);
-        shipment.insure(params);
-        return shipment;
-    }
-
-    public Shipment refund(String easypostShipmentId, Rate rate) throws EasyPostException {
-        // TODO Finish this
-        EasyPost.apiKey = easyPostApiKey;
-        Shipment shipment = Shipment.retrieve(easypostShipmentId);
-        shipment.refund();
-        return shipment;
     }
 }

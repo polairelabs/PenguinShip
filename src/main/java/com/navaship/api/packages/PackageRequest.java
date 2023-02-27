@@ -17,19 +17,19 @@ public class PackageRequest {
     @Size(max = 200)
     private String name;
     @NotNull
-    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @BigDecimalLength(maxLength = 6)
     @DecimalMin(value = "0.1", message = "Weight must be greater than zero")
     private BigDecimal weight;
-    @Digits(integer = 6, fraction = 2, message = "Only two decimal points are allowed")
+    @BigDecimalLength(maxLength = 6)
     @DecimalMin(value = "0.01", message = "Value must be greater than zero")
     private BigDecimal value;
-    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @BigDecimalLength(maxLength = 6)
     @DecimalMin(value = "0.1", message = "Length must be greater than zero")
     private BigDecimal length;
-    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @BigDecimalLength(maxLength = 6)
     @DecimalMin(value = "0.1", message = "Width must be greater than zero")
     private BigDecimal width;
-    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @BigDecimalLength(maxLength = 6)
     @DecimalMin(value = "0.1", message = "Height must be greater than zero")
     private BigDecimal height;
 

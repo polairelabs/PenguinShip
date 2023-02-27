@@ -150,7 +150,7 @@ public class ShipmentController {
         try {
             shipment = easyPostService.createShipment(fromAddress, toAddress, parcel);
 
-            Shipment navaShipment = shipmentService.createShipment(
+            Shipment myShipment = shipmentService.createShipment(
                     shipment.getId(),
                     ShipmentStatus.DRAFT,
                     user,
@@ -161,7 +161,7 @@ public class ShipmentController {
 
             if (isPersonInformationPresent(shipmentCreateRequest, PersonType.SENDER)) {
                 personService.createPerson(
-                        navaShipment,
+                        myShipment,
                         shipmentCreateRequest.getSenderName(),
                         shipmentCreateRequest.getSenderCompany(),
                         shipmentCreateRequest.getSenderPhone(),
@@ -172,7 +172,7 @@ public class ShipmentController {
 
             if (isPersonInformationPresent(shipmentCreateRequest, PersonType.RECEIVER)) {
                 personService.createPerson(
-                        navaShipment,
+                        myShipment,
                         shipmentCreateRequest.getReceiverName(),
                         shipmentCreateRequest.getReceiverCompany(),
                         shipmentCreateRequest.getReceiverPhone(),
@@ -241,7 +241,7 @@ public class ShipmentController {
             if (confirmedPaymentIntent.getStatus().equals("succeeded")) {
                 com.easypost.model.Shipment shipment;
                 if (isInsured) {
-                    shipment = easyPostService.buyShipmentRareWithInsurance(
+                    shipment = easyPostService.buyShipmentRateWithInsurance(
                             shipmentBuyRateRequest.getEasypostShipmentId(),
                             shipmentBuyRateRequest.getEasypostRateId(),
                             insuranceAmount.toString()
@@ -291,25 +291,42 @@ public class ShipmentController {
                 HttpStatus.OK);
     }
 
+    @PostMapping("/refund/{shipmentId}")
+    public ResponseEntity<Map<String, String>> refundShipment(JwtAuthenticationToken principal,
+                                                              @PathVariable Long shipmentId) {
+        Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
+        checkShipmentBelongsToUser(principal, myShipment);
+
+        try {
+            easyPostService.refund(myShipment.getEasypostShipmentId());
+        } catch (EasyPostException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing refund");
+        }
+
+        Map<String, String> message = new HashMap<>();
+        message.put("message", String.format("Successfully processed refund for shipment %d", shipmentId));
+        return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
+    }
+
     @GetMapping("/rates/{shipmentId}")
     public ResponseEntity<ShipmentRatesResponse> getRates(JwtAuthenticationToken principal,
                                                           @PathVariable Long shipmentId) {
-        Shipment navaShipment = shipmentService.retrieveShipment(shipmentId);
-        checkShipmentBelongsToUser(principal, navaShipment);
+        Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
+        checkShipmentBelongsToUser(principal, myShipment);
 
-        SubscriptionDetail subscriptionDetail = navaShipment.getUser().getSubscriptionDetail();
+        SubscriptionDetail subscriptionDetail = myShipment.getUser().getSubscriptionDetail();
         SubscriptionPlan subscriptionPlan = subscriptionDetail.getSubscriptionPlan();
 
         List<RateResponse> shipmentRates;
         try {
-            List<com.easypost.model.Rate> rates = easyPostService.getShipmentRates(navaShipment.getEasypostShipmentId());
+            List<com.easypost.model.Rate> rates = easyPostService.getShipmentRates(myShipment.getEasypostShipmentId());
             shipmentRates = calculateShipmentRates(rates, subscriptionPlan);
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
         ShipmentRatesResponse shipmentRatesResponse = new ShipmentRatesResponse();
-        shipmentRatesResponse.setId(navaShipment.getEasypostShipmentId());
+        shipmentRatesResponse.setId(myShipment.getEasypostShipmentId());
         shipmentRatesResponse.setRates(shipmentRates);
         return new ResponseEntity<>(shipmentRatesResponse, HttpStatus.OK);
     }
@@ -317,13 +334,13 @@ public class ShipmentController {
     @DeleteMapping("/{shipmentId}")
     public ResponseEntity<Map<String, String>> deleteShipment(JwtAuthenticationToken principal,
                                                               @PathVariable Long shipmentId) {
-        Shipment navaShipment = shipmentService.retrieveShipment(shipmentId);
-        checkShipmentBelongsToUser(principal, navaShipment);
-        if (navaShipment.getStatus() != ShipmentStatus.DRAFT) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cannot delete a shipment with status " + navaShipment.getStatus());
+        Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
+        checkShipmentBelongsToUser(principal, myShipment);
+        if (myShipment.getStatus() != ShipmentStatus.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cannot delete a shipment with status " + myShipment.getStatus());
         }
 
-        shipmentService.deleteShipment(navaShipment);
+        shipmentService.deleteShipment(myShipment);
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Successfully deleted shipment %d", shipmentId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
@@ -350,9 +367,9 @@ public class ShipmentController {
     }
 
     private void checkShipmentBelongsToUser(JwtAuthenticationToken principal,
-                                            Shipment navaShipment) {
+                                            Shipment shipment) {
         Long userId = (Long) principal.getTokenAttributes().get("id");
-        if (!navaShipment.getUser().getId().equals(userId)) {
+        if (!shipment.getUser().getId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
         }
     }
