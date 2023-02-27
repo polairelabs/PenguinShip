@@ -4,7 +4,7 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
 import com.navaship.api.verificationtoken.VerificationTokenException;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -20,11 +20,11 @@ import java.util.Map;
 import static com.navaship.api.common.ListApiConstants.*;
 
 @RestController
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping(path = "api/v1/packages")
 public class PackageController {
-    private final PackageService packageService;
-    private final AppUserService appUserService;
+    private PackageService packageService;
+    private AppUserService appUserService;
 
 
     @GetMapping("/{packageId}")

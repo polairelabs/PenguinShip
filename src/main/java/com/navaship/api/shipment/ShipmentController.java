@@ -202,6 +202,10 @@ public class ShipmentController {
         Shipment myShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
         checkShipmentBelongsToUser(principal, myShipment);
 
+        if (myShipment.getStatus() != ShipmentStatus.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rates for shipment with status of " + myShipment.getStatus() + " cannot be purchased");
+        }
+
         try {
             com.easypost.model.Rate rate = com.easypost.model.Rate.retrieve(shipmentBuyRateRequest.getEasypostRateId());
 

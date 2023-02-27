@@ -1,13 +1,11 @@
 package com.navaship.api.shipment;
 
-import com.navaship.api.validators.BigDecimalLength;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.math.BigDecimal;
 
 @Getter
 @AllArgsConstructor
