@@ -41,6 +41,16 @@ public class EasyPostService {
         return shipment.buy(rate);
     }
 
+    public Shipment buyShipmentRareWithInsurance(String easypostShipmentId, String easypostRateId, String insuranceAmount) throws EasyPostException {
+        EasyPost.apiKey = easyPostApiKey;
+        Shipment shipment = Shipment.retrieve(easypostShipmentId);
+        Rate rate = Rate.retrieve(easypostRateId);
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("rate", rate);
+        params.put("insurance", insuranceAmount);
+        return shipment.buy(params);
+    }
+
     public List<Rate> getShipmentRates(String easypostShipmentId) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
@@ -66,7 +76,6 @@ public class EasyPostService {
     }
 
     public Shipment insure(String easypostShipmentId, String amountInUSD) throws EasyPostException {
-        // To be used in a separate insure endpoint
         // Easypost charge 0.5% of the value, with a 50 cent minimum, and handle all the claims. All the claims are paid out within 10 days
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);

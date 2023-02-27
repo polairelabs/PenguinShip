@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,4 +30,6 @@ public class ShipmentResponse {
     private String trackingCode;
     private String postageLabelUrl;
     private List<PersonResponse> persons;
+    private boolean isInsured;
+    private BigDecimal insuranceAmount;
 }

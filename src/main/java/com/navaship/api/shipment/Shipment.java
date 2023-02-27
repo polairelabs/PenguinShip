@@ -16,6 +16,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +68,10 @@ public class Shipment {
     private String trackingCode;
     private String postageLabelUrl;
     private String publicTrackingUrl;
+
+    // Insurance
+    private boolean isInsured = false;
+    private BigDecimal insuranceAmount;
 
 
     // Once Shipment is saved/created, the parcel will be transformed into a ShipmentParcel as to never change the original Parcel

@@ -5,10 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 
 @Getter
@@ -20,15 +17,20 @@ public class PackageRequest {
     @Size(max = 200)
     private String name;
     @NotNull
-    @BigDecimalLength(maxLength = 6)
+    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @DecimalMin(value = "0.1", message = "Weight must be greater than zero")
     private BigDecimal weight;
-    @BigDecimalLength(maxLength = 6)
+    @Digits(integer = 6, fraction = 2, message = "Only two decimal points are allowed")
+    @DecimalMin(value = "0.01", message = "Value must be greater than zero")
     private BigDecimal value;
-    @BigDecimalLength(maxLength = 6)
+    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @DecimalMin(value = "0.1", message = "Length must be greater than zero")
     private BigDecimal length;
-    @BigDecimalLength(maxLength = 6)
+    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @DecimalMin(value = "0.1", message = "Width must be greater than zero")
     private BigDecimal width;
-    @BigDecimalLength(maxLength = 6)
+    @Digits(integer = 6, fraction = 1, message = "Only one decimal point is allowed")
+    @DecimalMin(value = "0.1", message = "Height must be greater than zero")
     private BigDecimal height;
 
     @AssertTrue(message = "Length, width and height are required, if one is present in the request")

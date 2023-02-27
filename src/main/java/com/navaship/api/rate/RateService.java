@@ -12,6 +12,7 @@ import java.text.DecimalFormat;
 
 @Service
 public class RateService {
+    public static final double INSURANCE_FEE_PERCENTAGE = 0.5;
     private final RateRepository rateRepository;
     private final ModelMapper modelMapper;
 
@@ -41,6 +42,11 @@ public class RateService {
             return rateValue.add(additionalOverheadFee).setScale(2, RoundingMode.HALF_UP);
         }
         return rateValue.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculateInsuranceFee(BigDecimal insuranceAmount) {
+        BigDecimal insuranceFeePercentage = new BigDecimal(INSURANCE_FEE_PERCENTAGE / 100);
+        return insuranceAmount.multiply(insuranceFeePercentage).setScale(2, RoundingMode.HALF_UP);
     }
 
     public Rate convertToRate(com.easypost.model.Rate rate) {

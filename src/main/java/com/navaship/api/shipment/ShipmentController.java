@@ -198,7 +198,8 @@ public class ShipmentController {
     public ResponseEntity<ShipmentBoughtResponse> buyShipmentRate(JwtAuthenticationToken principal,
                                                                   @Valid @RequestBody ShipmentBuyRateRequest shipmentBuyRateRequest) {
         AppUser user = retrieveUserFromJwt(principal);
-        Shipment myShipment = shipmentService.retrieveShipmentFromEasypostId(shipmentBuyRateRequest.getEasypostShipmentId());
+        String easypostShipmentId = shipmentBuyRateRequest.getEasypostShipmentId();
+        Shipment myShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
         checkShipmentBelongsToUser(principal, myShipment);
 
         try {
@@ -208,8 +209,26 @@ public class ShipmentController {
             BigDecimal currentRate = rateService.calculateRate(rate, user.getSubscriptionDetail().getSubscriptionPlan());
             int rateInCents = currentRate.multiply(new BigDecimal(100)).intValue();
 
+            // Calculate insurance in cents
+            boolean isInsured = shipmentBuyRateRequest.getIsInsured();
+            BigDecimal insuranceAmount = shipmentBuyRateRequest.getInsuranceAmount();
+
             if (user.getSubscriptionDetail() == null || user.getSubscriptionDetail().getStripeCustomerId() == null) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User is not a customer");
+            }
+
+            if (isInsured && insuranceAmount == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid insurance amount");
+            }
+
+            if (isInsured) {
+                if (insuranceAmount.compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal insuranceFee = rateService.calculateInsuranceFee(shipmentBuyRateRequest.getInsuranceAmount());
+                    int insuranceFeeInCents = insuranceFee.multiply(new BigDecimal(100)).intValue();
+                    rateInCents += insuranceFeeInCents;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid insurance amount");
+                }
             }
 
             String customerId = user.getSubscriptionDetail().getStripeCustomerId();
@@ -220,10 +239,22 @@ public class ShipmentController {
             PaymentIntent confirmedPaymentIntent = paymentIntent.confirm();
 
             if (confirmedPaymentIntent.getStatus().equals("succeeded")) {
-                com.easypost.model.Shipment shipment = easyPostService.buyShipmentRate(
-                        shipmentBuyRateRequest.getEasypostShipmentId(),
-                        shipmentBuyRateRequest.getEasypostRateId()
-                );
+                com.easypost.model.Shipment shipment;
+                if (isInsured) {
+                    shipment = easyPostService.buyShipmentRareWithInsurance(
+                            shipmentBuyRateRequest.getEasypostShipmentId(),
+                            shipmentBuyRateRequest.getEasypostRateId(),
+                            insuranceAmount.toString()
+                    );
+
+                    myShipment.setInsured(true);
+                    myShipment.setInsuranceAmount(insuranceAmount);
+                } else {
+                    shipment = easyPostService.buyShipmentRate(
+                            shipmentBuyRateRequest.getEasypostShipmentId(),
+                            shipmentBuyRateRequest.getEasypostRateId()
+                    );
+                }
 
                 myShipment.setStatus(ShipmentStatus.PURCHASED);
                 rate = shipment.getSelectedRate();
@@ -241,8 +272,10 @@ public class ShipmentController {
                 Rate myRate = rateService.convertToRate(rate);
                 myRate.setRate(currentRate);
                 rateService.createRate(myRate);
-                // Set the bought rate to the shipment
+                // Set the bought rate to the user's shipment
                 myShipment.setRate(myRate);
+
+                // Update user's shipment
                 shipmentService.modifyShipment(myShipment);
             } else {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed");
