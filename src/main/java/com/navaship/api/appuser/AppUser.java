@@ -2,23 +2,23 @@ package com.navaship.api.appuser;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.navaship.api.activity.ActivityLog;
 import com.navaship.api.address.Address;
 import com.navaship.api.auth.AuthViews;
+import com.navaship.api.packages.Package;
 import com.navaship.api.shipment.Shipment;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -28,8 +28,9 @@ import java.util.List;
 public class AppUser implements UserDetails {
     @Id
     @JsonView(AuthViews.Default.class)
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @Type(type = "uuid-char")
+    private UUID id;
     @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
     private String firstName;
@@ -52,10 +53,12 @@ public class AppUser implements UserDetails {
     @Enumerated(EnumType.STRING)
     @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
-    private AppUserRole role;
+    private AppUserRoleEnum role;
     private Boolean locked = false;
     @JsonView(AuthViews.Default.class)
     private Boolean enabled = true;
+    @OneToOne
+    private Address defaultSourceAddress;
 
     /*
         Bidirectional mapping:
@@ -74,12 +77,20 @@ public class AppUser implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Address> addresses = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Package> packages = new ArrayList<>();
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<ActivityLog> activities = new ArrayList<>();
+
     @JsonView(AuthViews.Default.class)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     private SubscriptionDetail subscriptionDetail;
 
-    public AppUser(String firstName, String lastName, String email, String password, String phoneNumber, String city, String state, String address, AppUserRole role) {
+    public AppUser(String firstName, String lastName, String email, String password, String phoneNumber, String city, String state, String address, AppUserRoleEnum role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -93,7 +104,7 @@ public class AppUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role.name());
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role.name());
         return Collections.singletonList(authority);
     }
 

@@ -1,21 +1,23 @@
 package com.navaship.api.refreshtoken;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.auth.AuthenticationService;
-import lombok.RequiredArgsConstructor;
+import com.navaship.api.jwt.JwtService;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping(path = "api/v1/auth")
 public class RefreshTokenController {
-    private final RefreshTokenService refreshTokenService;
-    private final AuthenticationService authenticationService;
+    private RefreshTokenService refreshTokenService;
+    private JwtService jwtService;
 
 
     @PostMapping("/refreshtoken")
@@ -33,8 +35,9 @@ public class RefreshTokenController {
         refreshTokenService.delete(refreshToken);
         AppUser user = refreshToken.getUser();
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return ResponseEntity.ok(new RefreshTokenResponse(
-                authenticationService.createAccessToken(user),
+                jwtService.createJwtAccessToken(authentication, user),
                 refreshTokenService.createRefreshToken(user).getToken(),
                 "Bearer"
         ));

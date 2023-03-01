@@ -11,6 +11,7 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
 import com.navaship.api.easypost.EasyPostService;
+import com.navaship.api.jwt.JwtService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.person.PersonService;
@@ -57,6 +58,7 @@ public class ShipmentController {
     private StripeService stripeService;
     private PersonService personService;
     private SubscriptionDetailService subscriptionDetailService;
+    private JwtService jwtService;
 
 
     @GetMapping
@@ -65,7 +67,7 @@ public class ShipmentController {
                                                                                  @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
                                                                                  @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
                                                                                  @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
-        AppUser user = retrieveUserFromJwt(principal);
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
         ListApiResponse<ShipmentResponse> listApiResponse = new ListApiResponse<>();
 
         if (pageSize > DEFAULT_PAGE_SIZE) {
@@ -108,7 +110,7 @@ public class ShipmentController {
     @PostMapping()
     public ResponseEntity<ShipmentRatesResponse> createShipment(JwtAuthenticationToken principal,
                                                                 @Valid @RequestBody ShipmentCreateRequest shipmentCreateRequest) {
-        AppUser user = retrieveUserFromJwt(principal);
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
 
         SubscriptionDetail subscriptionDetail = user.getSubscriptionDetail();
         SubscriptionPlan subscriptionPlan = subscriptionDetail.getSubscriptionPlan();
@@ -118,13 +120,13 @@ public class ShipmentController {
         }
 
         Address fromAddress = addressService.retrieveAddress(shipmentCreateRequest.getFromAddressId());
-        checkAddressBelongsToUser(principal, fromAddress);
+        jwtService.checkResourceBelongsToUser(principal, fromAddress);
 
         Address toAddress = addressService.retrieveAddress(shipmentCreateRequest.getToAddressId());
-        checkAddressBelongsToUser(principal, toAddress);
+        jwtService.checkResourceBelongsToUser(principal, toAddress);
 
         Package parcel = packageService.retrievePackage(shipmentCreateRequest.getParcelId());
-        checkParcelBelongsToUser(principal, parcel);
+        jwtService.checkResourceBelongsToUser(principal, parcel);
 
         boolean isSameAddress = fromAddress.getStreet1().equals(toAddress.getStreet1())
                 && fromAddress.getCity().equals(toAddress.getCity())
@@ -197,10 +199,10 @@ public class ShipmentController {
     @PostMapping("/buy")
     public ResponseEntity<ShipmentBoughtResponse> buyShipmentRate(JwtAuthenticationToken principal,
                                                                   @Valid @RequestBody ShipmentBuyRateRequest shipmentBuyRateRequest) {
-        AppUser user = retrieveUserFromJwt(principal);
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
         String easypostShipmentId = shipmentBuyRateRequest.getEasypostShipmentId();
         Shipment myShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
-        checkShipmentBelongsToUser(principal, myShipment);
+        jwtService.checkResourceBelongsToUser(principal, myShipment);
 
         if (myShipment.getStatus() != ShipmentStatus.DRAFT) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rates for shipment with status of " + myShipment.getStatus() + " cannot be purchased");
@@ -299,7 +301,7 @@ public class ShipmentController {
     public ResponseEntity<Map<String, String>> refundShipment(JwtAuthenticationToken principal,
                                                               @PathVariable Long shipmentId) {
         Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
-        checkShipmentBelongsToUser(principal, myShipment);
+        jwtService.checkResourceBelongsToUser(principal, myShipment);
 
         try {
             easyPostService.refund(myShipment.getEasypostShipmentId());
@@ -316,7 +318,7 @@ public class ShipmentController {
     public ResponseEntity<ShipmentRatesResponse> getRates(JwtAuthenticationToken principal,
                                                           @PathVariable Long shipmentId) {
         Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
-        checkShipmentBelongsToUser(principal, myShipment);
+        jwtService.checkResourceBelongsToUser(principal, myShipment);
 
         SubscriptionDetail subscriptionDetail = myShipment.getUser().getSubscriptionDetail();
         SubscriptionPlan subscriptionPlan = subscriptionDetail.getSubscriptionPlan();
@@ -339,7 +341,7 @@ public class ShipmentController {
     public ResponseEntity<Map<String, String>> deleteShipment(JwtAuthenticationToken principal,
                                                               @PathVariable Long shipmentId) {
         Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
-        checkShipmentBelongsToUser(principal, myShipment);
+        jwtService.checkResourceBelongsToUser(principal, myShipment);
         if (myShipment.getStatus() != ShipmentStatus.DRAFT) {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cannot delete a shipment with status " + myShipment.getStatus());
         }
@@ -348,13 +350,6 @@ public class ShipmentController {
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Successfully deleted shipment %d", shipmentId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
-    }
-
-    private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        return appUserService.findById(userId).orElseThrow(
-                () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
-        );
     }
 
     private List<RateResponse> calculateShipmentRates(List<com.easypost.model.Rate> rates, SubscriptionPlan subscriptionPlan) {
@@ -368,30 +363,6 @@ public class ShipmentController {
         // Sort by lowest rate first
         shipmentRates.sort(Comparator.comparing(r -> new BigDecimal(r.getRate())));
         return shipmentRates;
-    }
-
-    private void checkShipmentBelongsToUser(JwtAuthenticationToken principal,
-                                            Shipment shipment) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        if (!shipment.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
-        }
-    }
-
-    private void checkAddressBelongsToUser(JwtAuthenticationToken principal,
-                                           Address address) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        if (!address.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
-        }
-    }
-
-    private void checkParcelBelongsToUser(JwtAuthenticationToken principal,
-                                          Package parcel) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        if (!parcel.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
-        }
     }
 
     private String extractEasypostErrorMessage(String errorMessage) {

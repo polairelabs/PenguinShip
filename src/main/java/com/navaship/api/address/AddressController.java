@@ -1,9 +1,8 @@
 package com.navaship.api.address;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
-import com.navaship.api.verificationtoken.VerificationTokenException;
+import com.navaship.api.jwt.JwtService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -24,24 +23,24 @@ import static com.navaship.api.common.ListApiConstants.*;
 @RequestMapping(path = "api/v1/addresses")
 public class AddressController {
     private AddressService addressService;
-    private AppUserService appUserService;
+    private JwtService jwtService;
 
 
     @GetMapping("/{addressId}")
     public AddressResponse getAddressById(JwtAuthenticationToken principal,
                                           @PathVariable Long addressId) {
         Address address = addressService.retrieveAddress(addressId);
-        checkResourceBelongsToUser(principal, address);
+        jwtService.checkResourceBelongsToUser(principal, address);
         return addressService.convertToAddressResponse(address);
     }
 
     @GetMapping
     public ResponseEntity<ListApiResponse<AddressResponse>> getAllUserAddresses(JwtAuthenticationToken principal,
-                                                                                 @RequestParam(value = "offset", defaultValue = DEFAULT_PAGE_NUMBER + "") int offset,
-                                                                                 @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
-                                                                                 @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
-                                                                                 @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
-        AppUser user = retrieveUserFromJwt(principal);
+                                                                                @RequestParam(value = "offset", defaultValue = DEFAULT_PAGE_NUMBER + "") int offset,
+                                                                                @RequestParam(value = "size", defaultValue = DEFAULT_PAGE_SIZE + "") int pageSize,
+                                                                                @RequestParam(value = "sort", defaultValue = DEFAULT_SORT_FIELD) String sortField,
+                                                                                @RequestParam(value = "order", defaultValue = DEFAULT_DIRECTION) String sortDirection) {
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
         ListApiResponse<AddressResponse> listApiResponse = new ListApiResponse<>();
 
         if (pageSize > DEFAULT_PAGE_SIZE) {
@@ -70,7 +69,7 @@ public class AddressController {
     @PostMapping
     public ResponseEntity<AddressResponse> addAddress(JwtAuthenticationToken principal,
                                                       @Valid @RequestBody AddressRequest addressRequest) {
-        AppUser user = retrieveUserFromJwt(principal);
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
         Address address = addressService.createAddress(addressService.convertToAddress(addressRequest), user);
         return new ResponseEntity<>(addressService.convertToAddressResponse(address), HttpStatus.CREATED);
     }
@@ -79,9 +78,9 @@ public class AddressController {
     public ResponseEntity<AddressResponse> updateAddress(JwtAuthenticationToken principal,
                                                          @PathVariable Long addressId,
                                                          @Valid @RequestBody AddressRequest addressRequest) {
-        AppUser user = retrieveUserFromJwt(principal);
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
         Address address = addressService.retrieveAddress(addressId);
-        checkResourceBelongsToUser(principal, address);
+        jwtService.checkResourceBelongsToUser(principal, address);
 
         Address convertedAddress = addressService.convertToAddress(addressRequest);
         convertedAddress.setId(addressId);
@@ -96,26 +95,11 @@ public class AddressController {
     public ResponseEntity<Map<String, String>> deleteAddress(JwtAuthenticationToken principal,
                                                              @PathVariable Long addressId) {
         Address address = addressService.retrieveAddress(addressId);
-        checkResourceBelongsToUser(principal, address);
+        jwtService.checkResourceBelongsToUser(principal, address);
 
         addressService.deleteAddress(address);
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Successfully deleted address %d", addressId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
-    }
-
-    private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        return appUserService.findById(userId).orElseThrow(
-                () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
-        );
-    }
-
-    private void checkResourceBelongsToUser(JwtAuthenticationToken principal,
-                                            Address address) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        if (!address.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to access/modify resource");
-        }
     }
 }

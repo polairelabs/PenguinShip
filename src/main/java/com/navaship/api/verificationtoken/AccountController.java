@@ -3,7 +3,7 @@ package com.navaship.api.verificationtoken;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.sendgrid.SendGridEmailService;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,17 +13,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequiredArgsConstructor
+@AllArgsConstructor
 @RequestMapping(path = "api/v1/account")
-public class VerificationTokenController {
-    private final VerificationTokenService verificationTokenService;
-    private final AppUserService appUserService;
-    private final SendGridEmailService sendGridEmailService;
+public class AccountController {
+    private VerificationTokenService verificationTokenService;
+    private AppUserService appUserService;
+    private SendGridEmailService sendGridEmailService;
 
 
     @PostMapping("/verify-email")
     public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@Valid @RequestBody EmailConfirmationRequest emailConfirmationRequest) {
         // Send email verification link to user
+        // TODO change this and check if account already verified (maybe delete this entirely)
         String email = emailConfirmationRequest.getEmail();
         AppUser user = retrieveUser(email);
         deleteVerificationTokenIfPresent(user, VerificationTokenType.VERIFY_EMAIL);

@@ -8,8 +8,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -22,7 +24,8 @@ import javax.persistence.*;
 public class SubscriptionDetail {
     @Id
     @Column(name = "user_id")
-    private Long id;
+    @Type(type = "uuid-char")
+    private UUID id;
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")

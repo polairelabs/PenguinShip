@@ -44,6 +44,10 @@ public class ShipmentService {
         return shipmentRepository.countByUser(user);
     }
 
+    public int retrieveUserShipmentsCountByStatus(AppUser user, ShipmentStatus status) {
+        return shipmentRepository.countByUserAndStatus(user, status);
+    }
+
     public void modifyShipment(Shipment shipment) {
         shipmentRepository.save(shipment);
     }

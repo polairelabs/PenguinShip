@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserRole;
+import com.navaship.api.appuser.AppUserRoleEnum;
 import com.navaship.api.appuser.AppUserService;
+import com.navaship.api.jwt.JwtService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
-import com.navaship.api.verificationtoken.VerificationTokenException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
@@ -38,8 +38,10 @@ public class SubscriptionController {
     private final AppUserService appUserService;
     private final SubscriptionPlanService subscriptionPlanService;
     private final SubscriptionDetailService subscriptionDetailService;
+    private final JwtService jwtService;
     @Value("${navaship.app.stripe.webhook.endpoint.secret}")
     private String webhookEndpointSecret;
+
 
     @GetMapping("/memberships")
     public ResponseEntity<List<SubscriptionPlanResponse>> retrieveSubscriptions() {
@@ -164,7 +166,7 @@ public class SubscriptionController {
     @PostMapping("/create-portal-session")
     public ResponseEntity<Map<String, String>> createPortalSession(JwtAuthenticationToken principal) {
         // Creates customer portal session where the customer can manage his subscription
-        AppUser user = retrieveUserFromJwt(principal);
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
 
         com.stripe.model.billingportal.Session portalSession = null;
         try {
@@ -202,7 +204,7 @@ public class SubscriptionController {
             // User subscribed to plan for the first time or to a different plan
             subscriptionDetail.setStartDate(subscription.getStartDate());
         }
-        user.setRole(AppUserRole.USER);
+        user.setRole(AppUserRoleEnum.USER);
         subscriptionDetail.setSubscriptionId(subscription.getId());
         String priceId = subscription.getItems().getData().get(0).getPlan().getId();
         subscriptionDetail.setSubscriptionPlan(subscriptionPlanService.retrieveSubscriptionPlanByPriceId(priceId));
@@ -213,17 +215,11 @@ public class SubscriptionController {
 
     private void handleSubscriptionDeleted(Subscription subscription, SubscriptionDetail subscriptionDetail) {
         AppUser user = subscriptionDetail.getUser();
-        user.setRole(AppUserRole.UNPAYED_USER);
+        // Still has access to platform to see shipments or renew subscription, but subscription is dead, and he can no longer create shipments
+        user.setRole(AppUserRoleEnum.UNPAID_USER);
         subscriptionDetail.setSubscriptionId(null);
         subscriptionDetail.setSubscriptionPlan(null);
         subscriptionDetail.setEndDate(subscription.getEndedAt());
         subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
-    }
-
-    private AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
-        Long userId = (Long) principal.getTokenAttributes().get("id");
-        return appUserService.findById(userId).orElseThrow(
-                () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
-        );
     }
 }

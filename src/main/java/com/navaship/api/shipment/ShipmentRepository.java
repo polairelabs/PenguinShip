@@ -13,4 +13,5 @@ public interface ShipmentRepository extends PagingAndSortingRepository<Shipment,
     Page<Shipment> findAllByUser(AppUser user, Pageable pageable);
     Optional<Shipment> findShipmentByEasypostShipmentId(String easypostShipmentId);
     int countByUser(AppUser user);
+    int countByUserAndStatus(AppUser user, ShipmentStatus status);
 }

@@ -2,7 +2,7 @@ package com.navaship.api.registration;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserRole;
+import com.navaship.api.appuser.AppUserRoleEnum;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.auth.AuthViews;
 import com.navaship.api.sendgrid.SendGridEmailService;
@@ -56,7 +56,7 @@ public class RegistrationController {
                 registrationRequest.getCity(),
                 registrationRequest.getState(),
                 registrationRequest.getAddress(),
-                AppUserRole.UNPAYED_USER
+                AppUserRoleEnum.NEW_USER
         );
 
         SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlanByPriceId(registrationRequest.getStripePriceId());

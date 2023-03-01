@@ -9,6 +9,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -36,14 +37,23 @@ public class SecurityConfig {
     @Value("${jwt.private.key}")
     RSAPrivateKey rsaPrivateKey;
 
+
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         // Using the build in JWT filter
         // https://github.com/spring-projects/spring-security-samples/blob/main/servlet/spring-boot/java/jwt/login/src/main/java/example/RestConfig.java
         http.
                 authorizeRequests()
-                .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/account/**", "/api/v*/subscriptions/**").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/api/v*/auth/login", "/api/v*/auth/refreshtoken", "/api/v*/register", "/api/v*/subscriptions/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v*/packages", "/api/v*/addresses", "/api/v*/shipments").hasAnyAuthority(
+                        AppUserScopeRole.SCOPE_ROLE_USER.name(), AppUserScopeRole.SCOPE_ROLE_ADMIN.name()
+                )
+                .antMatchers("/api/v*/admin/**").hasAuthority(
+                        AppUserScopeRole.SCOPE_ROLE_ADMIN.name()
+                )
+                .anyRequest().hasAnyAuthority(
+                        AppUserScopeRole.SCOPE_ROLE_UNPAID_USER.name(), AppUserScopeRole.SCOPE_ROLE_USER.name(), AppUserScopeRole.SCOPE_ROLE_ADMIN.name()
+                )
                 .and()
                 .cors()
                 .and()

@@ -43,15 +43,7 @@ public class Address {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-//    // Shipments where the current address is used as source
-//    @OneToMany(mappedBy = "fromAddress")
-//    private List<Shipment> fromAddressShipments = new ArrayList<>();
-//
-//    // Shipments where the current address is used as destination
-//    @OneToMany(mappedBy = "toAddress")
-//    private List<Shipment> toAddressShipments = new ArrayList<>();
-
-    // Additional info to reach the person/organization (The more information, the better)
+    // Additional info to reach the person/organization (not saved in the database)
     @Transient
     private String name;
     @Transient
