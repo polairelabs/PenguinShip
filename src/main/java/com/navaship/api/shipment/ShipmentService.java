@@ -2,6 +2,7 @@ package com.navaship.api.shipment;
 
 import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.easypost.EasyPostShipmentStatus;
 import com.navaship.api.packages.Package;
 import com.navaship.api.shipmentaddress.ShipmentAddressType;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.math.BigDecimal;
 
 @Service
 @AllArgsConstructor
@@ -48,6 +51,10 @@ public class ShipmentService {
         return shipmentRepository.countByUserAndStatus(user, status);
     }
 
+    public int retrieveUserShipmentsCountByEasyPostStatus(AppUser user, EasyPostShipmentStatus status) {
+        return shipmentRepository.countByUserAndEasyPostStatus(user, status);
+    }
+
     public void modifyShipment(Shipment shipment) {
         shipmentRepository.save(shipment);
     }
@@ -68,6 +75,15 @@ public class ShipmentService {
         );
     }
 
+    public BigDecimal getTotalMoneySaved(AppUser user) {
+        BigDecimal totalBoughtShipmentsRate = shipmentRepository.totalSumRateByUser(user);
+        BigDecimal totalRetailRate = shipmentRepository.totalSumRetailRate(user);
+        if (totalBoughtShipmentsRate == null || totalRetailRate == null) {
+            return BigDecimal.ZERO;
+        }
+        return totalRetailRate.subtract(totalBoughtShipmentsRate);
+    }
+
     // Return this response when user buys a rate
     public ShipmentBoughtResponse convertToBoughtShipmentResponse(Shipment shipment) {
         ShipmentBoughtResponse response = modelMapper.map(shipment, ShipmentBoughtResponse.class);
@@ -75,14 +91,14 @@ public class ShipmentService {
                 shipment.getAddresses()
                         .stream()
                         .filter(shipmentAddress -> shipmentAddress.getType().equals(ShipmentAddressType.SOURCE))
-                        .findAny()
+                        .findFirst()
                         .get()
         );
         response.setToAddress(
                 shipment.getAddresses()
                         .stream()
                         .filter(shipmentAddress -> shipmentAddress.getType().equals(ShipmentAddressType.DESTINATION))
-                        .findAny()
+                        .findFirst()
                         .get()
         );
         return response;

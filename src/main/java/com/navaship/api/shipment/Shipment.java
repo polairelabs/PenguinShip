@@ -1,7 +1,9 @@
 package com.navaship.api.shipment;
 
+import com.navaship.api.activity.ActivityLog;
 import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.easypost.EasyPostShipmentStatus;
 import com.navaship.api.packages.Package;
 import com.navaship.api.person.Person;
 import com.navaship.api.rate.Rate;
@@ -13,6 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -53,7 +57,7 @@ public class Shipment {
     private ShipmentStatus status = ShipmentStatus.DRAFT;
 
     @Enumerated(EnumType.STRING)
-    private ShipmentStatusEasyPost easyPostStatus; // Retrieved from easypost webhook
+    private EasyPostShipmentStatus easyPostStatus; // Retrieved from easypost webhook
 
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<Person> persons = new ArrayList<>();
@@ -72,6 +76,9 @@ public class Shipment {
     // Insurance
     private boolean isInsured = false;
     private BigDecimal insuranceAmount;
+
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
+    private List<ActivityLog> activityLogs = new ArrayList<>();
 
 
     // Once Shipment is saved/created, the parcel will be transformed into a ShipmentParcel as to never change the original Parcel

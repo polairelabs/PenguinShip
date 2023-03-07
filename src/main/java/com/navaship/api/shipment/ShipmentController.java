@@ -5,6 +5,8 @@ import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.navaship.api.activity.ActivityLoggerService;
+import com.navaship.api.activity.ActivityMessageType;
 import com.navaship.api.address.Address;
 import com.navaship.api.address.AddressService;
 import com.navaship.api.appuser.AppUser;
@@ -58,6 +60,7 @@ public class ShipmentController {
     private StripeService stripeService;
     private PersonService personService;
     private SubscriptionDetailService subscriptionDetailService;
+    private ActivityLoggerService activityLoggerService;
     private JwtService jwtService;
 
 
@@ -152,6 +155,7 @@ public class ShipmentController {
         try {
             shipment = easyPostService.createShipment(fromAddress, toAddress, parcel);
 
+            // Creating Shipment here
             Shipment myShipment = shipmentService.createShipment(
                     shipment.getId(),
                     ShipmentStatus.DRAFT,
@@ -182,6 +186,9 @@ public class ShipmentController {
                         PersonType.RECEIVER
                 );
             }
+
+            // Insert activity message
+            activityLoggerService.insert(user, myShipment, activityLoggerService.getShipmentCreatedMessage(myShipment), ActivityMessageType.NEW);
 
             // Increment currentLimit
             subscriptionDetail.setCurrentLimit(subscriptionDetail.getCurrentLimit() + 1);
@@ -283,6 +290,9 @@ public class ShipmentController {
 
                 // Update user's shipment
                 shipmentService.modifyShipment(myShipment);
+
+                // Insert activity message
+                activityLoggerService.insert(user, myShipment, activityLoggerService.getShipmentBoughtMessage(myShipment), ActivityMessageType.PURCHASE);
             } else {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed");
             }
@@ -347,6 +357,13 @@ public class ShipmentController {
         }
 
         shipmentService.deleteShipment(myShipment);
+
+        // If deleted (it's because it was a draft shipment), subtract 1 from current limit of the current month
+        AppUser user = jwtService.retrieveUserFromJwt(principal);
+        int currentLimit = user.getSubscriptionDetail().getCurrentLimit();
+        user.getSubscriptionDetail().setCurrentLimit(currentLimit - 1);
+        appUserService.modifyUser(user);
+
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Successfully deleted shipment %d", shipmentId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
