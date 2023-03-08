@@ -5,14 +5,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SubscriptionPlanResponse {
+public class SubscriptionPlanUpdateResponse {
+    private Long id;
     private String name;
     private String description;
     private String stripePriceId;
-    private String currency;
-    private Long unitAmount;
+    private BigDecimal shipmentHandlingFee;
+    private int maxLimit;
 }

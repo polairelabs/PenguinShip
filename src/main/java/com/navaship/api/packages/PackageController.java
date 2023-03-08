@@ -84,7 +84,7 @@ public class PackageController {
         jwtService.checkResourceBelongsToUser(principal, parcel);
 
         Package convertedPackage = packageService.convertToPackage(packageRequest);
-        convertedPackage.setId(packageId);
+        convertedPackage.setId(parcel.getId());
         convertedPackage.setUser(user);
         convertedPackage.setCreatedAt(parcel.getCreatedAt());
 

@@ -22,15 +22,16 @@ public class PackageRequest {
     private BigDecimal weight;
     @BigDecimalLength(maxLength = 6)
     @DecimalMin(value = "0.01", message = "Value must be greater than zero")
+    @Positive(message = "Value must be greater than 0")
     private BigDecimal value;
     @BigDecimalLength(maxLength = 6)
-    @DecimalMin(value = "0.1", message = "Length must be greater than zero")
+    @Positive(message = "Length must be greater than 0")
     private BigDecimal length;
     @BigDecimalLength(maxLength = 6)
-    @DecimalMin(value = "0.1", message = "Width must be greater than zero")
+    @Positive(message = "Width must be greater than 0")
     private BigDecimal width;
     @BigDecimalLength(maxLength = 6)
-    @DecimalMin(value = "0.1", message = "Height must be greater than zero")
+    @Positive(message = "Height must be greater than 0")
     private BigDecimal height;
 
     @AssertTrue(message = "Length, width and height are required, if one is present in the request")

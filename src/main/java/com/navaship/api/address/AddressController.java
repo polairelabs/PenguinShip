@@ -83,7 +83,7 @@ public class AddressController {
         jwtService.checkResourceBelongsToUser(principal, address);
 
         Address convertedAddress = addressService.convertToAddress(addressRequest);
-        convertedAddress.setId(addressId);
+        convertedAddress.setId(address.getId());
         convertedAddress.setUser(user);
         convertedAddress.setCreatedAt(address.getCreatedAt());
 

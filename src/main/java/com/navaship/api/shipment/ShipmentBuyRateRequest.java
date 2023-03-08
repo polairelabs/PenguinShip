@@ -4,9 +4,9 @@ import com.navaship.api.validators.BigDecimalLength;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
 @Getter
@@ -21,7 +21,7 @@ public class ShipmentBuyRateRequest {
     @NotNull
     private Boolean isInsured;
     @BigDecimalLength(maxLength = 6)
-    @DecimalMin(value = "0.01", message = "Value must be greater than zero")
+    @Positive(message = "Insurance amount must be greater than 0")
     private BigDecimal insuranceAmount;
 
 }
