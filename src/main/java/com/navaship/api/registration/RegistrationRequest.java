@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Getter
 @AllArgsConstructor
@@ -39,5 +41,5 @@ public class RegistrationRequest {
     private String password;
     @NotNull(message = "A subscription needs to be selected")
     @NotEmpty(message = "A subscription needs to be set")
-    private String stripePriceId;
+    private String subscriptionId;
 }

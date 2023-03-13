@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRoleEnum;
-import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.jwt.JwtService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
@@ -35,7 +34,6 @@ import java.util.*;
 @RequestMapping(path = "api/v1/subscriptions")
 public class SubscriptionController {
     private final StripeService stripeService;
-    private final AppUserService appUserService;
     private final SubscriptionPlanService subscriptionPlanService;
     private final SubscriptionDetailService subscriptionDetailService;
     private final JwtService jwtService;
@@ -43,11 +41,12 @@ public class SubscriptionController {
     private String webhookEndpointSecret;
 
 
-    @GetMapping("/memberships")
+    @GetMapping()
     public ResponseEntity<List<SubscriptionPlanResponse>> retrieveSubscriptions() {
-        // Used to retrieve membership details/data + price, will need to create an endpoint to edit these fields for admin
-        List<SubscriptionPlanResponse> subscriptionPlanResponses = new ArrayList<>();
+        // Used to retrieve membership details/data + price
         List<SubscriptionPlan> subscriptionPlans = subscriptionPlanService.retrieveSubscriptionPlans();
+        List<SubscriptionPlanResponse> subscriptionPlanResponses = new ArrayList<>();
+        List<SubscriptionPlanResponse> sortedSubscriptionPlans = new ArrayList<>();
         try {
             for (SubscriptionPlan subscriptionPlan : subscriptionPlans) {
                 SubscriptionPlanResponse subscriptionPlanResponse = subscriptionPlanService.convertToSubscriptionPlanResponse(subscriptionPlan);
@@ -55,20 +54,23 @@ public class SubscriptionController {
                 subscriptionPlanResponse.setCurrency(price.getCurrency());
                 subscriptionPlanResponse.setUnitAmount(price.getUnitAmount());
                 subscriptionPlanResponses.add(subscriptionPlanResponse);
+                sortedSubscriptionPlans = subscriptionPlanResponses.stream()
+                        .sorted(Comparator.comparingLong(SubscriptionPlanResponse::getUnitAmount)).toList();
             }
         } catch (StripeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Retrieving memberships error");
         }
 
-        return new ResponseEntity<>(subscriptionPlanResponses, HttpStatus.OK);
+        return new ResponseEntity<>(sortedSubscriptionPlans, HttpStatus.OK);
     }
 
     @PostMapping("/create-checkout-session")
-    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String price, @RequestParam String customerId) {
+    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String customerId) {
         // Generate payment and cancel link for subscription (price)
+        SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlan(subscriptionId);
         Session session = null;
         try {
-            session = stripeService.createCheckoutSession(price, customerId);
+            session = stripeService.createCheckoutSession(subscriptionPlan.getStripePriceId(), customerId);
         } catch (StripeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -160,6 +162,7 @@ public class SubscriptionController {
 
         Map<String, String> message = new HashMap<>();
         message.put("message", status);
+
         return new ResponseEntity<>(message, HttpStatus.OK);
     }
 

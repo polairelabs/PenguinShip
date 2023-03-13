@@ -6,9 +6,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -20,8 +22,9 @@ import java.math.BigDecimal;
  */
 public class SubscriptionPlan {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @Type(type = "uuid-char")
+    private UUID id;
     @JsonView(AuthViews.Default.class)
     private String name;
     private String description;

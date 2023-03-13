@@ -21,10 +21,9 @@ public class SubscriptionPlanRequest {
     @NotEmpty
     private String stripePriceId;
     @NotNull(message = "Shipment handling fee is required")
-    // @DecimalMin(value = "0.01", inclusive = false, message = "Handling fee percentage must be greater than 0")
     @DecimalMax(value = "100.00", message = "Handling fee percentage must be less than or equal to 100")
     @Positive(message = "Handling fee percentage must be greater than 0")
-    private BigDecimal shipmentHandlingFee;
+    private BigDecimal handlingFeePercentage;
     @NotNull(message = "Max limit is required")
     @Min(value = 1, message = "Max limit must be greater than or equal to 1")
     @Max(value = 100000, message = "Max limit must be less than or equal to 100000")

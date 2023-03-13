@@ -3,18 +3,21 @@ package com.navaship.api.stripe;
 import com.navaship.api.appuser.AppUser;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.*;
+import com.stripe.model.Customer;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.Price;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class StripeService {
     @Value("${navaship.app.stripe.apikey}")
     private String stripeApiKey;

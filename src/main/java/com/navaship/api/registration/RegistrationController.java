@@ -59,7 +59,7 @@ public class RegistrationController {
                 AppUserRoleEnum.NEW_USER
         );
 
-        SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlanByPriceId(registrationRequest.getStripePriceId());
+        SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlan(registrationRequest.getSubscriptionId());
 
         AppUser user = appUserService.createUser(newUser);
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);

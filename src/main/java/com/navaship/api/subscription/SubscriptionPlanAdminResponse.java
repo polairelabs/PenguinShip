@@ -6,17 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SubscriptionPlanUpdateResponse {
-    private UUID id;
-    private String name;
-    private String description;
+public class SubscriptionPlanAdminResponse extends SubscriptionPlanResponse {
     private String stripePriceId;
     private BigDecimal shipmentHandlingFee;
-    private int maxLimit;
 }

@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -21,8 +22,8 @@ public class SubscriptionPlanService {
         return subscriptionPlanRepository.findAll();
     }
 
-    public SubscriptionPlan retrieveSubscriptionPlan(Long id) {
-        return subscriptionPlanRepository.findById(id).orElseThrow(
+    public SubscriptionPlan retrieveSubscriptionPlan(String id) {
+        return subscriptionPlanRepository.findById(UUID.fromString(id)).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription plan not found")
         );
     }
@@ -46,6 +47,10 @@ public class SubscriptionPlanService {
 
     public SubscriptionPlanResponse convertToSubscriptionPlanResponse(SubscriptionPlan subscriptionPlan) {
         return modelMapper.map(subscriptionPlan, SubscriptionPlanResponse.class);
+    }
+
+    public SubscriptionPlanAdminResponse convertToSubscriptionPlanAdminResponse(SubscriptionPlan subscriptionPlan) {
+        return modelMapper.map(subscriptionPlan, SubscriptionPlanAdminResponse.class);
     }
 
     public SubscriptionPlanUpdateResponse convertToSubscriptionPlanUpdateResponse(SubscriptionPlan subscriptionPlan) {
