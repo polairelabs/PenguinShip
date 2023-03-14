@@ -47,14 +47,30 @@ public class StripeService {
 
     public Session createCheckoutSession(String priceId, String stripeCustomerId) throws StripeException {
         Stripe.apiKey = stripeApiKey;
+        // https://stripe.com/docs/payments/checkout/free-trials
+        // Free trial settings
+        SessionCreateParams.SubscriptionData.Builder subscriptionBuilder = SessionCreateParams.SubscriptionData.builder()
+                .setTrialPeriodDays(14L)
+                .setTrialSettings(
+                        SessionCreateParams.SubscriptionData.TrialSettings.builder()
+                                .setEndBehavior(
+                                        SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.builder()
+                                                .setMissingPaymentMethod(SessionCreateParams.SubscriptionData.TrialSettings.EndBehavior.MissingPaymentMethod.CANCEL)
+                                                .build()
+                                )
+                                .build()
+                );
         SessionCreateParams params = SessionCreateParams.builder()
                 .addLineItem(
                         SessionCreateParams.LineItem.builder().setPrice(priceId).setQuantity(1L).build())
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl(domain + "/register/?success=true&session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(domain + "/register/?canceled=true")
+                .setSuccessUrl(domain + "/?success=true&session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(domain + "/?canceled=true")
                 .setCustomer(stripeCustomerId)
+                .setPaymentMethodCollection(SessionCreateParams.PaymentMethodCollection.ALWAYS)
+                .setSubscriptionData(subscriptionBuilder.build())
                 .build();
+
         return Session.create(params);
     }
 

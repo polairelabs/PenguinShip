@@ -66,7 +66,7 @@ public class SubscriptionController {
 
     @PostMapping("/create-checkout-session")
     public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String customerId) {
-        // Generate payment and cancel link for subscription (price)
+        // Generate payment and cancel link for subscription
         SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlan(subscriptionId);
         Session session = null;
         try {
