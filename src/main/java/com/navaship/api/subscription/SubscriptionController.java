@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRoleEnum;
+import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.jwt.JwtService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
@@ -37,6 +38,7 @@ public class SubscriptionController {
     private final SubscriptionPlanService subscriptionPlanService;
     private final SubscriptionDetailService subscriptionDetailService;
     private final JwtService jwtService;
+    private final AppUserService appUserService;
     @Value("${navaship.app.stripe.webhook.endpoint.secret}")
     private String webhookEndpointSecret;
 
@@ -65,12 +67,16 @@ public class SubscriptionController {
     }
 
     @PostMapping("/create-checkout-session")
-    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String customerId) {
+    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String userId) {
         // Generate payment and cancel link for subscription
         SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlan(subscriptionId);
+        AppUser user = appUserService.findById(UUID.fromString(userId)).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
+        );
+
         Session session = null;
         try {
-            session = stripeService.createCheckoutSession(subscriptionPlan.getStripePriceId(), customerId);
+            session = stripeService.createCheckoutSession(subscriptionPlan.getStripePriceId(), user.getSubscriptionDetail().getStripeCustomerId());
         } catch (StripeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }

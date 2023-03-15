@@ -5,7 +5,6 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.shipment.Shipment;
-import com.navaship.api.verificationtoken.VerificationTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -56,7 +55,7 @@ public class JwtService {
     public AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
         UUID userId = UUID.fromString((String) principal.getTokenAttributes().get("id"));
         return appUserService.findById(userId).orElseThrow(
-                () -> new VerificationTokenException(HttpStatus.NOT_FOUND, "User not found")
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         );
     }
 
