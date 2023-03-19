@@ -16,10 +16,15 @@ public class CorsConfiguration {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry
-                        .addMapping("/api/v*/**")
+                // Add the CORS configuration for the /api/v1/auth/refresh-token endpoint
+                registry.addMapping("/api/v*/auth/refresh-token")
                         .allowedOrigins(webAppUrl)
-                        .allowedMethods("*");
+                        .allowedMethods("GET")
+                        .allowCredentials(true);
+
+                registry.addMapping("/api/v*/**")
+                        .allowedOrigins(webAppUrl)
+                        .allowedMethods("GET", "POST", "PUT", "DELETE");
             }
         };
     }

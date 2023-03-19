@@ -15,6 +15,4 @@ import lombok.Setter;
 public class RegistrationResponse {
     @JsonView(AuthViews.Default.class)
     private AppUser user;
-    @JsonView(AuthViews.Default.class)
-    private String stripeCustomerId;
 }

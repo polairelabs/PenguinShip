@@ -55,7 +55,6 @@ public class AppUser implements UserDetails {
     @Column(nullable = false)
     private AppUserRoleEnum role;
     private Boolean locked = false;
-    @JsonView(AuthViews.Default.class)
     private Boolean enabled = true;
     @OneToOne
     private Address defaultSourceAddress;

@@ -13,11 +13,5 @@ public class AuthenticationResponse {
     @JsonProperty("access_token")
     private String accessToken;
     @JsonView(AuthViews.Default.class)
-    @JsonProperty("refresh_token")
-    private String refreshToken;
-    @JsonView(AuthViews.Default.class)
     private AppUser user;
-    @JsonView(AuthViews.Default.class)
-    @JsonProperty("token_type")
-    private String tokenType;
 }

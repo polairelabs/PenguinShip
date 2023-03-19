@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Instant;
 import java.util.*;
 
@@ -39,8 +41,11 @@ public class SubscriptionController {
     private final SubscriptionDetailService subscriptionDetailService;
     private final JwtService jwtService;
     private final AppUserService appUserService;
+
     @Value("${navaship.app.stripe.webhook.endpoint.secret}")
     private String webhookEndpointSecret;
+    @Value("${navaship.app.domain}")
+    private String domain;
 
 
     @GetMapping()
@@ -67,7 +72,11 @@ public class SubscriptionController {
     }
 
     @PostMapping("/create-checkout-session")
-    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String userId) {
+    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String userId, @RequestParam String baseUrl) {
+        if (!isValidBaseUrl(baseUrl)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid base url");
+        }
+
         // Generate payment and cancel link for subscription
         SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlan(subscriptionId);
         AppUser user = appUserService.findById(UUID.fromString(userId)).orElseThrow(
@@ -76,7 +85,7 @@ public class SubscriptionController {
 
         Session session = null;
         try {
-            session = stripeService.createCheckoutSession(subscriptionPlan.getStripePriceId(), user.getSubscriptionDetail().getStripeCustomerId());
+            session = stripeService.createCheckoutSession(baseUrl, subscriptionPlan.getStripePriceId(), user.getSubscriptionDetail().getStripeCustomerId());
         } catch (StripeException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -90,8 +99,8 @@ public class SubscriptionController {
 
     @PostMapping("/stripe-webhook")
     public ResponseEntity<Map<String, String>> provisionSubscriber(@RequestBody String payload, HttpServletRequest request) {
-        // Webhook to provision or de-provision customer
-        // e.g. once customer pays via /create-checkout-session, it's time to provision the subscription to the customer (set stripe customer id + the stripe subscription id to the current user)
+        // Webhook to provision or de-provision customer subscription
+        // e.g. once customer pays via /create-checkout-session, it's time to provision the subscription to the customer
         String customerId = null;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -111,6 +120,7 @@ public class SubscriptionController {
         Event event = null;
         String sigHeader = request.getHeader("Stripe-Signature");
 
+        // Validate signature with webhook secret
         try {
             event = Webhook.constructEvent(payload, sigHeader, webhookEndpointSecret);
         } catch (SignatureVerificationException e) {
@@ -130,29 +140,6 @@ public class SubscriptionController {
         switch (event.getType()) {
             case "invoice.payment_succeeded" -> {
                 status = "Subscription payment success";
-                /*
-                    Event occurs whenever an invoice payment attempt succeeds.
-                    Update the default payment method for the customers.
-                    When a Subscription is made, your user is invoiced, so it is considered a payment and will appear in the Payments dashboard.
-                    You can retrieve the Subscription and access the latest_invoice field to obtain the Invoice object.
-                    The Invoice object contains the payment_intent field.
-                 */
-                Invoice invoice = (Invoice) stripeObject;
-                try {
-                    PaymentIntent paymentIntent = PaymentIntent.retrieve(invoice.getPaymentIntent());
-
-                    Map<String, Object> customerParams = new HashMap<>();
-                    Map<String, Object> invoiceSettingsParams = new HashMap<>();
-                    invoiceSettingsParams.put("default_payment_method", paymentIntent.getPaymentMethod());
-                    customerParams.put("invoice_settings", invoiceSettingsParams);
-
-                    Customer customer = Customer.retrieve(invoice.getCustomer()).update(customerParams);
-                    PaymentMethod paymentMethod = PaymentMethod.retrieve(customer.getInvoiceSettings().getDefaultPaymentMethod());
-                    subscriptionDetail.setCardLastFourDigits(paymentMethod.getCard().getLast4());
-                    subscriptionDetail.setCardType(paymentMethod.getCard().getBrand());
-                } catch (StripeException e) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invoice payment failed");
-                }
                 handleSubscriptionPaid(subscriptionDetail);
             }
             case "customer.subscription.deleted" -> {
@@ -207,17 +194,37 @@ public class SubscriptionController {
     }
 
     private SubscriptionDetail handleSubscriptionCreatedOrUpdated(Subscription subscription, SubscriptionDetail subscriptionDetail) {
-        // Provision user to correct role and subscription plan
+        try {
+            PaymentMethod paymentMethod = PaymentMethod.retrieve(subscription.getDefaultPaymentMethod());
+
+            // Update the default payment method for the customers
+            Map<String, Object> customerParams = new HashMap<>();
+            Map<String, Object> invoiceSettingsParams = new HashMap<>();
+            invoiceSettingsParams.put("default_payment_method", paymentMethod.getId());
+            customerParams.put("invoice_settings", invoiceSettingsParams);
+            Customer.retrieve(subscriptionDetail.getStripeCustomerId()).update(customerParams);
+
+            subscriptionDetail.setCardLastFourDigits(paymentMethod.getCard().getLast4());
+            subscriptionDetail.setCardType(paymentMethod.getCard().getBrand());
+        } catch (StripeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Subscription provisioning error");
+        }
+
+        // Provision user to USER role
         AppUser user = subscriptionDetail.getUser();
+        user.setRole(AppUserRoleEnum.USER);
+
         if (subscriptionDetail.getSubscriptionId() == null || !Objects.equals(subscription.getId(), subscriptionDetail.getSubscriptionId())) {
             // User subscribed to plan for the first time or to a different plan
             subscriptionDetail.setStartDate(subscription.getStartDate());
         }
-        user.setRole(AppUserRoleEnum.USER);
+
+        String stripePriceId = subscription.getItems().getData().get(0).getPlan().getId();
+        subscriptionDetail.setSubscriptionPlan(subscriptionPlanService.retrieveSubscriptionPlanByPriceId(stripePriceId));
         subscriptionDetail.setSubscriptionId(subscription.getId());
-        String priceId = subscription.getItems().getData().get(0).getPlan().getId();
-        subscriptionDetail.setSubscriptionPlan(subscriptionPlanService.retrieveSubscriptionPlanByPriceId(priceId));
-        subscriptionDetail.setEndDate(null);
+        subscriptionDetail.setEndDate(subscription.getEndedAt());
+        subscriptionDetail.setStatus(subscription.getStatus());
+
         // Will persist user as well as SubscriptionDetail
         return subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
     }
@@ -230,5 +237,15 @@ public class SubscriptionController {
         subscriptionDetail.setSubscriptionPlan(null);
         subscriptionDetail.setEndDate(subscription.getEndedAt());
         subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
+    }
+
+    private boolean isValidBaseUrl(String baseUrl) {
+        try {
+            // TODO test
+            URL url = new URL(baseUrl);
+            return domain.equals(url.getHost());
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 }

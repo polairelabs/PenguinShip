@@ -33,13 +33,15 @@ public class RegistrationRequest {
     @NotNull(message = "State is required")
     @NotEmpty(message = "State must not be empty")
     private String state;
-    //TODO: Add Phone number validator
+    // TODO: Add Phone number validator
     @NotNull(message = "Phone number is required")
     @NotEmpty(message = "Phone number must not be empty")
     private String phoneNumber;
+    @NotNull(message = "Password is required")
+    @NotEmpty(message = "Password must not be empty")
     @Password
     private String password;
-    @NotNull(message = "A subscription needs to be selected")
-    @NotEmpty(message = "A subscription needs to be set")
-    private String subscriptionId;
+    @NotNull(message = "Password is required")
+    @NotEmpty(message = "Password must not be empty")
+    private String confirmPassword;
 }

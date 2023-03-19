@@ -22,7 +22,7 @@ public class StripeService {
     @Value("${navaship.app.stripe.apikey}")
     private String stripeApiKey;
     @Value("${navaship.webapp.url}")
-    private String domain;
+    private String webAppUrl;
 
 
     public Customer createCustomer(AppUser user) throws StripeException {
@@ -45,10 +45,11 @@ public class StripeService {
         return Price.retrieve(priceId);
     }
 
-    public Session createCheckoutSession(String priceId, String stripeCustomerId) throws StripeException {
+    public Session createCheckoutSession(String baseUrl, String priceId, String customerId) throws StripeException {
         Stripe.apiKey = stripeApiKey;
+
         // https://stripe.com/docs/payments/checkout/free-trials
-        // Free trial settings
+        // Free trial settings, by default, for all plans
         SessionCreateParams.SubscriptionData.Builder subscriptionBuilder = SessionCreateParams.SubscriptionData.builder()
                 .setTrialPeriodDays(14L)
                 .setTrialSettings(
@@ -64,9 +65,9 @@ public class StripeService {
                 .addLineItem(
                         SessionCreateParams.LineItem.builder().setPrice(priceId).setQuantity(1L).build())
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl(domain + "/?success=true&session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(domain + "/?canceled=true")
-                .setCustomer(stripeCustomerId)
+                .setSuccessUrl(baseUrl + "?success=true&session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl(baseUrl + "?canceled=true")
+                .setCustomer(customerId)
                 .setPaymentMethodCollection(SessionCreateParams.PaymentMethodCollection.ALWAYS)
                 .setSubscriptionData(subscriptionBuilder.build())
                 .build();
@@ -78,7 +79,8 @@ public class StripeService {
         Stripe.apiKey = stripeApiKey;
         Map<String, Object> params = new HashMap<>();
         params.put("customer", customerId);
-        params.put("return_url", domain);
+        // TODO change to url profile back
+        params.put("return_url", webAppUrl);
 
         return com.stripe.model.billingportal.Session.create(params);
     }
@@ -91,7 +93,7 @@ public class StripeService {
         Map<String, Object> params = new HashMap<>();
         params.put("amount", amountInCents);
         params.put("currency", currency);
-        // Will retrieve the default source payment of the customer
+        // Will retrieve the default source payment of the customer (the one use for subscription)
         params.put("payment_method", defaultPaymentMethodId);
         params.put("customer", customerId);
 

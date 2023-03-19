@@ -29,7 +29,7 @@ public class DashboardController {
     private ActivityLoggerService activityLoggerService;
 
 
-    @GetMapping("/statistics")
+    @GetMapping("/stats")
     public ResponseEntity<DashboardResponse> retrieveDashboardStatistics(JwtAuthenticationToken principal) {
         AppUser user = jwtService.retrieveUserFromJwt(principal);
         int totalShipmentsCreatedCount = shipmentService.retrieveUserShipmentsCount(user);

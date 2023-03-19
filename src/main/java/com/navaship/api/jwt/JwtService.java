@@ -28,10 +28,10 @@ public class JwtService {
 
     private final JwtEncoder jwtEncoder;
 
-    @Value("${navaship.app.jwtIssuer}")
+    @Value("${navaship.app.domain}")
     private String jwtIssuer;
-    @Value("${navaship.app.jwtExpirationMs}")
-    private long jwtExpirationMs;
+    @Value("${navaship.app.accessTokenExpirationMs}")
+    private long accessTokenExpirationMs;
 
 
     public String createJwtAccessToken(Authentication authentication, AppUser user) {
@@ -42,7 +42,7 @@ public class JwtService {
         JwtClaimsSet.Builder claimsSetBuilder = JwtClaimsSet.builder()
                 .issuer(jwtIssuer)
                 .issuedAt(now)
-                .expiresAt(now.plusMillis(jwtExpirationMs))
+                .expiresAt(now.plusMillis(accessTokenExpirationMs))
                 .claim("id", user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("scope", scope)
