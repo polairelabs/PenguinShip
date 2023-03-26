@@ -19,7 +19,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class StripeService {
-    @Value("${navaship.app.stripe.apikey}")
+    @Value("${stripe.apikey}")
     private String stripeApiKey;
     @Value("${navaship.webapp.url}")
     private String webAppUrl;

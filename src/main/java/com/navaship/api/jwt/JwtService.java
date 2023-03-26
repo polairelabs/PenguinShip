@@ -28,9 +28,9 @@ public class JwtService {
 
     private final JwtEncoder jwtEncoder;
 
-    @Value("${navaship.app.domain}")
+    @Value("${navaship.api.domain}")
     private String jwtIssuer;
-    @Value("${navaship.app.accessTokenExpirationMs}")
+    @Value("${navaship.api.accessTokenExpirationMs}")
     private long accessTokenExpirationMs;
 
 

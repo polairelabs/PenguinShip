@@ -14,13 +14,13 @@ import java.io.IOException;
 
 @Service
 public class SendGridEmailService {
-    @Value("${navaship.app.sendgrid.apikey}")
+    @Value("${sendgrid.apikey}")
     private String sendGridApiKey;
-    @Value("${navaship.app.sendgrid.senderEmail}")
+    @Value("${sendgrid.senderEmail}")
     private String senderEmail;
-    @Value("${navaship.app.sendgrid.verifyAccountEmailTemplateId}")
+    @Value("${sendgrid.verifyEmailTemplateId}")
     private String verifyAccountEmailTemplateId;
-    @Value("${navaship.app.sendgrid.forgotPasswordEmailTemplateId}")
+    @Value("${sendgrid.forgotPasswordEmailTemplateId}")
     private String passwordResetEmailTemplateId;
 
 

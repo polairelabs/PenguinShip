@@ -19,11 +19,11 @@ public class EasyPostService {
     public static final String TO_ADDRESS_MAP_KEY = "to_address";
     public static final String PARCEL_MAP_KEY = "parcel";
 
-    @Value("${navaship.app.easypost.apikey}")
+    @Value("${easypost.apikey}")
     private String easyPostApiKey;
-    @Value("${navaship.app.easypost.webhook.endpoint.secret}")
+    @Value("${easypost.webhook.endpoint.secret}")
     private String webhookSecret;
-    @Value("${navaship.app.easypost.webhook.endpoint.url}")
+    @Value("${easypost.webhook.endpoint.url}")
     private String webhookUrl;
 
 

@@ -14,8 +14,8 @@ import java.util.UUID;
 public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     // https://www.bezkoder.com/spring-boot-refresh-token-jwt/
-    @Value("${navaship.app.refreshTokenExpirationSec}")
-    private long refreshTokenExpirationSec;
+    @Value("${navaship.api.refreshTokenExpirationMs}")
+    private long refreshTokenExpirationMs;
 
     public Optional<RefreshToken> findByToken(String token) {
         return refreshTokenRepository.findByToken(token);
@@ -29,7 +29,7 @@ public class RefreshTokenService {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken.setUser(user);
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationSec * 1000));
+        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenExpirationMs));
         return refreshTokenRepository.save(refreshToken);
     }
 

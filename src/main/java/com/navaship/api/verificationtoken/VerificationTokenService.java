@@ -12,8 +12,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class VerificationTokenService {
-    @Value("${navaship.app.verificationTokenExpirationMs}")
-    private long verificationTokenExpiryMs;
+    @Value("${navaship.api.emailVerificationTokenExpirationMs}")
+    private long emailVerificationTokenExpiryMs;
 
     private final VerificationTokenRepository verificationTokenRepository;
 
@@ -35,7 +35,7 @@ public class VerificationTokenService {
         verificationToken.setToken(UUID.randomUUID().toString());
         verificationToken.setUser(user);
         verificationToken.setTokenType(tokenType);
-        verificationToken.setExpiryDate(Instant.now().plusMillis(verificationTokenExpiryMs));
+        verificationToken.setExpiryDate(Instant.now().plusMillis(emailVerificationTokenExpiryMs));
         return verificationTokenRepository.save(verificationToken);
     }
 

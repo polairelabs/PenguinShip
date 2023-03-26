@@ -15,6 +15,7 @@ import com.navaship.api.sendgrid.SendGridEmailService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
+import com.navaship.api.util.ProfileHelper;
 import com.navaship.api.verificationtoken.VerificationToken;
 import com.navaship.api.verificationtoken.VerificationTokenService;
 import com.navaship.api.verificationtoken.VerificationTokenType;
@@ -43,7 +44,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @RequestMapping(path = "api/v1/auth")
 public class AuthenticationController {
-    public static final String REQUEST_TOKEN_COOKIE_KEY = "refresh_token";
+    private static final String REQUEST_TOKEN_COOKIE_KEY = "refresh_token";
 
     private final AppUserService appUserService;
     private final StripeService stripeService;
@@ -53,11 +54,10 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
+    private final ProfileHelper profileHelper;
 
-    @Value("${navaship.app.stage}")
-    private String stage;
-    @Value("${navaship.app.refreshTokenExpirationSec}")
-    private long refreshTokenExpirationSec;
+    @Value("${navaship.api.refreshTokenExpirationMs}")
+    private long refreshTokenExpirationMs;
 
 
     @GetMapping("/user-information")
@@ -76,12 +76,14 @@ public class AuthenticationController {
         String accessToken = jwtService.createJwtAccessToken(authentication, user);
         String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
 
+        boolean isProdProfile = profileHelper.isProdProfileActive();
+
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
         ResponseCookie cookie = ResponseCookie.from(REQUEST_TOKEN_COOKIE_KEY, refreshToken)
-                .maxAge(refreshTokenExpirationSec)
+                .maxAge(refreshTokenExpirationMs / 1000)
                 .httpOnly(true)
-                .sameSite("Lax") // SET to None in production
-                .secure(Objects.equals(stage, "production"))
+                .sameSite(isProdProfile ? "None" : "Lax")
+                .secure(isProdProfile)
                 .path("/api/v1/auth/refresh-token")
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -143,8 +145,9 @@ public class AuthenticationController {
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("refresh_token".equals(cookie.getName())) {
+                if (REQUEST_TOKEN_COOKIE_KEY.equals(cookie.getName())) {
                     refreshaToken = cookie.getValue();
+                    System.out.println("Got cookie refresh_token: " + refreshaToken);
                     break;
                 }
             }

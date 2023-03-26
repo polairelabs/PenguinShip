@@ -42,9 +42,9 @@ public class SubscriptionController {
     private final JwtService jwtService;
     private final AppUserService appUserService;
 
-    @Value("${navaship.app.stripe.webhook.endpoint.secret}")
+    @Value("${stripe.webhook.endpoint.secret}")
     private String webhookEndpointSecret;
-    @Value("${navaship.app.domain}")
+    @Value("${navaship.api.domain}")
     private String domain;
 
 
@@ -241,7 +241,6 @@ public class SubscriptionController {
 
     private boolean isValidBaseUrl(String baseUrl) {
         try {
-            // TODO test
             URL url = new URL(baseUrl);
             return domain.equals(url.getHost());
         } catch (MalformedURLException e) {
