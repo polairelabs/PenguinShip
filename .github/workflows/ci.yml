@@ -33,7 +33,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            # Set latest tag for default branch
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main')}}
 
       - name: Build and push Docker image
