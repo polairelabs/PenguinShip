@@ -11,15 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Checkout the repo
-        uses: actions/setup-java@v2
         with:
           # This will create a directory named `api` and copy the repo contents to it
           # so that you can easily upload it to your remote server
           path: api
           ref: release
-          java-version: '17'
-          distribution: 'adopt'
-          cache: maven
 
       - name: Generate the package
         run: mvn -B package --file pom.xml
