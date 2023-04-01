@@ -65,4 +65,16 @@ jobs:
             DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
             API_PORT="${{ vars.API_PORT }}" \
             API_DOMAIN="${{ vars.API_DOMAIN }}" \
+            PGADMIN_DEFAULT_EMAIL="${{ vars.PGADMIN_DEFAULT_EMAIL }}" \
+            PGADMIN_DEFAULT_PASSWORD="${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" \
+            WEBAPP_URL="${{ vars.WEBAPP_URL }}" \
+            SENDGRID_SENDER_EMAIL="${{ vars.SENDGRID_SENDER_EMAIL }}" \
+            SENDGRID_APIKEY="${{ secrets.SENDGRID_APIKEY }}" \
+            SENDGRID_VERIFY_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_VERIFY_EMAIL_TEMPLATE_ID }}" \
+            SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID }}" \
+            EASYPOST_APIKEY="${{ secrets.EASYPOST_APIKEY }}" \
+            EASYPOST_WEBHOOK_ENDPOINT_SECRET="${{ secrets.EASYPOST_WEBHOOK_ENDPOINT_SECRET }}" \
+            EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}" \
+            STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}" \
+            STRIPE_WEBHOOK_ENDPOINT_SECRET="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_SECRET }}" \
             docker-compose -f docker-compose.prod.yml up -d
