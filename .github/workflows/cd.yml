@@ -9,8 +9,8 @@ jobs:
   deploy-api:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Checkout the repo
+      - uses: actions/checkout@v3
         with:
           # This will create a directory named `api` and copy the repo contents to it
           # so that you can easily upload it to your remote server
