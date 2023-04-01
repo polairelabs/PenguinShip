@@ -11,6 +11,13 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+#      - name: Checkout the repo
+#        uses: actions/checkout@v2
+#        with:
+#          # This will create a directory named `my-repo` and copy the repo contents to it
+#          # so that you can easily upload it to your remote server
+#          path: navaship-api-repo
+
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v0.1.8
         with:
@@ -20,5 +27,6 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            whoami
-            ls -al
+            cd ~/navaship
+            git clone https://github.com/polairelabs/NavaShip
+            
