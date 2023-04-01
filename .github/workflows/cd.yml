@@ -27,6 +27,6 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            scp -o StrictHostKeyChecking=no -r api-repo ${{ secrets.USERNAME }}@${{ secrets.HOST }}:~/navaship
+            scp -o StrictHostKeyChecking=no -r my-repo ~/navaship
             cd ~/navaship/api
             cat docker-compose.dev.yml
