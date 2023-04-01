@@ -27,7 +27,7 @@ services:
       - db
     env_file: .env
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_PROFILES_ACTIVE=dev,swagger
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:${DATABASE_PORT}/${DATABASE_NAME}
       - SPRING_DATASOURCE_USERNAME=${DATABASE_USER}
       - SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
