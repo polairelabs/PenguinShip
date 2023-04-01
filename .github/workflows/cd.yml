@@ -11,6 +11,13 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+
       - name: Checkout the repo
         uses: actions/checkout@v3
         with:
@@ -22,8 +29,8 @@ jobs:
       - name: Copy repo to remote server
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.HOST }}
-          port: ${{ secrets.port }}
+          host: ${{ secrets.VPS_HOST }}
+          port: ${{ secrets.VPS_PORT }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -40,4 +47,11 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             cd ~/navaship/api
-            cat docker-compose.dev.yml
+            export DATABASE_PORT="${{ secrets.DATABASE_PORT }}"
+            export DATABASE_NAME="${{ secrets.DATABASE_NAME }}"
+            export DATABASE_USER="${{ secrets.DATABASE_USER }}"
+            export DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}"
+            export API_PORT="${{ secrets.API_PORT }}"
+            export API_DOMAIN="${{ secrets.API_DOMAIN }}"
+            docker-compose -f docker-compose.prod.yml up -d
+            
