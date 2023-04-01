@@ -15,9 +15,7 @@ The pipeline ensures that the API is containerized and available in the GitHub D
 
 ## Continuous Deployment
 
-This project uses Continuous Deployment (CD) with GitHub Actions. Certain environment variables and secrets are required for the deployment pipeline to function correctly.
-
-The pipeline ensures that the application is deployed to the VPS in an automated manner upon pushing changes to the `release` branch.
+This project utilizes Continuous Deployment (CD) with GitHub Actions, automatically deploying the application to the VPS when changes are pushed to the `release` branch.
 
 ### Deployed Stack
 
