@@ -34,7 +34,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-          source: api
+          source: | 
+            api
+            api/target/*.jar
           target: "~/navaship"
 
       - name: SSH and Deploy
