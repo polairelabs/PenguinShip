@@ -1,6 +1,6 @@
 # NavaShip
 
-## Continuous Integration (CI)
+## Continuous Integration
 
 This project uses a Continuous Integration (CI) pipeline with GitHub Actions. When new changes are pushed to the `main` branch, the CI pipeline is triggered.
 
@@ -15,7 +15,7 @@ The pipeline ensures that the API is containerized and available in the GitHub D
 
 ## Continuous Deployment
 
-This project uses continuous deployment with GitHub Actions. Certain environment variables and secrets are required for the deployment pipeline to function correctly.
+This project uses Continuous Deployment (CD) with GitHub Actions. Certain environment variables and secrets are required for the deployment pipeline to function correctly.
 
 ### CD Pipeline Workflow
 
