@@ -1,6 +1,5 @@
 name: Continuous Deployment. Deploy API to VPS
 
-# Change to PR to release once pipeline is stable
 on:
   push:
     branches:
