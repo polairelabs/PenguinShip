@@ -1,6 +1,44 @@
 # NavaShip
 
-### Environnemet variables
+## Continuous Integration (CI)
+
+This project uses a Continuous Integration (CI) pipeline with GitHub Actions. When new changes are pushed to the `main` branch, the CI pipeline is triggered.
+
+### CI Pipeline Workflow
+
+The CI pipeline performs the following steps:
+
+1. Build the Docker image for the API.
+2. Push the Docker image to the GitHub Docker Registry.
+
+The pipeline ensures that the API is containerized and available in the GitHub Docker Registry for deployment purposes.
+
+## Continuous Deployment
+
+This project uses continuous deployment with GitHub Actions. Certain environment variables and secrets are required for the deployment pipeline to function correctly.
+
+### CD Pipeline Workflow
+
+The CD pipeline performs the following steps:
+
+1. Check out the repository.
+2. Copy the repository to the VPS using SCP (Secure Copy Protocol) with SSH.
+3. SSH into the VPS.
+4. Call `docker-compose.prod.yml` to deploy the application.
+
+The pipeline ensures that the application is deployed to the VPS in an automated manner upon pushing changes to the `release` branch.
+
+### Environment Variables
+##### Under repository settings > Secrets and variables > Actions
+
+The following environment variables are used in the continuous deployment pipeline to connect to the VPS:
+
+- VPS_HOST
+- VPS_PORT
+- PASSPHRASE
+- USERNAME
+
+The table below lists all the other environment variables and whether they are stored as secrets (secure column) or plain environment variables 
 
 | Variable Name                        | Description                                         | Secured | Dev Only |
 |--------------------------------------|-----------------------------------------------------|---------|----------------------|
