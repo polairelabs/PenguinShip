@@ -17,6 +17,13 @@ The pipeline ensures that the API is containerized and available in the GitHub D
 
 This project uses Continuous Deployment (CD) with GitHub Actions. Certain environment variables and secrets are required for the deployment pipeline to function correctly.
 
+### Deployed Stack
+
+The Continuous Deployment (CD) pipeline uses `docker-compose` to deploy the application stack. The stack consists of the following services:
+
+- **PostgreSQL Database**: A PostgreSQL database is used as the primary data store for the application.
+- **API**: The API is a containerized application that serves as the backend for the project.
+
 ### CD Pipeline Workflow
 
 The CD pipeline performs the following steps:
@@ -38,7 +45,7 @@ The following environment variables are used in the continuous deployment pipeli
 - PASSPHRASE
 - USERNAME
 
-The table below lists all the other environment variables and whether they are stored as secrets (secure column) or plain environment variables 
+The table below lists all the other environment variables that are used to deploy the backend stack and whether they are stored as secrets (secure column) or plain environment variables 
 
 | Variable Name                        | Description                                         | Secured | Dev Only |
 |--------------------------------------|-----------------------------------------------------|---------|----------------------|
