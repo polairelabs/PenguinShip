@@ -27,6 +27,26 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           source: api
           target: "~/navaship"
+        
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+          
+      - name: Build JAR
+        run: mvn -B package --file api/pom.xml
+          
+      - name: Copy JAR to remote server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ vars.VPS_HOST }}
+          port: ${{ vars.VPS_PORT }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          source: api/target/*.jar
+          target: "~/navaship"
 
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.8
