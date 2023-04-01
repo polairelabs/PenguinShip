@@ -17,9 +17,6 @@ jobs:
           path: api
           ref: release
 
-      - name: Generate the package
-        run: mvn -B package --file pom.xml
-
       - name: Copy repo to remote server
         uses: appleboy/scp-action@master
         with:
