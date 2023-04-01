@@ -11,13 +11,6 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Log in to the Container registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Checkout the repo
         uses: actions/checkout@v3
         with:
@@ -53,5 +46,6 @@ jobs:
             export DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}"
             export API_PORT="${{ vars.API_PORT }}"
             export API_DOMAIN="${{ vars.API_DOMAIN }}"
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker-compose -f docker-compose.prod.yml up -d
             
