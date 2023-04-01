@@ -30,3 +30,6 @@ services:
       - EASYPOST_WEBHOOK_ENDPOINT_URL=${EASYPOST_WEBHOOK_ENDPOINT_URL}
       - STRIPE_APIKEY=${STRIPE_APIKEY}
       - STRIPE_WEBHOOK_ENDPOINT_SECRET=${STRIPE_WEBHOOK_ENDPOINT_SECRET}
+    command: [ "./wait-for-it.sh", "db:${DATABASE_PORT}", "--timeout=60", "--", "java -jar target/api.jar" ]
+    volumes:
+      - ./wait-for-it.sh:/wait-for-it.sh
