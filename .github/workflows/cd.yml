@@ -16,15 +16,6 @@ jobs:
           # so that you can easily upload it to your remote server
           path: api
           ref: release
-          
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-          
-      - name: Build JAR
-        run: mvn -B package --file api/pom.xml
 
       - name: Copy repo to remote server
         uses: appleboy/scp-action@master
@@ -36,6 +27,15 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           source: api
           target: "~/navaship"
+        
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+          
+      - name: Build JAR
+        run: mvn -B package --file api/pom.xml
           
       - name: Copy JAR to remote server
         uses: appleboy/scp-action@master
