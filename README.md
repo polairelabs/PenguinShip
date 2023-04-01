@@ -17,6 +17,8 @@ The pipeline ensures that the API is containerized and available in the GitHub D
 
 This project uses Continuous Deployment (CD) with GitHub Actions. Certain environment variables and secrets are required for the deployment pipeline to function correctly.
 
+The pipeline ensures that the application is deployed to the VPS in an automated manner upon pushing changes to the `release` branch.
+
 ### Deployed Stack
 
 The Continuous Deployment (CD) pipeline uses `docker-compose` to deploy the application stack. The stack consists of the following services:
@@ -32,8 +34,6 @@ The CD pipeline performs the following steps:
 2. Copy the repository to the VPS using SCP (Secure Copy Protocol) with SSH.
 3. SSH into the VPS.
 4. Call `docker-compose.prod.yml` to deploy the application.
-
-The pipeline ensures that the application is deployed to the VPS in an automated manner upon pushing changes to the `release` branch.
 
 ### Environment Variables
 ##### Under repository settings > Secrets and variables > Actions
