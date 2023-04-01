@@ -12,11 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # This will create a directory named `api` and copy the repo contents to it
           # so that you can easily upload it to your remote server
           path: api
+          ref: release
 
       - name: Copy repo to remote server
         uses: appleboy/scp-action@master
@@ -29,7 +30,7 @@ jobs:
           source: api
           target: "~/navaship"
 
-      - name: executing remote ssh commands using password
+      - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.HOST }}
