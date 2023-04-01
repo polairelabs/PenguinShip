@@ -1,4 +1,4 @@
-name: Create and publish the API Docker image to Github's Container registry
+name: Create and publish API Docker image to Github's Container registry
 
 on:
   push:
