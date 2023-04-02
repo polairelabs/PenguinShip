@@ -59,6 +59,7 @@ jobs:
           script: |
             cd ~/navaship/api
             chmod +x wait-for-it.sh
+            docker-compose -f docker-compose.prod.yml down
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             DATABASE_PORT="${{ vars.DATABASE_PORT }}" \
             DATABASE_NAME="${{ vars.DATABASE_NAME }}" \
@@ -76,5 +77,4 @@ jobs:
             EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}" \
             STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}" \
             STRIPE_WEBHOOK_ENDPOINT_SECRET="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_SECRET }}" \
-            docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d
