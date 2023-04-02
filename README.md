@@ -1,5 +1,34 @@
 # NavaShip
 
+## Running the Stack Locally
+
+To run the stack locally, follow these steps:
+
+1. Edit the `.env` file and update the values as needed.
+2. Run `docker-compose -f docker-compose.dev.yml up` to start the Postgres database and pgAdmin.
+3. Load the environment variables from the `.env` file. If you are using IntelliJ IDEA, you can follow the example in the next section 
+4. Run the API
+
+### Loading Environment Variables in IntelliJ IDEA
+
+If you're using IntelliJ IDEA, you can load environment variables from your .env file directly into the IDE. Follow these steps:
+
+1. Open your project in IntelliJ IDEA.
+2. Go to File > Settings (or IntelliJ IDEA > Preferences on macOS).
+3. In the Settings dialog, navigate to Plugins.
+4. Click the Marketplace tab and search for EnvFile.
+5. Install the EnvFile plugin and restart IntelliJ IDEA when prompted.
+
+Now, you can configure IntelliJ to load the environment variables from the .env file when running your application:
+
+1. In the top-right corner, click on the Edit Configurations button (it looks like a dropdown list with a gear icon).
+2. In the Run/Debug Configurations dialog, select your Spring Boot application configuration in the left pane.
+3. In the right pane, under the Configuration tab, scroll down to the Environment section.
+4. Check the Enable box next to EnvFile.
+5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
+6. Click Apply and then OK to save the configuration.
+
+
 ## Continuous Integration
 
 This project uses a Continuous Integration (CI) pipeline with GitHub Actions. When new changes are pushed to the `main` branch, the CI pipeline is triggered.
