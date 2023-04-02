@@ -72,7 +72,7 @@ The following environment variables are used in the continuous deployment pipeli
 - PASSPHRASE
 - USERNAME
 
-The table below lists all the other environment variables that are used to deploy the backend stack and whether they are stored as secrets (secure column) or plain environment variables 
+The table below lists all the other environment variables that are used to deploy the backend stack and whether they are stored as secrets (_the secure column is checked_) or plain old environment variables 
 
 | Variable Name                        | Description                                         | Secured | Dev Only |
 |--------------------------------------|-----------------------------------------------------|---------|----------------------|
