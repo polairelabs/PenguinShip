@@ -3,7 +3,7 @@ services:
   db:
     image: postgres
     ports:
-      - ${DATABASE_PORT}:5432
+      - ${DATABASE_PORT}:${DATABASE_PORT}
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
@@ -15,9 +15,8 @@ services:
     depends_on:
       - db
     environment:
-      - SPRING_PROFILES_ACTIVE=prod,swagger
-      - DATABASE_PORT=${DATABASE_PORT}
-      - DATABASE_NAME=${DATABASE_NAME}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:${DATABASE_PORT}/${DATABASE_NAME}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - WEBAPP_URL=${WEBAPP_URL}
@@ -31,6 +30,6 @@ services:
       - EASYPOST_WEBHOOK_ENDPOINT_URL=${EASYPOST_WEBHOOK_ENDPOINT_URL}
       - STRIPE_APIKEY=${STRIPE_APIKEY}
       - STRIPE_WEBHOOK_ENDPOINT_SECRET=${STRIPE_WEBHOOK_ENDPOINT_SECRET}
-    command: [ "./wait-for-it.sh", "db:${DATABASE_PORT}", "--timeout=120", "java -jar target/api.jar" ]
+    command: [ "./wait-for-it.sh", "db:${DATABASE_PORT}", "--timeout=60", "java -jar target/api.jar" ]
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
