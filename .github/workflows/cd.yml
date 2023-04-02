@@ -65,8 +65,6 @@ jobs:
             DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
             API_PORT="${{ vars.API_PORT }}" \
             API_DOMAIN="${{ vars.API_DOMAIN }}" \
-            PGADMIN_DEFAULT_EMAIL="${{ vars.PGADMIN_DEFAULT_EMAIL }}" \
-            PGADMIN_DEFAULT_PASSWORD="${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" \
             WEBAPP_URL="${{ vars.WEBAPP_URL }}" \
             SENDGRID_SENDER_EMAIL="${{ vars.SENDGRID_SENDER_EMAIL }}" \
             SENDGRID_APIKEY="${{ secrets.SENDGRID_APIKEY }}" \
