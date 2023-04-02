@@ -58,6 +58,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             cd ~/navaship/api
+            chmod +x wait-for-it.sh
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             DATABASE_PORT="${{ vars.DATABASE_PORT }}" \
             DATABASE_NAME="${{ vars.DATABASE_NAME }}" \
