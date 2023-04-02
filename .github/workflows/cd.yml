@@ -77,4 +77,4 @@ jobs:
             STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}" \
             STRIPE_WEBHOOK_ENDPOINT_SECRET="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_SECRET }}" \
             docker-compose -f docker-compose.prod.yml down
-            docker-compose -f docker-compose.prod.yml up -d
+            docker-compose -f docker-compose.prod.yml up
