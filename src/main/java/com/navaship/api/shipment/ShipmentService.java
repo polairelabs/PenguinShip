@@ -36,6 +36,14 @@ public class ShipmentService {
         shipment.setSourceAddress(fromAddress);
         shipment.setDeliveryAddress(toAddress);
         shipment.setParcel(parcel);
+
+        Shipment latestShipment = getLatestShipment(user);
+        if (latestShipment != null) {
+            shipment.setShipmentNumber(latestShipment.getShipmentNumber() + 1);
+        } else {
+            shipment.setShipmentNumber(1);
+        }
+
         return shipmentRepository.save(shipment);
     }
 
@@ -53,6 +61,10 @@ public class ShipmentService {
 
     public int retrieveUserShipmentsCountByEasyPostStatus(AppUser user, EasyPostShipmentStatus status) {
         return shipmentRepository.countByUserAndEasyPostStatus(user, status);
+    }
+
+    public Shipment getLatestShipment(AppUser user) {
+        return shipmentRepository.findTopByUserOrderByCreatedAtDesc(user);
     }
 
     public void modifyShipment(Shipment shipment) {

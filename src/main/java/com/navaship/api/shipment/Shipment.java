@@ -15,8 +15,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -58,6 +56,10 @@ public class Shipment {
 
     @Enumerated(EnumType.STRING)
     private EasyPostShipmentStatus easyPostStatus; // Retrieved from easypost webhook
+
+    // This number represents the "linear id" of the user for his shipments
+    @Column(nullable = false)
+    private Integer shipmentNumber;
 
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<Person> persons = new ArrayList<>();

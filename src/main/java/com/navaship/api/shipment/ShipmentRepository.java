@@ -18,6 +18,7 @@ public interface ShipmentRepository extends PagingAndSortingRepository<Shipment,
     int countByUser(AppUser user);
     int countByUserAndStatus(AppUser user, ShipmentStatus status);
     int countByUserAndEasyPostStatus(AppUser user, EasyPostShipmentStatus easyPostStatus);
+    Shipment findTopByUserOrderByCreatedAtDesc(AppUser user);
     @Query("SELECT SUM(s.rate.rate) FROM Shipment s WHERE s.user = :user")
     BigDecimal totalSumRateByUser(AppUser user);
     @Query("SELECT SUM(s.rate.retailRate) FROM Shipment s WHERE s.user = :user")

@@ -33,4 +33,5 @@ public class ShipmentResponse {
     private List<PersonResponse> persons;
     private boolean isInsured;
     private BigDecimal insuranceAmount;
+    private Integer shipmentNumber;
 }

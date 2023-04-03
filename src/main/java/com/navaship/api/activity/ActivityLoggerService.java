@@ -13,27 +13,15 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class ActivityLoggerService {
-    public static final String SHIPMENT_CREATED = "Shipment #%d was created";
-    public static final String SHIPMENT_CREATED_SUB = "Shipment #%d will be delivered to %s";
-    public static final String SHIPMENT_BOUGHT = "Shipment #%d was purchased for $%s";
-    public static final String SHIPMENT_STATUS_CHANGE = "Shipment #%d status has changed to %s";
+    private static final String SHIPMENT_CREATED = "Shipment #%d was created";
+    // private static final String SHIPMENT_CREATED_SUB = "Shipment #%d will be delivered to %s";
+    private static final String SHIPMENT_BOUGHT = "Shipment #%d was purchased";
+    private static final String SHIPMENT_STATUS_CHANGE = "Shipment #%d status has changed to %s";
     // public static final String SHIPMENT_RETURNED = "Shipment #%d is being returned";
 
     private ActivityLogRepository activityLogRepository;
     private ModelMapper modelMapper;
 
-
-    public String getShipmentCreatedMessage(Shipment shipment) {
-        return String.format(SHIPMENT_CREATED, shipment.getId());
-    }
-
-    public String getShipmentBoughtMessage(Shipment shipment) {
-        return String.format(SHIPMENT_BOUGHT, shipment.getId(), shipment.getRate().getRate());
-    }
-
-    public String getShipmentStatusChangeMessage(Shipment shipment) {
-        return String.format(SHIPMENT_STATUS_CHANGE, shipment.getId(), shipment.getEasyPostStatus());
-    }
 
     public ActivityLog insert(AppUser user, Shipment shipment, String message, ActivityMessageType messageType) {
         ActivityLog activityLog = new ActivityLog();
@@ -42,6 +30,18 @@ public class ActivityLoggerService {
         activityLog.setMessage(message);
         activityLog.setMessageType(messageType);
         return activityLogRepository.save(activityLog);
+    }
+
+    public String getShipmentCreatedMessage(Shipment shipment) {
+        return String.format(SHIPMENT_CREATED, shipment.getShipmentNumber());
+    }
+
+    public String getShipmentBoughtMessage(Shipment shipment) {
+        return String.format(SHIPMENT_BOUGHT, shipment.getShipmentNumber(), shipment.getRate().getRate());
+    }
+
+    public String getShipmentStatusChangeMessage(Shipment shipment) {
+        return String.format(SHIPMENT_STATUS_CHANGE, shipment.getShipmentNumber(), shipment.getEasyPostStatus());
     }
 
     public List<ActivityLog> findLatestActivityLogs(AppUser user) {

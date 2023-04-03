@@ -17,13 +17,13 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(path = "api/v1/proxy")
+@RequestMapping(path = "api/v1/image-proxy")
 public class ImageProxyController {
     private ShipmentService shipmentService;
     private JwtService jwtService;
 
 
-    @GetMapping("/{shipmentId}")
+    @GetMapping("/postage-label/{shipmentId}")
     public ResponseEntity<byte[]> proxyImage(JwtAuthenticationToken principal, @PathVariable Long shipmentId) {
         Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
         jwtService.checkResourceBelongsToUser(principal, myShipment);
@@ -36,7 +36,6 @@ public class ImageProxyController {
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.set("Content-Type", "image/png");
-        // responseHeaders.set("Access-Control-Allow-Origin", "*");
 
         return new ResponseEntity<>(response.getBody(), responseHeaders, response.getStatusCode());
     }
