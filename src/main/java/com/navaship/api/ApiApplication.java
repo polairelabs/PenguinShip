@@ -16,10 +16,6 @@ public class ApiApplication {
     }
 
     public static void main(String[] args) {
-        System.out.println("A.A " + "My arguments:");
-        for (int i = 0; i < args.length; i++) {
-            System.out.println("Argument " + (i+1) + ": " + args[i]);
-        }
         SpringApplication.run(ApiApplication.class, args);
     }
 }
