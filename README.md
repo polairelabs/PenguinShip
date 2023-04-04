@@ -6,7 +6,7 @@ To run the stack locally, follow these steps:
 
 1. Edit the `.env` file and update the values as needed.
 2. Run `docker-compose -f docker-compose.dev.yml up` to start the Postgres database and pgAdmin.
-3. Load the environment variables from the `.env` file. If you are using IntelliJ IDEA, you can follow the example in the next section 
+3. Load the environment variables from the `.env` file. If you are using IntelliJ IDEA, you can follow the example in the next section (**Loading Environment Variables in IntelliJ IDEA**)
 4. Run the API
 
 ### Loading Environment Variables in IntelliJ IDEA
