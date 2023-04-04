@@ -28,13 +28,27 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
 6. Click Apply and then OK to save the configuration.
 
+### Default Admin account
+
+You can use the default admin account to use authenticated endpoints:
+
+- **Username**: admin
+- **Password**: admin123
+
 ### API Documentation
 
-During local development, a Swagger documentation is automatically generated for the API, which can be accessed at:
+A Swagger documentation is automatically generated for the API when running it on dev mode (specified by spring.profiles.active).
+
+The API's documentation is accessible through this following link:
+
 - http://localhost:8080/swagger-ui/
 
 Where 8080 is the port number the API is running on.
 
+To use authenticated endpoints, you can obtain an access token directly from the swagger doc:
+- Use the **authentication-controller** login endpoint. Login with the default admin account or another one of your accounts. Get the access_token from the response. 
+- Navigate to the top right and click on the green **Authorize** button and paste the __access-token preceded by the word "Bearer"__ in the value field, e.g "Bearer access-token"
+- Click on "Authorize". You're now ready to use authenticated endpoints! 
 
 ## Continuous Integration
 
