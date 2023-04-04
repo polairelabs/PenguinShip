@@ -1,6 +1,6 @@
 # NavaShip
 
-## Running the Stack Locally
+## Running the Stack Locally (Local development)
 
 To run the stack locally, follow these steps:
 
@@ -27,6 +27,13 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 4. Check the Enable box next to EnvFile.
 5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
 6. Click Apply and then OK to save the configuration.
+
+### API Documentation
+
+During local development, a Swagger documentation is automatically generated for the API, which can be accessed at:
+- http://localhost:8080/swagger-ui
+
+Where 8080 is the port number the API is running on.
 
 
 ## Continuous Integration
