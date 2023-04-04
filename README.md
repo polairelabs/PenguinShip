@@ -31,7 +31,7 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 ### API Documentation
 
 During local development, a Swagger documentation is automatically generated for the API, which can be accessed at:
-- http://localhost:8080/swagger-ui
+- http://localhost:8080/swagger-ui/
 
 Where 8080 is the port number the API is running on.
 
