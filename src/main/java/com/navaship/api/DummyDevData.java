@@ -10,13 +10,15 @@ import com.navaship.api.packages.PackageRepository;
 import com.navaship.api.security.PasswordEncoder;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
 @AllArgsConstructor
-public class DummyData implements CommandLineRunner {
+@Profile("dev")
+public class DummyDevData implements CommandLineRunner {
     private AppUserRepository appUserRepository;
     private AddressRepository addressRepository;
     private PackageRepository packageRepository;
