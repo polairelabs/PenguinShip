@@ -3,7 +3,7 @@ package com.navaship.api.shipment;
 import com.navaship.api.activity.ActivityLog;
 import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.easypost.EasyPostShipmentStatus;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.packages.Package;
 import com.navaship.api.person.Person;
 import com.navaship.api.rate.Rate;
@@ -19,6 +19,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,6 @@ import java.util.List;
 @EqualsAndHashCode(exclude = "user")
 @NoArgsConstructor
 @Entity
-@Table(name = "shipment")
 public class Shipment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -55,11 +55,14 @@ public class Shipment {
     private ShipmentStatus status = ShipmentStatus.DRAFT;
 
     @Enumerated(EnumType.STRING)
-    private EasyPostShipmentStatus easyPostStatus; // Retrieved from easypost webhook
+    private EasypostShipmentStatus easypostStatus; // Retrieved from easypost webhook
 
     // This number represents the "linear id" of the user for his shipments
     @Column(nullable = false)
     private Integer shipmentNumber;
+
+    // Different from the "Rate entity" deliveryDate where this one keeps updating when the status changes
+    private Instant deliveryDate;
 
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<Person> persons = new ArrayList<>();

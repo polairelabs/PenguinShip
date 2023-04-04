@@ -2,7 +2,7 @@ package com.navaship.api.shipment;
 
 import com.navaship.api.address.Address;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.easypost.EasyPostShipmentStatus;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.packages.Package;
 import com.navaship.api.shipmentaddress.ShipmentAddressType;
 import lombok.AllArgsConstructor;
@@ -59,15 +59,15 @@ public class ShipmentService {
         return shipmentRepository.countByUserAndStatus(user, status);
     }
 
-    public int retrieveUserShipmentsCountByEasyPostStatus(AppUser user, EasyPostShipmentStatus status) {
-        return shipmentRepository.countByUserAndEasyPostStatus(user, status);
+    public int retrieveUserShipmentsCountByEasypostStatus(AppUser user, EasypostShipmentStatus status) {
+        return shipmentRepository.countByUserAndEasypostStatus(user, status);
     }
 
     public Shipment getLatestShipment(AppUser user) {
         return shipmentRepository.findTopByUserOrderByCreatedAtDesc(user);
     }
 
-    public void modifyShipment(Shipment shipment) {
+    public void updateShipment(Shipment shipment) {
         shipmentRepository.save(shipment);
     }
 

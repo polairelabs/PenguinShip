@@ -1,10 +1,8 @@
 package com.navaship.api.packages;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
 import com.navaship.api.jwt.JwtService;
-import com.navaship.api.verificationtoken.VerificationTokenException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -88,7 +86,7 @@ public class PackageController {
         convertedPackage.setUser(user);
         convertedPackage.setCreatedAt(parcel.getCreatedAt());
 
-        Package updatedPackage = packageService.modifyPackage(convertedPackage);
+        Package updatedPackage = packageService.updatePackage(convertedPackage);
         return new ResponseEntity<>(packageService.convertToPackagesResponse(updatedPackage), HttpStatus.OK);
     }
 

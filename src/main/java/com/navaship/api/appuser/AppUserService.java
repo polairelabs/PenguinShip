@@ -37,7 +37,7 @@ public class AppUserService implements UserDetailsService {
         return user;
     }
 
-    public AppUser modifyUser(AppUser user) {
+    public AppUser updateUser(AppUser user) {
         return appUserRepository.save(user);
     }
 

@@ -28,7 +28,7 @@ public class Rate {
     @Column(nullable = false)
     private String carrier;
     @Column(nullable = false)
-    private BigDecimal rate;
+    private BigDecimal rate; // Navaship Rate
     @Column(nullable = false)
     private String currency;
     private String service;

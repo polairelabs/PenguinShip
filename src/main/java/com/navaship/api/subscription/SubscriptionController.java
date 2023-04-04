@@ -190,7 +190,7 @@ public class SubscriptionController {
         // Reset limit Shipment creation
         subscriptionDetail.setCurrentLimit(0);
         subscriptionDetail.setLastPaymentDate(Instant.now().getEpochSecond());
-        subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
+        subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
     }
 
     private SubscriptionDetail handleSubscriptionCreatedOrUpdated(Subscription subscription, SubscriptionDetail subscriptionDetail) {
@@ -226,7 +226,7 @@ public class SubscriptionController {
         subscriptionDetail.setStatus(subscription.getStatus());
 
         // Will persist user as well as SubscriptionDetail
-        return subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
+        return subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
     }
 
     private void handleSubscriptionDeleted(Subscription subscription, SubscriptionDetail subscriptionDetail) {
@@ -236,7 +236,7 @@ public class SubscriptionController {
         subscriptionDetail.setSubscriptionId(null);
         subscriptionDetail.setSubscriptionPlan(null);
         subscriptionDetail.setEndDate(subscription.getEndedAt());
-        subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
+        subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
     }
 
     private boolean isValidBaseUrl(String baseUrl) {

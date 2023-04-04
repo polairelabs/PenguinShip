@@ -87,7 +87,7 @@ public class AddressController {
         convertedAddress.setUser(user);
         convertedAddress.setCreatedAt(address.getCreatedAt());
 
-        Address updatedAddress = addressService.modifyAddress(convertedAddress);
+        Address updatedAddress = addressService.updateAddress(convertedAddress);
         return new ResponseEntity<>(addressService.convertToAddressResponse(updatedAddress), HttpStatus.OK);
     }
 

@@ -1,7 +1,7 @@
 package com.navaship.api.shipment;
 
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.easypost.EasyPostShipmentStatus;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -17,7 +17,7 @@ public interface ShipmentRepository extends PagingAndSortingRepository<Shipment,
     Optional<Shipment> findShipmentByEasypostShipmentId(String easypostShipmentId);
     int countByUser(AppUser user);
     int countByUserAndStatus(AppUser user, ShipmentStatus status);
-    int countByUserAndEasyPostStatus(AppUser user, EasyPostShipmentStatus easyPostStatus);
+    int countByUserAndEasypostStatus(AppUser user, EasypostShipmentStatus easyPostStatus);
     Shipment findTopByUserOrderByCreatedAtDesc(AppUser user);
     @Query("SELECT SUM(s.rate.rate) FROM Shipment s WHERE s.user = :user")
     BigDecimal totalSumRateByUser(AppUser user);

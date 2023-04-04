@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
+/**
+ * Dummy data generated for dev env only
+ */
 @Component
 @AllArgsConstructor
 @Profile("dev")

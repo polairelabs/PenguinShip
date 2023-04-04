@@ -3,7 +3,7 @@ package com.navaship.api.dashboard;
 import com.navaship.api.activity.ActivityLogResponse;
 import com.navaship.api.activity.ActivityLoggerService;
 import com.navaship.api.appuser.AppUser;
-import com.navaship.api.easypost.EasyPostShipmentStatus;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.jwt.JwtService;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.shipment.ShipmentService;
@@ -33,8 +33,8 @@ public class DashboardController {
     public ResponseEntity<DashboardResponse> retrieveDashboardStatistics(JwtAuthenticationToken principal) {
         AppUser user = jwtService.retrieveUserFromJwt(principal);
         int totalShipmentsCreatedCount = shipmentService.retrieveUserShipmentsCount(user);
-        int totalShipmentsInTransitCount = shipmentService.retrieveUserShipmentsCountByEasyPostStatus(user, EasyPostShipmentStatus.IN_TRANSIT);
-        int totalShipmentsDeliveredCount = shipmentService.retrieveUserShipmentsCountByEasyPostStatus(user, EasyPostShipmentStatus.DELIVERED);
+        int totalShipmentsInTransitCount = shipmentService.retrieveUserShipmentsCountByEasypostStatus(user, EasypostShipmentStatus.IN_TRANSIT);
+        int totalShipmentsDeliveredCount = shipmentService.retrieveUserShipmentsCountByEasypostStatus(user, EasypostShipmentStatus.DELIVERED);
         int totalShipmentsDraftCount = shipmentService.retrieveUserShipmentsCountByStatus(user, ShipmentStatus.DRAFT);
         int totalPackagesCount = packageService.retrieveUserPackagesCount(user);
 

@@ -41,7 +41,7 @@ public class ActivityLoggerService {
     }
 
     public String getShipmentStatusChangeMessage(Shipment shipment) {
-        return String.format(SHIPMENT_STATUS_CHANGE, shipment.getShipmentNumber(), shipment.getEasyPostStatus());
+        return String.format(SHIPMENT_STATUS_CHANGE, shipment.getShipmentNumber(), shipment.getEasypostStatus());
     }
 
     public List<ActivityLog> findLatestActivityLogs(AppUser user) {

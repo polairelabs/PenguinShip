@@ -47,7 +47,7 @@ public class AdminController {
         SubscriptionPlan convertedSubscriptionPlan = subscriptionPlanService.convertToSubscriptionPlan(subscriptionPlanRequest);
         convertedSubscriptionPlan.setId(subscriptionPlan.getId());
         convertedSubscriptionPlan.setShipmentHandlingFee(shipmentHandlingFee);
-        SubscriptionPlan updatedSubscriptionPlan = subscriptionPlanService.modifySubscriptionPlan(convertedSubscriptionPlan);
+        SubscriptionPlan updatedSubscriptionPlan = subscriptionPlanService.updateSubscriptionPlan(convertedSubscriptionPlan);
 
         return new ResponseEntity<>(subscriptionPlanService.convertToSubscriptionPlanUpdateResponse(updatedSubscriptionPlan), HttpStatus.OK);
     }

@@ -1,7 +1,6 @@
 package com.navaship.api.shipment;
 
 import com.easypost.exception.EasyPostException;
-import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +12,7 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
 import com.navaship.api.easypost.EasyPostService;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.jwt.JwtService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.packages.PackageService;
@@ -25,7 +25,6 @@ import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
-import com.navaship.api.verificationtoken.VerificationTokenException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import lombok.AllArgsConstructor;
@@ -38,9 +37,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -96,18 +95,39 @@ public class ShipmentController {
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);
     }
 
+    //        Map<String, Object> headers = new HashMap<>();
+//        headers.put("X-Hmac-Signature", request.getHeader("X-Hmac-Signature"));
+//        try {
+//            Event event = easyPostService.validateWebhook(eventBody, headers);
+//            // Do something with the event
+//            return new ResponseEntity<>("Webhook event received and handled, current status " + event.getStatus(), HttpStatus.OK);
+//        } catch (EasyPostException e) {
+//            return new ResponseEntity<>("Invalid webhook signature", HttpStatus.UNAUTHORIZED);
+//        }
+    // Process the webhook data here
+
     @PostMapping("/easypost-webhook")
-    public ResponseEntity<String> easyPostWebhook(@RequestBody byte[] eventBody, HttpServletRequest request) {
+    public ResponseEntity<String> easyPostWebhook(@RequestBody Map<String, Object> webhookData) {
         // Webhook to listen for events and update shipments from easypost
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("X-Hmac-Signature", request.getHeader("X-Hmac-Signature"));
-        try {
-            Event event = easyPostService.validateWebhook(eventBody, headers);
-            // Do something with the event
-            return new ResponseEntity<>("Webhook event received and handled, current status " + event.getStatus(), HttpStatus.OK);
-        } catch (EasyPostException e) {
-            return new ResponseEntity<>("Invalid webhook signature", HttpStatus.UNAUTHORIZED);
+        System.out.println("Received EasyPost webhook: " + webhookData);
+
+        // Extract shipment data
+        if (webhookData != null && webhookData.containsKey("result")) {
+            Map<String, Object> result = (Map<String, Object>) webhookData.get("result");
+            String statusDetail = (String) result.get("status_detail");
+            if (statusDetail.equals("status_update")) {
+                String easypostShipmentId = (String) result.get("shipment_id");
+                String shipmentStatus = (String) result.get("status");
+                String estimatedDeliveryDate = (String) result.get("est_delivery_date");
+                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
+                userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
+                userShipment.setDeliveryDate(Instant.parse(estimatedDeliveryDate));
+                shipmentService.updateShipment(userShipment);
+            }
         }
+
+        // Return a 200 OK response to acknowledge receipt of the webhook
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping()
@@ -156,7 +176,7 @@ public class ShipmentController {
             shipment = easyPostService.createShipment(fromAddress, toAddress, parcel);
 
             // Creating Shipment here
-            Shipment myShipment = shipmentService.createShipment(
+            Shipment userShipment = shipmentService.createShipment(
                     shipment.getId(),
                     ShipmentStatus.DRAFT,
                     user,
@@ -167,7 +187,7 @@ public class ShipmentController {
 
             if (isPersonInformationPresent(shipmentCreateRequest, PersonType.SENDER)) {
                 personService.createPerson(
-                        myShipment,
+                        userShipment,
                         shipmentCreateRequest.getSenderName(),
                         shipmentCreateRequest.getSenderCompany(),
                         shipmentCreateRequest.getSenderPhone(),
@@ -178,7 +198,7 @@ public class ShipmentController {
 
             if (isPersonInformationPresent(shipmentCreateRequest, PersonType.RECEIVER)) {
                 personService.createPerson(
-                        myShipment,
+                        userShipment,
                         shipmentCreateRequest.getReceiverName(),
                         shipmentCreateRequest.getReceiverCompany(),
                         shipmentCreateRequest.getReceiverPhone(),
@@ -188,11 +208,11 @@ public class ShipmentController {
             }
 
             // Insert activity message
-            activityLoggerService.insert(user, myShipment, activityLoggerService.getShipmentCreatedMessage(myShipment), ActivityMessageType.NEW);
+            activityLoggerService.insert(user, userShipment, activityLoggerService.getShipmentCreatedMessage(userShipment), ActivityMessageType.NEW);
 
             // Increment currentLimit
             subscriptionDetail.setCurrentLimit(subscriptionDetail.getCurrentLimit() + 1);
-            subscriptionDetailService.modifySubscriptionDetail(subscriptionDetail);
+            subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, extractEasypostErrorMessage(e.getMessage()));
         }
@@ -208,11 +228,11 @@ public class ShipmentController {
                                                                   @Valid @RequestBody ShipmentBuyRateRequest shipmentBuyRateRequest) {
         AppUser user = jwtService.retrieveUserFromJwt(principal);
         String easypostShipmentId = shipmentBuyRateRequest.getEasypostShipmentId();
-        Shipment myShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
-        jwtService.checkResourceBelongsToUser(principal, myShipment);
+        Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
+        jwtService.checkResourceBelongsToUser(principal, userShipment);
 
-        if (myShipment.getStatus() != ShipmentStatus.DRAFT) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rates for shipment with status of " + myShipment.getStatus() + " cannot be purchased");
+        if (userShipment.getStatus() != ShipmentStatus.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rates for shipment with status of " + userShipment.getStatus() + " cannot be purchased");
         }
 
         try {
@@ -260,8 +280,8 @@ public class ShipmentController {
                             insuranceAmount.toString()
                     );
 
-                    myShipment.setInsured(true);
-                    myShipment.setInsuranceAmount(insuranceAmount);
+                    userShipment.setInsured(true);
+                    userShipment.setInsuranceAmount(insuranceAmount);
                 } else {
                     shipment = easyPostService.buyShipmentRate(
                             shipmentBuyRateRequest.getEasypostShipmentId(),
@@ -269,30 +289,30 @@ public class ShipmentController {
                     );
                 }
 
-                myShipment.setStatus(ShipmentStatus.PURCHASED);
+                userShipment.setStatus(ShipmentStatus.PURCHASED);
                 rate = shipment.getSelectedRate();
 
-                // Modify shipment with new generated (from easypost) attributes trackingCode and labelUrl
-                myShipment.setTrackingCode(shipment.getTrackingCode());
+                // Update shipment with new generated (from easypost) attributes trackingCode and labelUrl
+                userShipment.setTrackingCode(shipment.getTrackingCode());
                 if (shipment.getPostageLabel() != null) {
-                    myShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
+                    userShipment.setPostageLabelUrl(shipment.getPostageLabel().getLabelUrl());
                 }
 
                 if (shipment.getTracker() != null) {
-                    myShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
+                    userShipment.setPublicTrackingUrl(shipment.getTracker().getPublicUrl());
                 }
 
                 Rate myRate = rateService.convertToRate(rate);
                 myRate.setRate(currentRate);
                 rateService.createRate(myRate);
                 // Set the bought rate to the user's shipment
-                myShipment.setRate(myRate);
+                userShipment.setRate(myRate);
 
                 // Update user's shipment
-                shipmentService.modifyShipment(myShipment);
+                shipmentService.updateShipment(userShipment);
 
                 // Insert activity message
-                activityLoggerService.insert(user, myShipment, activityLoggerService.getShipmentBoughtMessage(myShipment), ActivityMessageType.PURCHASE);
+                activityLoggerService.insert(user, userShipment, activityLoggerService.getShipmentBoughtMessage(userShipment), ActivityMessageType.PURCHASE);
             } else {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Payment failed");
             }
@@ -303,18 +323,18 @@ public class ShipmentController {
         }
 
         return new ResponseEntity<>(
-                shipmentService.convertToBoughtShipmentResponse(myShipment),
+                shipmentService.convertToBoughtShipmentResponse(userShipment),
                 HttpStatus.OK);
     }
 
     @PostMapping("/refund/{shipmentId}")
     public ResponseEntity<Map<String, String>> refundShipment(JwtAuthenticationToken principal,
                                                               @PathVariable Long shipmentId) {
-        Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
-        jwtService.checkResourceBelongsToUser(principal, myShipment);
+        Shipment userShipment = shipmentService.retrieveShipment(shipmentId);
+        jwtService.checkResourceBelongsToUser(principal, userShipment);
 
         try {
-            easyPostService.refund(myShipment.getEasypostShipmentId());
+            easyPostService.refund(userShipment.getEasypostShipmentId());
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing refund");
         }
@@ -327,22 +347,22 @@ public class ShipmentController {
     @GetMapping("/rates/{shipmentId}")
     public ResponseEntity<ShipmentRatesResponse> getRates(JwtAuthenticationToken principal,
                                                           @PathVariable Long shipmentId) {
-        Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
-        jwtService.checkResourceBelongsToUser(principal, myShipment);
+        Shipment userShipment = shipmentService.retrieveShipment(shipmentId);
+        jwtService.checkResourceBelongsToUser(principal, userShipment);
 
-        SubscriptionDetail subscriptionDetail = myShipment.getUser().getSubscriptionDetail();
+        SubscriptionDetail subscriptionDetail = userShipment.getUser().getSubscriptionDetail();
         SubscriptionPlan subscriptionPlan = subscriptionDetail.getSubscriptionPlan();
 
         List<RateResponse> shipmentRates;
         try {
-            List<com.easypost.model.Rate> rates = easyPostService.getShipmentRates(myShipment.getEasypostShipmentId());
+            List<com.easypost.model.Rate> rates = easyPostService.getShipmentRates(userShipment.getEasypostShipmentId());
             shipmentRates = calculateShipmentRates(rates, subscriptionPlan);
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
         ShipmentRatesResponse shipmentRatesResponse = new ShipmentRatesResponse();
-        shipmentRatesResponse.setId(myShipment.getEasypostShipmentId());
+        shipmentRatesResponse.setId(userShipment.getEasypostShipmentId());
         shipmentRatesResponse.setRates(shipmentRates);
         return new ResponseEntity<>(shipmentRatesResponse, HttpStatus.OK);
     }
@@ -350,19 +370,19 @@ public class ShipmentController {
     @DeleteMapping("/{shipmentId}")
     public ResponseEntity<Map<String, String>> deleteShipment(JwtAuthenticationToken principal,
                                                               @PathVariable Long shipmentId) {
-        Shipment myShipment = shipmentService.retrieveShipment(shipmentId);
-        jwtService.checkResourceBelongsToUser(principal, myShipment);
-        if (myShipment.getStatus() != ShipmentStatus.DRAFT) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cannot delete a shipment with status " + myShipment.getStatus());
+        Shipment userShipment = shipmentService.retrieveShipment(shipmentId);
+        jwtService.checkResourceBelongsToUser(principal, userShipment);
+        if (userShipment.getStatus() != ShipmentStatus.DRAFT) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Cannot delete a shipment with status " + userShipment.getStatus());
         }
 
-        shipmentService.deleteShipment(myShipment);
+        shipmentService.deleteShipment(userShipment);
 
         // If deleted (it's because it was a draft shipment), subtract 1 from current limit of the current month
         AppUser user = jwtService.retrieveUserFromJwt(principal);
         int currentLimit = user.getSubscriptionDetail().getCurrentLimit();
         user.getSubscriptionDetail().setCurrentLimit(currentLimit - 1);
-        appUserService.modifyUser(user);
+        appUserService.updateUser(user);
 
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Successfully deleted shipment %d", shipmentId));

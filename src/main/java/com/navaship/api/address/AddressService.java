@@ -15,7 +15,6 @@ import org.springframework.web.server.ResponseStatusException;
 @AllArgsConstructor
 public class AddressService {
     private AddressRepository addressRepository;
-    private ShipmentRepository shipmentRepository;
     private ModelMapper modelMapper;
 
 
@@ -32,7 +31,7 @@ public class AddressService {
         return addressRepository.countByUser(user);
     }
 
-    public Address modifyAddress(Address address) {
+    public Address updateAddress(Address address) {
         return addressRepository.save(address);
     }
 

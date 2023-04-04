@@ -44,7 +44,7 @@ public class SecurityConfig {
         // https://github.com/spring-projects/spring-security-samples/blob/main/servlet/spring-boot/java/jwt/login/src/main/java/example/RestConfig.java
         http.
                 authorizeRequests()
-                .antMatchers("/api/v*/auth/**", "/api/v*/subscriptions/**", "/swagger-ui/**", "/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/security", "/webjars/**").permitAll()
+                .antMatchers("/api/v*/auth/**", "/api/v*/subscriptions/**", "/api/v*/shipments/easypost-webhook", "/swagger-ui/**", "/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/security", "/webjars/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/v*/packages", "/api/v*/addresses", "/api/v*/shipments").hasAnyAuthority(
                         AppUserScopeRole.SCOPE_ROLE_USER.name(), AppUserScopeRole.SCOPE_ROLE_ADMIN.name()
                 )

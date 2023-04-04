@@ -32,7 +32,7 @@ public class PackageService {
         return packageRepository.countByUser(user);
     }
 
-    public Package modifyPackage(Package parcel) {
+    public Package updatePackage(Package parcel) {
         return packageRepository.save(parcel);
     }
 

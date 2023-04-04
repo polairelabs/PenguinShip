@@ -1,6 +1,6 @@
 package com.navaship.api.shipment;
 
-import com.navaship.api.easypost.EasyPostShipmentStatus;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.person.PersonResponse;
 import com.navaship.api.rate.RateResponse;
 import com.navaship.api.shipmentaddress.ShipmentAddressResponse;
@@ -24,7 +24,7 @@ public class ShipmentResponse {
     private List<ShipmentAddressResponse> addresses;
     private ShipmentPackageResponse parcel;
     private ShipmentStatus status;
-    private EasyPostShipmentStatus easyPostStatus;
+    private EasypostShipmentStatus easyPostStatus;
     private RateResponse rate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

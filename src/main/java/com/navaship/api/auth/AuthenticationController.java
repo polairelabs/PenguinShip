@@ -99,7 +99,7 @@ public class AuthenticationController {
         }
 
         if (!Objects.equals(registrationRequest.getPassword(), registrationRequest.getConfirmPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password provided do no match");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password provided do not match");
         }
 
         AppUser newUser = new AppUser(

@@ -38,7 +38,7 @@ public class SubscriptionPlanService {
         return subscriptionPlanRepository.save(subscriptionPlan);
     }
 
-    public SubscriptionPlan modifySubscriptionPlan(SubscriptionPlan subscriptionPlan) {
+    public SubscriptionPlan updateSubscriptionPlan(SubscriptionPlan subscriptionPlan) {
         return subscriptionPlanRepository.save(subscriptionPlan);
     }
     public BigDecimal calculateRoundedHandlingFee(BigDecimal handlingFeePercentage) {
