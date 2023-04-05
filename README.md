@@ -50,6 +50,20 @@ To use authenticated endpoints, you can obtain an access token directly from the
 - Navigate to the top right and click on the green **Authorize** button and paste the __access-token preceded by the word "Bearer"__ in the value field, e.g "Bearer access-token"
 - Click on "Authorize". You're now ready to use authenticated endpoints! 
 
+### Setting up Stripe Webhooks
+
+To handle payments and subscription provisioning during local development, you need to set up Stripe webhooks. Follow these steps:
+
+1. Download the Stripe CLI executable for your operating system from the Stripe [CLI GitHub releases page](https://github.com/stripe/stripe-cli/releases) (Or use a package manager to install)
+
+2. After installing the Stripe CLI, log in to your Stripe account:
+
+    `stripe login`
+
+3. Set up the webhook listener:
+
+    `stripe listen --forward-to localhost:8080/api/v1/subscriptions/stripe-webhook`
+
 ## Continuous Integration
 
 This project uses a Continuous Integration (CI) pipeline with GitHub Actions. When new changes are pushed to the `main` branch, the CI pipeline is triggered.
