@@ -28,9 +28,23 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
 6. Click Apply and then OK to save the configuration.
 
+### Setting up Stripe Webhooks
+
+To handle payments and subscription provisioning during local development, you need to set up Stripe webhooks. Follow these steps:
+
+1. Download the Stripe CLI executable for your operating system from the Stripe [CLI GitHub releases page](https://github.com/stripe/stripe-cli/releases) (Or use a package manager to install)
+
+2. After installing the Stripe CLI, log in to your Stripe account:
+
+    `stripe login`
+
+3. Set up the webhook listener:
+
+    `stripe listen --forward-to localhost:8080/api/v1/subscriptions/stripe-webhook`
+    
 ### Default Admin account
 
-You can use the default admin account to use authenticated endpoints:
+You can access authenticated endpoints by logging in with the default admin account through the API:
 
 - **Username**: admin
 - **Password**: admin123
@@ -48,21 +62,7 @@ Where 8080 is the port number the API is running on.
 To use authenticated endpoints, you can obtain an access token directly from the swagger doc:
 - Use the **authentication-controller** login endpoint. Login with the default admin account or another one of your accounts. Get the access_token from the response. 
 - Navigate to the top right and click on the green **Authorize** button and paste the __access-token preceded by the word "Bearer"__ in the value field, e.g "Bearer access-token"
-- Click on "Authorize". You're now ready to use authenticated endpoints! 
-
-### Setting up Stripe Webhooks
-
-To handle payments and subscription provisioning during local development, you need to set up Stripe webhooks. Follow these steps:
-
-1. Download the Stripe CLI executable for your operating system from the Stripe [CLI GitHub releases page](https://github.com/stripe/stripe-cli/releases) (Or use a package manager to install)
-
-2. After installing the Stripe CLI, log in to your Stripe account:
-
-    `stripe login`
-
-3. Set up the webhook listener:
-
-    `stripe listen --forward-to localhost:8080/api/v1/subscriptions/stripe-webhook`
+- Click on "Authorize". You're now ready to use authenticated endpoints!
 
 ## Continuous Integration
 
