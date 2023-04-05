@@ -10,5 +10,5 @@ public enum AppUserRoleEnum {
     ADMIN,
     USER,
     UNPAID_USER,
-    NEW_USER
+    NEW_USER // TODO check if it works with new registration
 }

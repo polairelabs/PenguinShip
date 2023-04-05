@@ -32,30 +32,24 @@ public class AppUser implements UserDetails {
     @Type(type = "uuid-char")
     private UUID id;
     @JsonView(AuthViews.Default.class)
-    @Column(nullable = false)
     private String firstName;
     @JsonView(AuthViews.Default.class)
-    @Column(nullable = false)
     private String lastName;
     @JsonView(AuthViews.Default.class)
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(nullable = false)
     private String email;
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
-    @Column(name = "phoneNumber", nullable = false)
     private String phoneNumber;
-    @Column(name = "city", nullable = false)
     private String city;
-    @Column(name = "state", nullable = false)
     private String state;
-    @Column(name = "address", nullable = false)
     private String address;
     @Enumerated(EnumType.STRING)
     @JsonView(AuthViews.Default.class)
     @Column(nullable = false)
     private AppUserRoleEnum role;
-    private Boolean locked = false;
-    private Boolean enabled = true;
+    private Boolean locked;
+    private Boolean enabled;
     @OneToOne
     private Address defaultSourceAddress;
 
@@ -89,16 +83,19 @@ public class AppUser implements UserDetails {
     @PrimaryKeyJoinColumn
     private SubscriptionDetail subscriptionDetail;
 
-    public AppUser(String firstName, String lastName, String email, String password, String phoneNumber, String city, String state, String address, AppUserRoleEnum role) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public AppUser(String email, String password, String firstName, String lastName, String phoneNumber, String city, String state, String address, AppUserRoleEnum role) {
+        // Used to create complete (unverified) user with profile information + email and password
         this.email = email;
         this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.phoneNumber = phoneNumber;
         this.city = city;
         this.state = state;
         this.address = address;
         this.role = role;
+        this.locked = true;
+        this.enabled = false;
     }
 
     @Override

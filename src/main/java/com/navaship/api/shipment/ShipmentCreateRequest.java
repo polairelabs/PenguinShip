@@ -23,7 +23,7 @@ public class ShipmentCreateRequest {
     private String senderCompany;
     @Size(max = 20)
     private String senderPhone;
-    @Size(max = 60)
+    @Size(max = 254)
     private String senderEmail;
     @Size(max = 60)
     private String receiverName;
@@ -31,6 +31,6 @@ public class ShipmentCreateRequest {
     private String receiverCompany;
     @Size(max = 20)
     private String receiverPhone;
-    @Size(max = 60)
+    @Size(max = 254)
     private String receiverEmail;
 }

@@ -9,18 +9,11 @@ import com.navaship.api.refreshtoken.RefreshToken;
 import com.navaship.api.refreshtoken.RefreshTokenException;
 import com.navaship.api.refreshtoken.RefreshTokenResponse;
 import com.navaship.api.refreshtoken.RefreshTokenService;
-import com.navaship.api.registration.RegistrationRequest;
-import com.navaship.api.registration.RegistrationResponse;
 import com.navaship.api.sendgrid.SendGridEmailService;
 import com.navaship.api.stripe.StripeService;
-import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
 import com.navaship.api.util.ProfileHelper;
-import com.navaship.api.verificationtoken.VerificationToken;
-import com.navaship.api.verificationtoken.VerificationTokenService;
-import com.navaship.api.verificationtoken.VerificationTokenType;
-import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
+import com.navaship.api.verificationtoken.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -37,7 +30,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -92,17 +87,17 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    @JsonView(AuthViews.Default.class)
-    public ResponseEntity<RegistrationResponse> register(@Valid @RequestBody RegistrationRequest registrationRequest) {
+    public ResponseEntity<?> registerTemporaryUser(@Valid @RequestBody RegistrationRequest registrationRequest) {
         if (appUserService.findByEmail(registrationRequest.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
         }
 
         if (!Objects.equals(registrationRequest.getPassword(), registrationRequest.getConfirmPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password provided do not match");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The provided passwords do not match");
         }
 
-        AppUser newUser = new AppUser(
+        // Create temporary (unverified email) user
+        AppUser temporaryUser = new AppUser(
                 registrationRequest.getFirstName(),
                 registrationRequest.getLastName(),
                 registrationRequest.getEmail(),
@@ -114,25 +109,10 @@ public class AuthenticationController {
                 AppUserRoleEnum.NEW_USER
         );
 
-        AppUser user = appUserService.createUser(newUser);
-        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
-        sendGridEmailService.sendVerifyAccountEmail(user.getEmail(), verificationToken.getToken());
+        AppUser user = appUserService.createUser(temporaryUser);
+        sendVerifyEmailLink(user);
 
-        RegistrationResponse registrationResponse = new RegistrationResponse();
-        registrationResponse.setUser(user);
-
-        try {
-            // Register user as Stripe customer
-            Customer customer = stripeService.createCustomer(user);
-            SubscriptionDetail subscriptionDetail = new SubscriptionDetail();
-            subscriptionDetail.setStripeCustomerId(customer.getId());
-            subscriptionDetail.setUser(user);
-            subscriptionDetailService.createSubscriptionDetail(subscriptionDetail);
-        } catch (StripeException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-
-        return new ResponseEntity<>(registrationResponse, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/refresh-token")
@@ -170,5 +150,51 @@ public class AuthenticationController {
                 refreshTokenService.createRefreshToken(user).getToken(),
                 "Bearer"
         ));
+    }
+
+    @PostMapping("/new-verify-email-request")
+    public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@RequestBody @Size(max = 254) String email) {
+        AppUser user = appUserService.findByEmail(email).orElseThrow(
+                () -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Email not found")
+        );
+
+        if (user.isEnabled()) {
+            throw new VerificationTokenException(HttpStatus.FORBIDDEN, "Something went wrong");
+        }
+
+        // Delete token if it exists for the user
+        verificationTokenService.findByUserAndTokenType(user, VerificationTokenType.VERIFY_EMAIL).ifPresent(verificationTokenService::delete);
+
+        sendVerifyEmailLink(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/verify-email/{emailVerificationJwt}")
+    public ResponseEntity<?> verifyEmail(@PathVariable String emailVerificationJwt) {
+
+        // Verify JWT and get the token from it
+
+        VerificationToken verificationToken = verificationTokenService.findByToken("token").orElseThrow(
+                () -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid email verification link")
+        );
+
+        boolean isTokenExpired = verificationTokenService.validateExpiration(verificationToken);
+
+        if (isTokenExpired) {
+            verificationTokenService.delete(verificationToken);
+            throw new VerificationTokenException(HttpStatus.GONE, "Email verification link has expired");
+        }
+
+        AppUser user = verificationToken.getUser();
+        appUserService.enableUserAccount(user);
+        verificationTokenService.delete(verificationToken);
+
+        return ResponseEntity.ok().build();
+    }
+
+    private void sendVerifyEmailLink(AppUser user) {
+        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
+        String emailVerificationJwt = jwtService.createJwtEmailVerification(user, verificationToken.getToken());
+        sendGridEmailService.sendVerifyAccountEmail(user.getEmail(), emailVerificationJwt);
     }
 }

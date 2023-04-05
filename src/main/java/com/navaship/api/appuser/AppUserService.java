@@ -33,7 +33,6 @@ public class AppUserService implements UserDetailsService {
     public AppUser createUser(AppUser user) {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         appUserRepository.save(user);
-
         return user;
     }
 
@@ -42,6 +41,7 @@ public class AppUserService implements UserDetailsService {
     }
 
     public void enableUserAccount(AppUser user) {
+        user.setLocked(false);
         user.setEnabled(true);
         appUserRepository.save(user);
     }

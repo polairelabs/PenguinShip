@@ -23,7 +23,6 @@ public class AddressRequest {
     @NotBlank
     @NotNull
     @Size(max = 40)
-    @Size(max = 40)
     private String state;
     @NotBlank
     @NotNull

@@ -5,6 +5,11 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.shipment.Shipment;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,6 +22,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,6 +40,9 @@ public class JwtService {
     private String jwtIssuer;
     @Value("${navaship.api.accessTokenExpirationMs}")
     private long accessTokenExpirationMs;
+
+    @Value("${navaship.api.emailVerificationExpirationMs}")
+    private long emailVerificationExpirationMs;
 
 
     public String createJwtAccessToken(Authentication authentication, AppUser user) {
@@ -50,6 +61,34 @@ public class JwtService {
 
         JwtClaimsSet claimsSet = claimsSetBuilder.build();
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    public String createJwtEmailVerification(AppUser user, String token) {
+        Instant now = Instant.now();
+        JwtClaimsSet.Builder claimsSetBuilder = JwtClaimsSet.builder()
+                .issuer(jwtIssuer)
+                .issuedAt(now)
+                .expiresAt(now.plusMillis(emailVerificationExpirationMs))
+                .claim("email", user.getEmail())
+                .claim("token", token) // Another layer to validate email verification JWT
+                .subject(user.getId().toString());
+
+        JwtClaimsSet claimsSet = claimsSetBuilder.build();
+        return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
+    }
+
+    public boolean verifyJwt(String jwtString, PublicKey publicKey) {
+        try {
+            SignedJWT jwt = SignedJWT.parse(jwtString);
+            RSAKey rsaPublicKey = new RSAKey.Builder((RSAPublicKey) publicKey).build();
+            JWSVerifier verifier = new RSASSAVerifier(rsaPublicKey);
+            return jwt.verify(verifier);
+
+        } catch (ParseException | JOSEException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     public AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {

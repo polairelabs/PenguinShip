@@ -22,14 +22,16 @@ public class SendGridEmailService {
     private String verifyAccountEmailTemplateId;
     @Value("${sendgrid.forgotPasswordEmailTemplateId}")
     private String passwordResetEmailTemplateId;
+    @Value("${navaship.webapp.url}")
+    private String webAppUrl;
 
 
-    public void sendVerifyAccountEmail(String to, String emailVerificationToken) {
+    public void sendVerifyAccountEmail(String to, String emailVerificationJwt) {
         try {
             Mail mail = new Mail(new Email(senderEmail), "", new Email(to), new Content("text/html", " "));
             mail.setTemplateId(verifyAccountEmailTemplateId);
-            // TODO Build URL for token here
-            mail.personalization.get(0).addDynamicTemplateData("{{Verify_Account_Link}}", emailVerificationToken);
+            String verifyEmailLink = webAppUrl + "/verify-email/" + emailVerificationJwt;
+            mail.personalization.get(0).addDynamicTemplateData("{{Verify_Account_Link}}", verifyEmailLink);
             sendEmail(mail);
         } catch (IOException e) {
             throw new SendGridEmailException("A problem occurred while sending email", e);

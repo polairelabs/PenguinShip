@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,49 +22,9 @@ public class AccountController {
     private SendGridEmailService sendGridEmailService;
 
 
-    @PostMapping("/verify-email")
-    public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@Valid @RequestBody EmailConfirmationRequest emailConfirmationRequest) {
-        // Send email verification link to user
-        // TODO change this and check if account already verified (maybe delete this entirely)
-        String email = emailConfirmationRequest.getEmail();
-        AppUser user = retrieveUser(email);
-        deleteVerificationTokenIfPresent(user, VerificationTokenType.VERIFY_EMAIL);
-
-        VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
-        sendGridEmailService.sendVerifyAccountEmail(email, verificationToken.getToken());
-
-        Map<String, String> message = new HashMap<>();
-        message.put("message", String.format("Email verification link has been sent to %s", email));
-
-        return ResponseEntity.ok(message);
-    }
-
-    @GetMapping("/confirm-email")
-    public ResponseEntity<Map<String, String>> confirmEmailVerified(@RequestParam("token") String emailVerificationToken) {
-        // Check if token exists, validates if not expired, then retrieve the user and enable his account
-        VerificationToken verificationToken = verificationTokenService.findByToken(emailVerificationToken).orElseThrow(
-                () -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid email verification link")
-        );
-
-        if (verificationTokenService.validateExpiration(verificationToken)) {
-            verificationTokenService.delete(verificationToken);
-            throw new VerificationTokenException(HttpStatus.GONE, "Email verification link has expired");
-        }
-
-        AppUser user = verificationToken.getUser();
-        appUserService.enableUserAccount(user);
-        verificationTokenService.delete(verificationToken);
-
-        Map<String, String> message = new HashMap<>();
-        message.put("message", String.format("Account enabled for %s", user.getEmail()));
-
-        return ResponseEntity.ok(message);
-    }
-
     @PostMapping("/password-reset")
-    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody EmailConfirmationRequest emailConfirmationRequest) {
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody @Size(max = 254) String email) {
         // Send password reset link to user
-        String email = emailConfirmationRequest.getEmail();
         AppUser user = retrieveUser(email);
         deleteVerificationTokenIfPresent(user, VerificationTokenType.RESET_PASSWORD);
 

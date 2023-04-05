@@ -1,4 +1,4 @@
-package com.navaship.api.registration;
+package com.navaship.api.auth;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.appuser.AppUser;

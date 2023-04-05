@@ -95,17 +95,6 @@ public class ShipmentController {
         return new ResponseEntity<>(listApiResponse, HttpStatus.OK);
     }
 
-    //        Map<String, Object> headers = new HashMap<>();
-//        headers.put("X-Hmac-Signature", request.getHeader("X-Hmac-Signature"));
-//        try {
-//            Event event = easyPostService.validateWebhook(eventBody, headers);
-//            // Do something with the event
-//            return new ResponseEntity<>("Webhook event received and handled, current status " + event.getStatus(), HttpStatus.OK);
-//        } catch (EasyPostException e) {
-//            return new ResponseEntity<>("Invalid webhook signature", HttpStatus.UNAUTHORIZED);
-//        }
-    // Process the webhook data here
-
     @PostMapping("/easypost-webhook")
     public ResponseEntity<String> easyPostWebhook(@RequestBody Map<String, Object> webhookData) {
         // Webhook to listen for events and update shipments from easypost

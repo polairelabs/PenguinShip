@@ -12,7 +12,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class VerificationTokenService {
-    @Value("${navaship.api.emailVerificationTokenExpirationMs}")
+    @Value("${navaship.api.emailVerificationExpirationMs}")
     private long emailVerificationTokenExpiryMs;
 
     private final VerificationTokenRepository verificationTokenRepository;

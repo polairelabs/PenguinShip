@@ -67,8 +67,8 @@ public class ShipmentService {
         return shipmentRepository.findTopByUserOrderByCreatedAtDesc(user);
     }
 
-    public void updateShipment(Shipment shipment) {
-        shipmentRepository.save(shipment);
+    public Shipment updateShipment(Shipment shipment) {
+        return shipmentRepository.save(shipment);
     }
 
     public void deleteShipment(Shipment shipment) {
