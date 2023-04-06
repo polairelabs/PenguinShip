@@ -1,18 +1,17 @@
 name: Continuous Deployment
 
 on:
-  workflow_run:
-    workflows: [ "Continuous Integration" ]
-    types:
-      - completed
-  push:
+  on:
     branches:
       - release
+    pull_request:
+      types:
+        - closed
 
 jobs:
   deploy-api:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v3
