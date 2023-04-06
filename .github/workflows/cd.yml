@@ -1,12 +1,11 @@
 name: Continuous Deployment
 
 on:
-  on:
-    branches:
-      - release
-    pull_request:
-      types:
-        - closed
+  branches:
+    - release
+  pull_request:
+    types:
+      - closed
 
 jobs:
   deploy-api:
