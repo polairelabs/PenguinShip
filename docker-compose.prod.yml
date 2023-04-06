@@ -10,7 +10,7 @@ services:
     networks:
       - app-network
     volumes:
-      - app-db:/var/lib/postgresql/data
+      - app-db-vm:/var/lib/postgresql/data
 
   api:
     image: ghcr.io/polairelabs/navaship:latest
@@ -42,5 +42,5 @@ networks:
   app-network:
     driver: bridge
 volumes:
-  app-db:
+  app-db-vm:
     driver: local

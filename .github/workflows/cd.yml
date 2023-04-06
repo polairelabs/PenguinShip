@@ -38,7 +38,6 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             cd ~/navaship/api
-            chmod +x wait-for-it.sh
             docker-compose -f docker-compose.prod.yml down
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             SPRING_PROFILES_ACTIVE="prod" \
