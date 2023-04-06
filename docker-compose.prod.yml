@@ -13,7 +13,9 @@ services:
       - app-db:/var/lib/postgresql/data
 
   api:
-    image: ghcr.io/polairelabs/navaship:latest
+    build:
+      dockerfile: Dockerfile
+      context: .
     ports:
       - "${API_PORT}:${API_PORT}"
     depends_on:
