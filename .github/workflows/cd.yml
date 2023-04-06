@@ -1,6 +1,10 @@
-name: Continuous Deployment. Deploy API to VPS
+name: Continuous Deployment
 
 on:
+  workflow_run:
+    workflows: [ "Continuous Integration" ]
+    types:
+      - completed
   push:
     branches:
       - release
