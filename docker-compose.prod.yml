@@ -37,9 +37,6 @@ services:
       - STRIPE_WEBHOOK_ENDPOINT_SECRET=${STRIPE_WEBHOOK_ENDPOINT_SECRET}
     networks:
       - app-network
-    command: [ "./wait-for-it.sh", "db:5432", "--timeout=60", "java -jar target/api.jar" ]
-    volumes:
-      - ./wait-for-it.sh:/wait-for-it.sh
 
 networks:
   app-network:
