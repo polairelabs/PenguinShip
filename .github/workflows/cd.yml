@@ -33,7 +33,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'adopt'
-          
+
       - name: Build JAR
         run: mvn -B package --file api/pom.xml
           
@@ -62,7 +62,6 @@ jobs:
             docker-compose -f docker-compose.prod.yml down
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             SPRING_PROFILES_ACTIVE="prod" \
-            DATABASE_PORT="${{ vars.DATABASE_PORT }}" \
             DATABASE_NAME="${{ vars.DATABASE_NAME }}" \
             DATABASE_USER="${{ secrets.DATABASE_USER }}" \
             DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
