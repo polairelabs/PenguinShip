@@ -11,6 +11,5 @@ FROM openjdk:17-alpine
 COPY --from=build /home/app/target/api.jar /usr/local/lib/api.jar
 COPY --from=build /home/app/wait-for-it.sh /usr/local/bin/wait-for-it.sh
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/usr/local/lib/api.jar"]
 ENTRYPOINT ["/usr/local/bin/wait-for-it.sh", "db:5432", "--", "java", "-jar", "/usr/local/lib/api.jar"]
 
