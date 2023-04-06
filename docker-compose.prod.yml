@@ -3,12 +3,15 @@ version: "3.8"
 services:
   db:
     image: postgres
-    ports:
-      - ${DATABASE_PORT}:5432
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
+    networks:
+      - app-network
+    volumes:
+      - app-db:/var/lib/postgresql/data
+
   api:
     image: ghcr.io/polairelabs/navaship:latest
     ports:
@@ -17,6 +20,7 @@ services:
       - db
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DATABASE_NAME}
       - DATABASE_NAME=${DATABASE_NAME}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
@@ -31,6 +35,15 @@ services:
       - EASYPOST_WEBHOOK_ENDPOINT_URL=${EASYPOST_WEBHOOK_ENDPOINT_URL}
       - STRIPE_APIKEY=${STRIPE_APIKEY}
       - STRIPE_WEBHOOK_ENDPOINT_SECRET=${STRIPE_WEBHOOK_ENDPOINT_SECRET}
+    networks:
+      - app-network
     command: [ "./wait-for-it.sh", "db:5432", "--timeout=60", "java -jar target/api.jar" ]
     volumes:
       - ./wait-for-it.sh:/wait-for-it.sh
+
+networks:
+  app-network:
+    driver: bridge
+volumes:
+  app-db:
+    driver: local
