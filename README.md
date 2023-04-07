@@ -28,7 +28,7 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
 6. Click Apply and then OK to save the configuration.
 
-### Setting up Stripe Webhooks
+### Setting up Stripe Webhook
 
 To handle payments and subscription provisioning during local development, you need to set up Stripe webhooks. Follow these steps:
 
