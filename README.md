@@ -46,7 +46,7 @@ To handle payments and subscription provisioning during local development, you n
 
 You can access authenticated endpoints by logging in with the default admin account through the API:
 
-- **Username**: admin
+- **Email**: admin@lol.com
 - **Password**: admin123
 
 ### API Documentation
