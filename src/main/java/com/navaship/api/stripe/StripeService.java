@@ -25,6 +25,8 @@ public class StripeService {
     private String stripeProductId;
     @Value("${stripe.maxMembershipsAllowed}")
     private int maxMembershipsAllowed;
+    @Value("${stripe.trialPeriodDays}")
+    private int trialPeriodDays;
     @Value("${navaship.webapp.url}")
     private String webAppUrl;
 
@@ -57,7 +59,7 @@ public class StripeService {
         // https://stripe.com/docs/payments/checkout/free-trials
         // Free trial settings, by default, for all plans
         SessionCreateParams.SubscriptionData.Builder subscriptionBuilder = SessionCreateParams.SubscriptionData.builder()
-                .setTrialPeriodDays(14L)
+                .setTrialPeriodDays((long) trialPeriodDays)
                 .setTrialSettings(
                         SessionCreateParams.SubscriptionData.TrialSettings.builder()
                                 .setEndBehavior(
