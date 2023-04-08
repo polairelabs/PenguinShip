@@ -33,7 +33,7 @@ public class DevDataInitializer implements CommandLineRunner {
     private PackageService packageService;
     private StripeService stripeService;
     private PasswordEncoder passwordEncoder;
-    private List<SubscriptionPlan> defaultSubscriptionPlans = new ArrayList<>();
+    private List<SubscriptionPlan> defaultSubscriptionPlans;
 
 
     @Override
