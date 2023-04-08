@@ -10,7 +10,7 @@ services:
     networks:
       - app-network
     volumes:
-      - app-db:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
 
   api:
     image: ghcr.io/polairelabs/navaship:latest
@@ -19,6 +19,7 @@ services:
     depends_on:
       - db
     environment:
+      - DATABASE_NO_SSL="true"
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DATABASE_NAME}
       - DATABASE_USER=${DATABASE_USER}
@@ -41,5 +42,5 @@ networks:
   app-network:
     driver: bridge
 volumes:
-  app-db:
+  db-data:
     driver: local
