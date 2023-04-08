@@ -11,6 +11,5 @@ FROM openjdk:17-alpine
 RUN apk add --no-cache bash
 COPY --from=build /home/app/target/api.jar /usr/local/lib/api.jar
 COPY --from=build /home/app/wait-for-it.sh /usr/local/bin/wait-for-it.sh
-ENV SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/wait-for-it.sh", "db:5432", "--", "java", "-jar", "/usr/local/lib/api.jar"]
