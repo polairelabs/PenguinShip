@@ -17,5 +17,8 @@ public class ApiApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ApiApplication.class, args);
+        System.out.println("SPRING_PROFILES_ACTIVE: " + System.getenv("SPRING_PROFILES_ACTIVE"));
+        System.out.println("DATABASE_USER: " + System.getenv("DATABASE_USER"));
+        System.out.println("DATABASE_PASSWORD: " + System.getenv("DATABASE_PASSWORD"));
     }
 }
