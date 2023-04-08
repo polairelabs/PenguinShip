@@ -40,7 +40,7 @@ public class ProdDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // If he doesn't have admin account in the db, create one
-        if (appUserService.countAdminUsers() == 0) {
+        if (appUserService.countAdminUsers() == 0 && appUserService.findByEmail(adminEmail).isEmpty()) {
             String password = passwordGenerator.generateRandomPassword(12);
             AppUser admin = new AppUser("Navaship", "Admin", adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password),
                     "", "", "", "", AppUserRoleEnum.ADMIN);
