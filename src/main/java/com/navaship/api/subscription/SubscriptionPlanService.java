@@ -38,6 +38,16 @@ public class SubscriptionPlanService {
         return subscriptionPlanRepository.save(subscriptionPlan);
     }
 
+    public SubscriptionPlan createSubscriptionPlan(String name, String description, String stripePriceId, BigDecimal shipmentHandlingFee, int maxLimit) {
+        SubscriptionPlan subscriptionPlan = new SubscriptionPlan();
+        subscriptionPlan.setName(name);
+        subscriptionPlan.setDescription(description);
+        subscriptionPlan.setStripePriceId(stripePriceId);
+        subscriptionPlan.setShipmentHandlingFee(shipmentHandlingFee);
+        subscriptionPlan.setMaxLimit(maxLimit);
+        return subscriptionPlanRepository.save(subscriptionPlan);
+    }
+
     public SubscriptionPlan updateSubscriptionPlan(SubscriptionPlan subscriptionPlan) {
         return subscriptionPlanRepository.save(subscriptionPlan);
     }

@@ -2,10 +2,7 @@ package com.navaship.api.subscription;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.navaship.api.auth.AuthViews;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -35,4 +32,13 @@ public class SubscriptionPlan {
     private BigDecimal shipmentHandlingFee;
     @JsonView(AuthViews.Default.class)
     private int maxLimit;
+
+
+    public SubscriptionPlan(String name, String description, String stripePriceId, BigDecimal shipmentHandlingFee, int maxLimit) {
+        this.name = name;
+        this.description = description;
+        this.stripePriceId = stripePriceId;
+        this.shipmentHandlingFee = shipmentHandlingFee;
+        this.maxLimit = maxLimit;
+    }
 }

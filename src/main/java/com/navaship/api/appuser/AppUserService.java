@@ -50,4 +50,8 @@ public class AppUserService implements UserDetailsService {
         user.setPassword(bCryptPasswordEncoder.encode(password));
         appUserRepository.save(user);
     }
+
+    public int countAdminUsers() {
+        return appUserRepository.countByRole(AppUserRoleEnum.ADMIN);
+    }
 }
