@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,10 +29,8 @@ public class SubscriptionPlanService {
         );
     }
 
-    public SubscriptionPlan retrieveSubscriptionPlanByPriceId(String stripePriceId) {
-        return subscriptionPlanRepository.findSubscriptionPlanByStripePriceId(stripePriceId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription plan not found")
-        );
+    public Optional<SubscriptionPlan> retrieveSubscriptionPlanByPriceId(String stripePriceId) {
+        return subscriptionPlanRepository.findSubscriptionPlanByStripePriceId(stripePriceId);
     }
 
     public SubscriptionPlan createSubscriptionPlan(SubscriptionPlan subscriptionPlan) {

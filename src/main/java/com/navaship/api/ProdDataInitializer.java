@@ -48,12 +48,19 @@ public class ProdDataInitializer implements CommandLineRunner {
             System.out.println("Created admin user " + admin.getEmail() + " with password" + password);
         }
 
+        if (subscriptionPlanService.retrieveSubscriptionPlans().size() == maxMembershipsAllowed) {
+            System.out.println("Max number of subscriptions allowed already created");
+            return;
+        }
+
         // Create memberships from Stripe product and product prices
         try {
             List<Price> prices = stripeService.retrievePrices();
             for (Price price : prices) {
                 // Can potentially create more than [maxMembershipsAllowed] subscriptions (if we have more than [maxMembershipsAllowed] prices in Stripe product)
-                subscriptionPlanService.createSubscriptionPlan("", "", price.getId(), BigDecimal.valueOf(0.02), 10);
+                if (subscriptionPlanService.retrieveSubscriptionPlanByPriceId(price.getId()).isEmpty()) {
+                    subscriptionPlanService.createSubscriptionPlan("", "", price.getId(), BigDecimal.valueOf(0.02), 10);
+                }
             }
             // Create empty subscriptions to always have a minimum of [maxMembershipsAllowed] subscriptions (memberships) in the database,
             // if client doesn't have [maxMembershipsAllowed] subscriptions for his product

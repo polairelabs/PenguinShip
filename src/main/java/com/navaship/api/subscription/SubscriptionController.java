@@ -220,7 +220,10 @@ public class SubscriptionController {
         }
 
         String stripePriceId = subscription.getItems().getData().get(0).getPlan().getId();
-        subscriptionDetail.setSubscriptionPlan(subscriptionPlanService.retrieveSubscriptionPlanByPriceId(stripePriceId));
+        SubscriptionPlan subscriptionPlan = subscriptionPlanService.retrieveSubscriptionPlanByPriceId(stripePriceId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription plan not found")
+        );
+        subscriptionDetail.setSubscriptionPlan(subscriptionPlan);
         subscriptionDetail.setSubscriptionId(subscription.getId());
         subscriptionDetail.setEndDate(subscription.getEndedAt());
         subscriptionDetail.setStatus(subscription.getStatus());
