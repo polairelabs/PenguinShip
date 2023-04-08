@@ -31,4 +31,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: polairelabs/NavaShip:latest
+          tags: polairelabs/navaship:latest
