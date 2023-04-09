@@ -34,7 +34,6 @@ jobs:
           context: .
 
       - name: Pushing API image
-        if: steps.changed-files-api.outputs.any_changed == 'true'
         run: |
           docker tag $navaship ${{ env.tag }}
           docker push ${{ env.tag }}
