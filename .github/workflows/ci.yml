@@ -35,4 +35,4 @@ jobs:
 
       - name: Pushing API image
         run: |
-          docker push ${{ env.REGISTRY }}/navaship:latest
+          docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/navaship:latest
