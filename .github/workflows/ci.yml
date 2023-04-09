@@ -27,16 +27,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get specific changed files for api
-        id: changed-files-api
-        uses: tj-actions/changed-files@v9.3
-        with:
-          files: |
-            ./
-
       - name: Build api image
-        if: steps.changed-files-api.outputs.any_changed == 'true'
-        run: >
+        run: |
           docker build -t ${{ env.IMAGE_NAME }} ${{ env.context }}
         env:
           context: .
