@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 public interface AppUserRepository extends JpaRepository<AppUser, UUID> {
     Optional<AppUser> findByEmail(String email);
+    int countByRole(AppUserRoleEnum role);
 }

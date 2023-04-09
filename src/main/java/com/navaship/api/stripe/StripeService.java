@@ -21,6 +21,12 @@ import java.util.Map;
 public class StripeService {
     @Value("${stripe.apikey}")
     private String stripeApiKey;
+    @Value("${stripe.productId}")
+    private String stripeProductId;
+    @Value("${stripe.maxMembershipsAllowed}")
+    private int maxMembershipsAllowed;
+    @Value("${stripe.trialPeriodDays}")
+    private int trialPeriodDays;
     @Value("${navaship.webapp.url}")
     private String webAppUrl;
 
@@ -37,6 +43,8 @@ public class StripeService {
     public List<Price> retrievePrices() throws StripeException {
         Stripe.apiKey = stripeApiKey;
         Map<String, Object> params = new HashMap<>();
+        params.put("limit", maxMembershipsAllowed);
+        params.put("product", stripeProductId);
         return Price.list(params).getData();
     }
 
@@ -51,7 +59,7 @@ public class StripeService {
         // https://stripe.com/docs/payments/checkout/free-trials
         // Free trial settings, by default, for all plans
         SessionCreateParams.SubscriptionData.Builder subscriptionBuilder = SessionCreateParams.SubscriptionData.builder()
-                .setTrialPeriodDays(14L)
+                .setTrialPeriodDays((long) trialPeriodDays)
                 .setTrialSettings(
                         SessionCreateParams.SubscriptionData.TrialSettings.builder()
                                 .setEndBehavior(
@@ -93,7 +101,7 @@ public class StripeService {
         Map<String, Object> params = new HashMap<>();
         params.put("amount", amountInCents);
         params.put("currency", currency);
-        // Will retrieve the default source payment of the customer (the one use for subscription)
+        // Will retrieve the default source payment of the customer (the one used for paying the subscription)
         params.put("payment_method", defaultPaymentMethodId);
         params.put("customer", customerId);
 

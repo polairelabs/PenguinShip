@@ -18,7 +18,20 @@ public class AddressService {
     private ModelMapper modelMapper;
 
 
+
     public Address createAddress(Address address, AppUser user) {
+        address.setUser(user);
+        return addressRepository.save(address);
+    }
+
+    public Address createAddress(String street1, String city, String state, String zip, String country, boolean residential, AppUser user) {
+        Address address = new Address();
+        address.setStreet1(street1);
+        address.setCity(city);
+        address.setState(state);
+        address.setZip(zip);
+        address.setCountry(country);
+        address.setResidential(residential);
         address.setUser(user);
         return addressRepository.save(address);
     }

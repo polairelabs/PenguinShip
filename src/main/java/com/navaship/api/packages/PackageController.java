@@ -69,7 +69,7 @@ public class PackageController {
     public ResponseEntity<PackageResponse> addPackage(JwtAuthenticationToken principal,
                                                       @Valid @RequestBody PackageRequest packageRequest) {
         AppUser user = jwtService.retrieveUserFromJwt(principal);
-        Package parcel = packageService.savePackage(packageService.convertToPackage(packageRequest), user);
+        Package parcel = packageService.createPackage(packageService.convertToPackage(packageRequest), user);
         return new ResponseEntity<>(packageService.convertToPackagesResponse(parcel), HttpStatus.CREATED);
     }
 

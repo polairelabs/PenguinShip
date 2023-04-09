@@ -28,11 +28,25 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
 6. Click Apply and then OK to save the configuration.
 
+### Setting up Stripe Webhook
+
+To handle payments and subscription provisioning during local development, you need to set up Stripe webhooks. Follow these steps:
+
+1. Download the Stripe CLI executable for your operating system from the Stripe [CLI GitHub releases page](https://github.com/stripe/stripe-cli/releases) (Or use a package manager to install)
+
+2. After installing the Stripe CLI, log in to your Stripe account:
+
+    `stripe login`
+
+3. Set up the webhook listener:
+
+    `stripe listen --forward-to localhost:8080/api/v1/subscriptions/stripe-webhook`
+    
 ### Default Admin account
 
-You can use the default admin account to use authenticated endpoints:
+You can access authenticated endpoints by logging in with the default admin account through the API:
 
-- **Username**: admin
+- **Email**: admin@lol.com
 - **Password**: admin123
 
 ### API Documentation
@@ -48,7 +62,19 @@ Where 8080 is the port number the API is running on.
 To use authenticated endpoints, you can obtain an access token directly from the swagger doc:
 - Use the **authentication-controller** login endpoint. Login with the default admin account or another one of your accounts. Get the access_token from the response. 
 - Navigate to the top right and click on the green **Authorize** button and paste the __access-token preceded by the word "Bearer"__ in the value field, e.g "Bearer access-token"
-- Click on "Authorize". You're now ready to use authenticated endpoints! 
+- Click on "Authorize". You're now ready to use authenticated endpoints!
+
+## Database Updates
+
+We use Flyway for database migrations. To add a new database migration script, follow these steps:
+
+1. Create a new SQL file in the resources/db/migration directory.
+
+2. Ensure that the SQL file follows the correct naming convention for migration files, which is `V<VERSION_NUMBER>__<MIGRATION_NAME>.sql`. For example, `V1__Initial_Setup.sql` or `V2__Add_New_Table.sql`.
+
+3. When you run the production stack, Flyway will automatically handle the updates by executing the migration scripts in the correct order based on their version numbers. 
+    
+*Local dev doesn't use Flyway, but uses `spring.jpa.hibernate.ddl-auto=create-drop` to create the tables and drop them when the API stops running locally*
 
 ## Continuous Integration
 
@@ -69,10 +95,10 @@ This project utilizes Continuous Deployment (CD) with GitHub Actions, automatica
 
 ### Deployed Stack
 
-The Continuous Deployment (CD) pipeline uses `docker-compose` to deploy the application stack. The stack consists of the following services:
+The Continuous Deployment (CD) pipeline uses `docker-compose` to deploy the production stack. The stack consists of the following services:
 
 - **PostgreSQL Database**: A PostgreSQL database is used as the primary data store for the application.
-- **API**: The API is a containerized application that serves as the backend for the project.
+- **API**: The Navaship API.
 
 ### CD Pipeline Workflow
 
@@ -102,7 +128,7 @@ The table below lists all the other environment variables that are used to deplo
 | DATABASE_USER                        | Username for database access                        |         |                      |
 | DATABASE_PASSWORD                    | Password for database user                          |   ✓     |                      |
 | PGADMIN_DEFAULT_EMAIL               | Default email for PgAdmin access                    |         |         ✓            |
-| PGADMIN_DEFAULT_PASSWORD            | Default password for PgAdmin access                 |   ✓     |         ✓            |
+| PGADMIN_DEFAULT_PASSWORD            | Default password for PgAdmin access                 |        |         ✓            |
 | API_DOMAIN                          | API domain for the application                      |         |                      |
 | API_PORT                            | API port for the application                        |         |                      |
 | WEBAPP_URL                          | URL for the web application                         |         |                      |
@@ -113,6 +139,7 @@ The table below lists all the other environment variables that are used to deplo
 | EASYPOST_APIKEY                     | API key for EasyPost shipping service               |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_SECRET    | Secret for EasyPost webhook endpoint                |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_URL       | URL for EasyPost webhook endpoint                   |         |                      |
+| STRIPE_PRODUCT_ID       | The product ID in Stripe that contains the memberships                  |       |                      |
 | STRIPE_APIKEY                       | API key for Stripe payment processing               |   ✓     |                      |
 | STRIPE_WEBHOOK_ENDPOINT_SECRET      | Secret for Stripe webhook endpoint                  |   ✓     |                      |
 

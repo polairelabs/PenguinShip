@@ -1,4 +1,4 @@
-name: Continuous Deployment. Deploy API to VPS
+name: Continuous Deployment
 
 on:
   push:
@@ -27,26 +27,6 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           source: api
           target: "~/navaship"
-        
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-          
-      - name: Build JAR
-        run: mvn -B package --file api/pom.xml
-          
-      - name: Copy JAR to remote server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ vars.VPS_HOST }}
-          port: ${{ vars.VPS_PORT }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          passphrase: ${{ secrets.PASSPHRASE }}
-          source: api/target/*.jar
-          target: "~/navaship"
 
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v0.1.8
@@ -58,24 +38,24 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
             cd ~/navaship/api
-            chmod +x wait-for-it.sh
             docker-compose -f docker-compose.prod.yml down
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            SPRING_PROFILES_ACTIVE="prod" \
-            DATABASE_PORT="${{ vars.DATABASE_PORT }}" \
-            DATABASE_NAME="${{ vars.DATABASE_NAME }}" \
-            DATABASE_USER="${{ secrets.DATABASE_USER }}" \
-            DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}" \
-            API_PORT="${{ vars.API_PORT }}" \
-            API_DOMAIN="${{ vars.API_DOMAIN }}" \
-            WEBAPP_URL="${{ vars.WEBAPP_URL }}" \
-            SENDGRID_SENDER_EMAIL="${{ vars.SENDGRID_SENDER_EMAIL }}" \
-            SENDGRID_APIKEY="${{ secrets.SENDGRID_APIKEY }}" \
-            SENDGRID_VERIFY_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_VERIFY_EMAIL_TEMPLATE_ID }}" \
-            SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID }}" \
-            EASYPOST_APIKEY="${{ secrets.EASYPOST_APIKEY }}" \
-            EASYPOST_WEBHOOK_ENDPOINT_SECRET="${{ secrets.EASYPOST_WEBHOOK_ENDPOINT_SECRET }}" \
-            EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}" \
-            STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}" \
-            STRIPE_WEBHOOK_ENDPOINT_SECRET="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_SECRET }}" \
+            export SPRING_PROFILES_ACTIVE="prod"
+            export DATABASE_NAME="${{ vars.DATABASE_NAME }}"
+            export DATABASE_USER="${{ vars.DATABASE_USER }}"
+            export DATABASE_PASSWORD="${{ secrets.DATABASE_PASSWORD }}"
+            export API_PORT="${{ vars.API_PORT }}"
+            export API_DOMAIN="${{ vars.API_DOMAIN }}"
+            export WEBAPP_URL="${{ vars.WEBAPP_URL }}"
+            export SENDGRID_SENDER_EMAIL="${{ vars.SENDGRID_SENDER_EMAIL }}"
+            export SENDGRID_APIKEY="${{ secrets.SENDGRID_APIKEY }}"
+            export SENDGRID_VERIFY_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_VERIFY_EMAIL_TEMPLATE_ID }}"
+            export SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID }}"
+            export EASYPOST_APIKEY="${{ secrets.EASYPOST_APIKEY }}"
+            export EASYPOST_WEBHOOK_ENDPOINT_SECRET="${{ secrets.EASYPOST_WEBHOOK_ENDPOINT_SECRET }}"
+            export EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}"
+            export STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}"
+            export STRIPE_WEBHOOK_ENDPOINT_SECRET="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_SECRET }}"
+            export STRIPE_PRODUCT_ID="${{ vars.STRIPE_PRODUCT_ID }}"
+            docker-compose -f docker-compose.prod.yml pull
             docker-compose -f docker-compose.prod.yml up -d

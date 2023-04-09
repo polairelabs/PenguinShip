@@ -38,7 +38,7 @@ public class AdminController {
         }
 
         if (!isPriceFound) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided StripePriceId is invalid. No product with that id found. Make sure to create the product in Stripe first");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provided Stripe price id is invalid. No product with that id found. Make sure to create the product in Stripe first");
         }
 
         // The ShipmentHandlingFee passed in the request is in percentage (1% to 100%)

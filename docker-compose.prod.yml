@@ -1,27 +1,24 @@
 version: "3.8"
 
-networks:
-  app-network:
-    driver: bridge
-
 services:
   db:
-    image: postgres
-    ports:
-      - ${DATABASE_PORT}:5432
+    image: postgres:15-alpine3.17
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_NAME}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
   api:
     image: ghcr.io/polairelabs/navaship:latest
     ports:
-      - ${API_PORT}:${API_PORT}
+      - "${API_PORT}:${API_PORT}"
     depends_on:
       - db
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - DATABASE_NAME=${DATABASE_NAME}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${DATABASE_NAME}
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - WEBAPP_URL=${WEBAPP_URL}
@@ -35,6 +32,8 @@ services:
       - EASYPOST_WEBHOOK_ENDPOINT_URL=${EASYPOST_WEBHOOK_ENDPOINT_URL}
       - STRIPE_APIKEY=${STRIPE_APIKEY}
       - STRIPE_WEBHOOK_ENDPOINT_SECRET=${STRIPE_WEBHOOK_ENDPOINT_SECRET}
-    command: [ "./wait-for-it.sh", "db:5432", "--timeout=60", "java -jar target/api.jar" ]
-    volumes:
-      - ./wait-for-it.sh:/wait-for-it.sh
+      - STRIPE_PRODUCT_ID=${STRIPE_PRODUCT_ID}
+
+volumes:
+  db-data:
+    driver: local

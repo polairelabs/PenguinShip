@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+
 @Service
 @AllArgsConstructor
 public class PackageService {
@@ -19,7 +21,19 @@ public class PackageService {
     private ShipmentRepository shipmentRepository;
     private ModelMapper modelMapper;
 
-    public Package savePackage(Package parcel, AppUser user) {
+
+    public Package createPackage(Package parcel, AppUser user) {
+        parcel.setUser(user);
+        return packageRepository.save(parcel);
+    }
+
+    public Package createPackage(String name, BigDecimal weight, BigDecimal length, BigDecimal width, BigDecimal height, AppUser user) {
+        Package parcel = new Package();
+        parcel.setName(name);
+        parcel.setWeight(weight);
+        parcel.setLength(length);
+        parcel.setWidth(width);
+        parcel.setHeight(height);
         parcel.setUser(user);
         return packageRepository.save(parcel);
     }
