@@ -16,7 +16,7 @@ public class ApiApplication {
     }
 
     public static void main(String[] args) {
-        System.out.println("Created by Polaire Labs.");
+        System.out.println("Created by Polaire Labs...!");
         SpringApplication.run(ApiApplication.class, args);
     }
 }
