@@ -95,10 +95,10 @@ This project utilizes Continuous Deployment (CD) with GitHub Actions, automatica
 
 ### Deployed Stack
 
-The Continuous Deployment (CD) pipeline uses `docker-compose` to deploy the application stack. The stack consists of the following services:
+The Continuous Deployment (CD) pipeline uses `docker-compose` to deploy the production stack. The stack consists of the following services:
 
 - **PostgreSQL Database**: A PostgreSQL database is used as the primary data store for the application.
-- **API**: The API is a containerized application that serves as the backend for the project.
+- **API**: The Navaship API.
 
 ### CD Pipeline Workflow
 
