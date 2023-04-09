@@ -45,11 +45,11 @@ public class ProdDataInitializer implements CommandLineRunner {
             AppUser admin = new AppUser("Navaship", "Admin", adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password),
                     "", "", "", "", AppUserRoleEnum.ADMIN);
             appUserService.enableUserAccount(admin);
-            System.out.println("Created admin user " + admin.getEmail() + " with password" + password);
+            System.out.println("> Created admin user " + admin.getEmail() + " with password " + password);
         }
 
         if (subscriptionPlanService.retrieveSubscriptionPlans().size() == maxMembershipsAllowed) {
-            System.out.println("Max number of subscriptions allowed already created");
+            System.out.println("> Max number of subscriptions allowed already created");
             return;
         }
 
