@@ -29,13 +29,13 @@ jobs:
 
       - name: Build api image
         run: |
-          docker build -t ${{ env.IMAGE_NAME }} ${{ env.context }}
+          docker build -t navaship ${{ env.context }}
         env:
           context: .
 
       - name: Pushing API image
         if: steps.changed-files-api.outputs.any_changed == 'true'
         run: |
-          docker tag ${{ env.IMAGE_NAME }} ${{ env.tag }}
+          docker tag $navaship ${{ env.tag }}
           docker push ${{ env.tag }}
-          docker push ${{ env.IMAGE_NAME }}:latest
+          docker push navaship:latest
