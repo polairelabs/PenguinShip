@@ -35,6 +35,6 @@ jobs:
 
       - name: Pushing API image
         run: |
-          docker tag $navaship ${{ env.tag }}
+          docker tag navaship ${{ env.tag }}
           docker push ${{ env.tag }}
           docker push navaship:latest
