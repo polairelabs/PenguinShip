@@ -8,6 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FULL_IMAGE_NAME: ghcr.io/polairelabs/navaship
 
 jobs:
   build-and-push-image:
@@ -29,10 +30,10 @@ jobs:
 
       - name: Build api image
         run: |
-          docker build -t navaship ${{ env.context }}
+          docker build -t ${{ env.FULL_IMAGE_NAME }} ${{ env.context }}
         env:
           context: .
 
       - name: Pushing API image
         run: |
-          docker push ${{ env.REGISTRY }}/${{ github.repository_owner }}/navaship:latest
+          docker push ${{ env.FULL_IMAGE_NAME }}:latest
