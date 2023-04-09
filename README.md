@@ -64,6 +64,18 @@ To use authenticated endpoints, you can obtain an access token directly from the
 - Navigate to the top right and click on the green **Authorize** button and paste the __access-token preceded by the word "Bearer"__ in the value field, e.g "Bearer access-token"
 - Click on "Authorize". You're now ready to use authenticated endpoints!
 
+## Database Updates
+
+We use Flyway for database migrations. To add a new database migration script, follow these steps:
+
+1. Create a new SQL file in the resources/db/migration directory.
+
+2. Ensure that the SQL file follows the correct naming convention for migration files, which is `V<VERSION_NUMBER>__<MIGRATION_NAME>.sql`. For example, `V1__Initial_Setup.sql` or `V2__Add_New_Table.sql`.
+
+3. When you run the production stack, Flyway will automatically handle the updates by executing the migration scripts in the correct order based on their version numbers. 
+    
+*Local dev doesn't use Flyway, but uses `spring.jpa.hibernate.ddl-auto=create-drop` to create the tables and drop them when the API stops running locally*
+
 ## Continuous Integration
 
 This project uses a Continuous Integration (CI) pipeline with GitHub Actions. When new changes are pushed to the `main` branch, the CI pipeline is triggered.
@@ -116,7 +128,7 @@ The table below lists all the other environment variables that are used to deplo
 | DATABASE_USER                        | Username for database access                        |         |                      |
 | DATABASE_PASSWORD                    | Password for database user                          |   ✓     |                      |
 | PGADMIN_DEFAULT_EMAIL               | Default email for PgAdmin access                    |         |         ✓            |
-| PGADMIN_DEFAULT_PASSWORD            | Default password for PgAdmin access                 |   ✓     |         ✓            |
+| PGADMIN_DEFAULT_PASSWORD            | Default password for PgAdmin access                 |        |         ✓            |
 | API_DOMAIN                          | API domain for the application                      |         |                      |
 | API_PORT                            | API port for the application                        |         |                      |
 | WEBAPP_URL                          | URL for the web application                         |         |                      |
@@ -127,6 +139,7 @@ The table below lists all the other environment variables that are used to deplo
 | EASYPOST_APIKEY                     | API key for EasyPost shipping service               |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_SECRET    | Secret for EasyPost webhook endpoint                |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_URL       | URL for EasyPost webhook endpoint                   |         |                      |
+| STRIPE_PRODUCT_ID       | The product ID in Stripe that contains the memberships                  |       |                      |
 | STRIPE_APIKEY                       | API key for Stripe payment processing               |   ✓     |                      |
 | STRIPE_WEBHOOK_ENDPOINT_SECRET      | Secret for Stripe webhook endpoint                  |   ✓     |                      |
 
