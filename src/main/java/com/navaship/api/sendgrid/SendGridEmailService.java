@@ -34,7 +34,7 @@ public class SendGridEmailService {
 
     public void sendPasswordResetEmail(String userEmail, String userFirstname, String passwordResetJwt) throws IOException {
         // Frontend link
-        String passwordResetLink = webAppUrl + "/forgot-password?token=" + passwordResetJwt;
+        String passwordResetLink = webAppUrl + "/change-password?token=" + passwordResetJwt;
         Email from = new Email(sourceEmail);
         Email to = new Email(userEmail);
         Content content = new Content("text/html", createPasswordResetEmailBody(userFirstname, passwordResetLink));
