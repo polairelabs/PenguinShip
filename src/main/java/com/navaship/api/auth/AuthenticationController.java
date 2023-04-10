@@ -43,7 +43,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @RequestMapping(path = "api/v1/auth")
 public class AuthenticationController {
-    private static final String REQUEST_TOKEN_COOKIE_KEY = "refresh_token";
+    private static final String REFRESH_TOKEN_COOKIE_KEY = "refresh_token";
 
     private final AppUserService appUserService;
     private final StripeService stripeService;
@@ -78,7 +78,7 @@ public class AuthenticationController {
         boolean isProdProfile = profileHelper.isProdProfileActive();
 
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
-        ResponseCookie cookie = ResponseCookie.from(REQUEST_TOKEN_COOKIE_KEY, refreshToken)
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
                 .httpOnly(true)
                 .sameSite(isProdProfile ? "None" : "Lax")
@@ -147,7 +147,7 @@ public class AuthenticationController {
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if (REQUEST_TOKEN_COOKIE_KEY.equals(cookie.getName())) {
+                if (REFRESH_TOKEN_COOKIE_KEY.equals(cookie.getName())) {
                     refreshTokenStr = cookie.getValue();
                     break;
                 }
@@ -242,7 +242,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(message);
     }
 
-    @GetMapping("/password-reset/{passwordResetJwt}")
+    @PostMapping("/password-reset/{passwordResetJwt}")
     public ResponseEntity<?> changePassword(@PathVariable String passwordResetJwt, @Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         if (!jwtService.verifyToken(passwordResetJwt)) {
             throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid password reset link");
@@ -272,6 +272,32 @@ public class AuthenticationController {
         message.put("message", String.format("Password was successfully reset for %s", user.getEmail()));
 
         return ResponseEntity.ok(message);
+    }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        // Clear the refresh token cookie
+        clearCookie(request, response, REFRESH_TOKEN_COOKIE_KEY, true);
+    }
+
+    private void clearCookie(HttpServletRequest request, HttpServletResponse response, String cookieName, boolean isHttpOnly) {
+        boolean isProdProfile = profileHelper.isProdProfileActive();
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(cookieName)) {
+                    ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
+                            .maxAge(0)
+                            .httpOnly(isHttpOnly)
+                            .sameSite(isProdProfile ? "None" : "Lax")
+                            .secure(isProdProfile)
+                            .path("/api/v1/auth/refresh-token")
+                            .build();
+                    response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
+                }
+            }
+        }
     }
 
     private void sendVerifyEmailLink(AppUser user) throws IOException {
