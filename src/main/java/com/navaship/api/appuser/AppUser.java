@@ -50,6 +50,8 @@ public class AppUser implements UserDetails {
     private AppUserRoleEnum role;
     private Boolean locked;
     private Boolean enabled;
+    @JsonView(AuthViews.Default.class)
+    private Boolean isEmailVerified = false;
     @OneToOne
     private Address defaultSourceAddress;
 
@@ -85,7 +87,6 @@ public class AppUser implements UserDetails {
 
 
     public AppUser(String email, String password, String firstName, String lastName, String phoneNumber, String city, String state, String address, AppUserRoleEnum role) {
-        // Used to create complete (unverified) user with profile information + email and password
         this.email = email;
         this.password = password;
         this.firstName = firstName;
@@ -95,8 +96,8 @@ public class AppUser implements UserDetails {
         this.state = state;
         this.address = address;
         this.role = role;
-        this.locked = true;
-        this.enabled = false;
+        this.locked = false;
+        this.enabled = true;
     }
 
     @Override

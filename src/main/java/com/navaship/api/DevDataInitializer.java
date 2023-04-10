@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,7 +39,7 @@ public class DevDataInitializer implements CommandLineRunner {
     public void run(String... args) {
         AppUser admin = new AppUser("admin@lol.com", passwordEncoder.bCryptPasswordEncoder().encode("admin123"), "admin", "admin",
                 "5146662222", "New york", "NY", "899 road", AppUserRoleEnum.ADMIN);
-        appUserService.enableUserAccount(admin);
+        appUserService.verifyUserEmail(admin);
         addressService.createAddress("417 Montgomery St Ste 500", "San Francisco", "CA", "94104", "US", true, admin);
         addressService.createAddress("181 Fremont St", "San Francisco", "CA", "94104", "US", true, admin);
         packageService.createPackage("Letter", BigDecimal.valueOf(12), BigDecimal.valueOf(12), BigDecimal.valueOf(12), BigDecimal.valueOf(10), admin);

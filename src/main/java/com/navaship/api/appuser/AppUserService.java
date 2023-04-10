@@ -40,9 +40,8 @@ public class AppUserService implements UserDetailsService {
         return appUserRepository.save(user);
     }
 
-    public void enableUserAccount(AppUser user) {
-        user.setLocked(false);
-        user.setEnabled(true);
+    public void verifyUserEmail(AppUser user) {
+        user.setIsEmailVerified(true);
         appUserRepository.save(user);
     }
 

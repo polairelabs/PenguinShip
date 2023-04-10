@@ -6,7 +6,6 @@ import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.shipment.Shipment;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,7 @@ public class JwtService {
     @Value("${navaship.api.accessTokenExpirationMs}")
     private long accessTokenExpirationMs;
     @Value("${navaship.api.emailVerificationExpirationMs}")
-    private long emailVerificationExpirationMs;
+    private long verificationTokenExpirationMs;
     @Value("${jwt.public.key}")
     private RSAPublicKey rsaPublicKey;
 
@@ -59,14 +58,15 @@ public class JwtService {
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
 
-    public String createJwtEmailVerification(AppUser user, String token) {
+    // Used in confirm email and reset pass
+    public String createJwtTokenForValidation(AppUser user, String token) {
         Instant now = Instant.now();
         JwtClaimsSet.Builder claimsSetBuilder = JwtClaimsSet.builder()
                 .issuer(jwtIssuer)
                 .issuedAt(now)
-                .expiresAt(now.plusMillis(emailVerificationExpirationMs))
+                .expiresAt(now.plusMillis(verificationTokenExpirationMs))
                 .claim("email", user.getEmail())
-                .claim("token", token) // Another layer to validate email verification JWT
+                .claim("token", token)
                 .subject(user.getId().toString());
 
         JwtClaimsSet claimsSet = claimsSetBuilder.build();

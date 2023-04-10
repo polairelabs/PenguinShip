@@ -44,7 +44,7 @@ public class ProdDataInitializer implements CommandLineRunner {
             String password = passwordGenerator.generateRandomPassword(12);
             AppUser admin = new AppUser("Navaship", "Admin", adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password),
                     "", "", "", "", AppUserRoleEnum.ADMIN);
-            appUserService.enableUserAccount(admin);
+            appUserService.verifyUserEmail(admin);
             System.out.println("> Created admin user " + admin.getEmail() + " with password: " + password);
         }
 

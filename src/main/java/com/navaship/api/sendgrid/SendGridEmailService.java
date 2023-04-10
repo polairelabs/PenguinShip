@@ -38,11 +38,11 @@ public class SendGridEmailService {
 
     public void sendPasswordResetEmail(String userEmail, String userFirstname, String passwordResetJwt) throws IOException {
         // Frontend link
-        String passwordResetLink = webAppUrl + "/password-reset/" + passwordResetJwt;
+        String passwordResetLink = webAppUrl + "/forgot-password?token=" + passwordResetJwt;
         Email from = new Email(fromEmail);
         Email to = new Email(userEmail);
         Content content = new Content("text/html", createPasswordResetEmailBody(userFirstname, passwordResetLink));
-        Mail mail = new Mail(from, "Navaship Email Verification - Complete Your Registration", to, content);
+        Mail mail = new Mail(from, "Navaship Password Reset - Reset Your Password", to, content);
         sendEmail(mail);
     }
 
