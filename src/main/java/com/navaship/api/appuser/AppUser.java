@@ -83,6 +83,7 @@ public class AppUser implements UserDetails {
     @PrimaryKeyJoinColumn
     private SubscriptionDetail subscriptionDetail;
 
+
     public AppUser(String email, String password, String firstName, String lastName, String phoneNumber, String city, String state, String address, AppUserRoleEnum role) {
         // Used to create complete (unverified) user with profile information + email and password
         this.email = email;

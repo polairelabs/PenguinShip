@@ -38,7 +38,7 @@ public class DevDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        AppUser admin = new AppUser("admin", "admin", "admin@lol.com", passwordEncoder.bCryptPasswordEncoder().encode("admin123"),
+        AppUser admin = new AppUser("admin@lol.com", passwordEncoder.bCryptPasswordEncoder().encode("admin123"), "admin", "admin",
                 "5146662222", "New york", "NY", "899 road", AppUserRoleEnum.ADMIN);
         appUserService.enableUserAccount(admin);
         addressService.createAddress("417 Montgomery St Ste 500", "San Francisco", "CA", "94104", "US", true, admin);

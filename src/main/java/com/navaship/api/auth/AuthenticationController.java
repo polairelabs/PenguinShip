@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Objects;
@@ -98,10 +99,10 @@ public class AuthenticationController {
 
         // Create temporary (unverified email) user
         AppUser temporaryUser = new AppUser(
-                registrationRequest.getFirstName(),
-                registrationRequest.getLastName(),
                 registrationRequest.getEmail(),
                 registrationRequest.getPassword(),
+                registrationRequest.getFirstName(),
+                registrationRequest.getLastName(),
                 registrationRequest.getPhoneNumber(),
                 registrationRequest.getCity(),
                 registrationRequest.getState(),
@@ -110,7 +111,11 @@ public class AuthenticationController {
         );
 
         AppUser user = appUserService.createUser(temporaryUser);
-        sendVerifyEmailLink(user);
+        try {
+            sendVerifyEmailLink(user);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error sending email to verify account. Please try again at a later time");
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -152,7 +157,7 @@ public class AuthenticationController {
         ));
     }
 
-    @PostMapping("/new-verify-email-request")
+    @PostMapping("/verify-email")
     public ResponseEntity<Map<String, String>> sendEmailVerificationLink(@RequestBody @Size(max = 254) String email) {
         AppUser user = appUserService.findByEmail(email).orElseThrow(
                 () -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Email not found")
@@ -162,19 +167,26 @@ public class AuthenticationController {
             throw new VerificationTokenException(HttpStatus.FORBIDDEN, "Something went wrong");
         }
 
-        // Delete token if it exists for the user
-        verificationTokenService.findByUserAndTokenType(user, VerificationTokenType.VERIFY_EMAIL).ifPresent(verificationTokenService::delete);
-
-        sendVerifyEmailLink(user);
+        try {
+            sendVerifyEmailLink(user);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error sending email to verify account. Please try again at a later time");
+        }
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/verify-email/{emailVerificationJwt}")
     public ResponseEntity<?> verifyEmail(@PathVariable String emailVerificationJwt) {
+        if (!jwtService.verifyToken(emailVerificationJwt)) {
+            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid email verification link");
+        }
 
-        // Verify JWT and get the token from it
+        String verificationTokenString = (String) jwtService.getClaim(emailVerificationJwt, "token");
+        if (verificationTokenString == null) {
+            throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid token");
+        }
 
-        VerificationToken verificationToken = verificationTokenService.findByToken("token").orElseThrow(
+        VerificationToken verificationToken = verificationTokenService.findByToken(verificationTokenString).orElseThrow(
                 () -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid email verification link")
         );
 
@@ -192,9 +204,11 @@ public class AuthenticationController {
         return ResponseEntity.ok().build();
     }
 
-    private void sendVerifyEmailLink(AppUser user) {
+    private void sendVerifyEmailLink(AppUser user) throws IOException {
+        // Delete token if it exists for the user
+        verificationTokenService.findByUserAndTokenType(user, VerificationTokenType.VERIFY_EMAIL).ifPresent(verificationTokenService::delete);
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
         String emailVerificationJwt = jwtService.createJwtEmailVerification(user, verificationToken.getToken());
-        sendGridEmailService.sendVerifyAccountEmail(user.getEmail(), emailVerificationJwt);
+        sendGridEmailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), emailVerificationJwt);
     }
 }

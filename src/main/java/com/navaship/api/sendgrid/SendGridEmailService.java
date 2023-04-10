@@ -17,7 +17,7 @@ public class SendGridEmailService {
     @Value("${sendgrid.apikey}")
     private String sendGridApiKey;
     @Value("${sendgrid.senderEmail}")
-    private String senderEmail;
+    private String fromEmail;
     @Value("${sendgrid.verifyEmailTemplateId}")
     private String verifyAccountEmailTemplateId;
     @Value("${sendgrid.forgotPasswordEmailTemplateId}")
@@ -26,29 +26,41 @@ public class SendGridEmailService {
     private String webAppUrl;
 
 
-    public void sendVerifyAccountEmail(String to, String emailVerificationJwt) {
-        try {
-            Mail mail = new Mail(new Email(senderEmail), "", new Email(to), new Content("text/html", " "));
-            mail.setTemplateId(verifyAccountEmailTemplateId);
-            String verifyEmailLink = webAppUrl + "/verify-email/" + emailVerificationJwt;
-            mail.personalization.get(0).addDynamicTemplateData("{{Verify_Account_Link}}", verifyEmailLink);
-            sendEmail(mail);
-        } catch (IOException e) {
-            throw new SendGridEmailException("A problem occurred while sending email", e);
-        }
+    public void sendVerificationEmail(String userEmail, String userFirstname, String emailVerificationJwt) throws IOException {
+        // Frontend link
+        String verifyEmailLink = webAppUrl + "/register?token=" + emailVerificationJwt;
+        Email from = new Email(fromEmail);
+        Email to = new Email(userEmail);
+        Content content = new Content("text/html", createVerificationEmailBody(userFirstname, verifyEmailLink));
+        Mail mail = new Mail(from, "Navaship Email Verification - Complete Your Registration", to, content);
+        sendEmail(mail);
     }
 
-    public void sendPasswordResetEmail(String to, String firstName, String passwordResetToken) {
-        try {
-            Mail mail = new Mail(new Email(senderEmail), "", new Email(to), new Content("text/html", " "));
-            mail.setTemplateId(passwordResetEmailTemplateId);
-            // TODO Build URL for token here
-            mail.personalization.get(0).addDynamicTemplateData("{{Reset_Password_Link}}", passwordResetToken);
-            mail.personalization.get(0).addDynamicTemplateData("{{Sender_Name}}", firstName);
-            sendEmail(mail);
-        } catch (IOException e) {
-            throw new SendGridEmailException("A problem occurred while sending email", e);
-        }
+    public void sendPasswordResetEmail(String userEmail, String userFirstname, String passwordResetJwt) throws IOException {
+        // Frontend link
+        String passwordResetLink = webAppUrl + "/password-reset/" + passwordResetJwt;
+        Email from = new Email(fromEmail);
+        Email to = new Email(userEmail);
+        Content content = new Content("text/html", createPasswordResetEmailBody(userFirstname, passwordResetLink));
+        Mail mail = new Mail(from, "Navaship Email Verification - Complete Your Registration", to, content);
+        sendEmail(mail);
+    }
+
+    private String createVerificationEmailBody(String userFirstname, String verifyEmailLink) {
+        return "Hello " + userFirstname + ",<br><br>"
+                + "Thank you for signing up with Navaship. Please click the link below to verify your email address and complete your registration:<br><br>"
+                + "<a href=\"" + verifyEmailLink + "\">Verify Your Email</a><br><br>"
+                + "Best regards,<br>"
+                + "Navaship Team";
+    }
+
+    private String createPasswordResetEmailBody(String userFirstname, String passwordResetLink) {
+        return "Hello " + userFirstname + ",<br><br>"
+                + "We have received a request to reset your password for your [YourAppName] account. Please click the link below to create a new password:<br><br>"
+                + "<a href=\"" + passwordResetLink + "\">Reset Your Password</a><br><br>"
+                + "If you did not request a password reset, please ignore this email"
+                + "Best regards,<br>"
+                + "[YourAppName] Team";
     }
 
     private Response sendEmail(Mail mail) throws IOException {

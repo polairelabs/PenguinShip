@@ -28,8 +28,9 @@ public class AccountController {
         AppUser user = retrieveUser(email);
         deleteVerificationTokenIfPresent(user, VerificationTokenType.RESET_PASSWORD);
 
+        // Generate new token here
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
-        sendGridEmailService.sendPasswordResetEmail(email, user.getFirstName(), verificationToken.getToken());
+        // sendGridEmailService.sendPasswordResetEmail(email, user.getFirstName(), verificationToken.getToken());
 
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Password reset link has been sent to %s", email));

@@ -5,10 +5,8 @@ import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.shipment.Shipment;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +20,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,10 +36,10 @@ public class JwtService {
     private String jwtIssuer;
     @Value("${navaship.api.accessTokenExpirationMs}")
     private long accessTokenExpirationMs;
-
     @Value("${navaship.api.emailVerificationExpirationMs}")
     private long emailVerificationExpirationMs;
-
+    @Value("${jwt.public.key}")
+    private RSAPublicKey rsaPublicKey;
 
     public String createJwtAccessToken(Authentication authentication, AppUser user) {
         String scope = authentication.getAuthorities().stream()
@@ -77,18 +73,22 @@ public class JwtService {
         return jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
     }
 
-    public boolean verifyJwt(String jwtString, PublicKey publicKey) {
+    public boolean verifyToken(String token) {
         try {
-            SignedJWT jwt = SignedJWT.parse(jwtString);
-            RSAKey rsaPublicKey = new RSAKey.Builder((RSAPublicKey) publicKey).build();
-            JWSVerifier verifier = new RSASSAVerifier(rsaPublicKey);
-            return jwt.verify(verifier);
-
-        } catch (ParseException | JOSEException e) {
-            e.printStackTrace();
+            // Parse and verify the JWT token
+            return SignedJWT.parse(token).verify(new RSASSAVerifier(rsaPublicKey));
+        } catch (Exception e) {
+            return false;
         }
+    }
 
-        return false;
+    public Object getClaim(String token, String name) {
+        try {
+            SignedJWT signedJwt = SignedJWT.parse(token);
+            return signedJwt.getJWTClaimsSet().getClaim(name);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public AppUser retrieveUserFromJwt(JwtAuthenticationToken principal) {
