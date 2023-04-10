@@ -221,9 +221,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("/password-reset")
-    public ResponseEntity<Map<String, String>> sendPasswordResetLink(@Valid @RequestBody @Size(max = 254) String email) {
+    public ResponseEntity<Map<String, String>> sendPasswordResetLink(@Valid @RequestBody PasswordResetRequest passwordResetRequest) {
         // Send password reset link to user
-        AppUser user = appUserService.findByEmail(email).orElseThrow(
+        AppUser user = appUserService.findByEmail(passwordResetRequest.getEmail()).orElseThrow(
                 () -> new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Email not found")
         );
 
@@ -237,13 +237,13 @@ public class AuthenticationController {
         }
 
         Map<String, String> message = new HashMap<>();
-        message.put("message", String.format("Password reset link has been sent to %s", email));
+        message.put("message", String.format("Password reset link has been sent to %s", passwordResetRequest.getEmail()));
 
         return ResponseEntity.ok(message);
     }
 
     @GetMapping("/password-reset/{passwordResetJwt}")
-    public ResponseEntity<?> changePassword(@PathVariable String passwordResetJwt, @Valid @RequestBody PasswordResetRequest passwordResetRequest) {
+    public ResponseEntity<?> changePassword(@PathVariable String passwordResetJwt, @Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         if (!jwtService.verifyToken(passwordResetJwt)) {
             throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid password reset link");
         }
@@ -265,7 +265,7 @@ public class AuthenticationController {
         }
 
         AppUser user = verificationToken.getUser();
-        appUserService.changePassword(user, passwordResetRequest.getPassword());
+        appUserService.changePassword(user, changePasswordRequest.getPassword());
         verificationTokenService.delete(verificationToken);
 
         Map<String, String> message = new HashMap<>();

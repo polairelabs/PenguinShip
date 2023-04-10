@@ -56,11 +56,11 @@ public class SendGridEmailService {
 
     private String createPasswordResetEmailBody(String userFirstname, String passwordResetLink) {
         return "Hello " + userFirstname + ",<br><br>"
-                + "We have received a request to reset your password for your [YourAppName] account. Please click the link below to create a new password:<br><br>"
+                + "We have received a request to reset your password for your Navaship account. Please click the link below to create a new password:<br><br>"
                 + "<a href=\"" + passwordResetLink + "\">Reset Your Password</a><br><br>"
-                + "If you did not request a password reset, please ignore this email"
+                + "If you did not request a password reset, please ignore this email<br>"
                 + "Best regards,<br>"
-                + "[YourAppName] Team";
+                + "Navaship Team";
     }
 
     private Response sendEmail(Mail mail) throws IOException {
