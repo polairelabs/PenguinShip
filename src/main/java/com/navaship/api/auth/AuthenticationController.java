@@ -242,13 +242,13 @@ public class AuthenticationController {
         return ResponseEntity.ok(message);
     }
 
-    @PostMapping("/password-reset/{passwordResetJwt}")
-    public ResponseEntity<?> changePassword(@PathVariable String passwordResetJwt, @Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
-        if (!jwtService.verifyToken(passwordResetJwt)) {
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
+        if (!jwtService.verifyToken(changePasswordRequest.getToken())) {
             throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid password reset link");
         }
 
-        String verificationTokenString = (String) jwtService.getClaim(passwordResetJwt, "token");
+        String verificationTokenString = (String) jwtService.getClaim(changePasswordRequest.getToken(), "token");
         if (verificationTokenString == null) {
             throw new VerificationTokenException(HttpStatus.UNAUTHORIZED, "Invalid password reset token");
         }
@@ -262,6 +262,10 @@ public class AuthenticationController {
         if (isTokenExpired) {
             verificationTokenService.delete(verificationToken);
             throw new VerificationTokenException(HttpStatus.GONE, "Password reset link has expired");
+        }
+
+        if (!Objects.equals(changePasswordRequest.getPassword(), changePasswordRequest.getConfirmPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password provided do not match");
         }
 
         AppUser user = verificationToken.getUser();

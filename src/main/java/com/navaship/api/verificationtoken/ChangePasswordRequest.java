@@ -21,4 +21,7 @@ public class ChangePasswordRequest {
     @NotEmpty(message = "Password must not be empty")
     private String confirmPassword;
 
+    @NotNull(message = "Token is required")
+    @NotEmpty(message = "Token must not be empty")
+    private String token;
 }
