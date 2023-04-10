@@ -17,11 +17,7 @@ public class SendGridEmailService {
     @Value("${sendgrid.apikey}")
     private String sendGridApiKey;
     @Value("${sendgrid.senderEmail}")
-    private String fromEmail;
-    @Value("${sendgrid.verifyEmailTemplateId}")
-    private String verifyAccountEmailTemplateId;
-    @Value("${sendgrid.forgotPasswordEmailTemplateId}")
-    private String passwordResetEmailTemplateId;
+    private String sourceEmail;
     @Value("${navaship.webapp.url}")
     private String webAppUrl;
 
@@ -29,7 +25,7 @@ public class SendGridEmailService {
     public void sendVerificationEmail(String userEmail, String userFirstname, String emailVerificationJwt) throws IOException {
         // Frontend link
         String verifyEmailLink = webAppUrl + "/register?token=" + emailVerificationJwt;
-        Email from = new Email(fromEmail);
+        Email from = new Email(sourceEmail);
         Email to = new Email(userEmail);
         Content content = new Content("text/html", createVerificationEmailBody(userFirstname, verifyEmailLink));
         Mail mail = new Mail(from, "Navaship Email Verification - Complete Your Registration", to, content);
@@ -39,7 +35,7 @@ public class SendGridEmailService {
     public void sendPasswordResetEmail(String userEmail, String userFirstname, String passwordResetJwt) throws IOException {
         // Frontend link
         String passwordResetLink = webAppUrl + "/forgot-password?token=" + passwordResetJwt;
-        Email from = new Email(fromEmail);
+        Email from = new Email(sourceEmail);
         Email to = new Email(userEmail);
         Content content = new Content("text/html", createPasswordResetEmailBody(userFirstname, passwordResetLink));
         Mail mail = new Mail(from, "Navaship Password Reset - Reset Your Password", to, content);
@@ -58,7 +54,7 @@ public class SendGridEmailService {
         return "Hello " + userFirstname + ",<br><br>"
                 + "We have received a request to reset your password for your Navaship account. Please click the link below to create a new password:<br><br>"
                 + "<a href=\"" + passwordResetLink + "\">Reset Your Password</a><br><br>"
-                + "If you did not request a password reset, please ignore this email<br>"
+                + "If you did not request a password reset, please ignore this email<br><br>"
                 + "Best regards,<br>"
                 + "Navaship Team";
     }

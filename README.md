@@ -134,8 +134,6 @@ The table below lists all the other environment variables that are used to deplo
 | WEBAPP_URL                          | URL for the web application                         |         |                      |
 | SENDGRID_SENDER_EMAIL               | Sender email for SendGrid email service             |         |                      |
 | SENDGRID_APIKEY                     | API key for SendGrid email service                  |   ✓     |                      |
-| SENDGRID_VERIFY_EMAIL_TEMPLATE_ID   | Template ID for SendGrid email verification         |   ✓     |                      |
-| SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID | Template ID for SendGrid forgot password email  |   ✓     |                      |
 | EASYPOST_APIKEY                     | API key for EasyPost shipping service               |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_SECRET    | Secret for EasyPost webhook endpoint                |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_URL       | URL for EasyPost webhook endpoint                   |         |                      |

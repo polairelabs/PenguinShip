@@ -49,8 +49,6 @@ jobs:
             export WEBAPP_URL="${{ vars.WEBAPP_URL }}"
             export SENDGRID_SENDER_EMAIL="${{ vars.SENDGRID_SENDER_EMAIL }}"
             export SENDGRID_APIKEY="${{ secrets.SENDGRID_APIKEY }}"
-            export SENDGRID_VERIFY_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_VERIFY_EMAIL_TEMPLATE_ID }}"
-            export SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID="${{ secrets.SENDGRID_FORGOT_PASSWORD_EMAIL_TEMPLATE_ID }}"
             export EASYPOST_APIKEY="${{ secrets.EASYPOST_APIKEY }}"
             export EASYPOST_WEBHOOK_ENDPOINT_SECRET="${{ secrets.EASYPOST_WEBHOOK_ENDPOINT_SECRET }}"
             export EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}"
