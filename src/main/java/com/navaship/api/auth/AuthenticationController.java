@@ -75,18 +75,7 @@ public class AuthenticationController {
         String accessToken = jwtService.createJwtAccessToken(authentication, user);
         String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
 
-        boolean isProdProfile = profileHelper.isProdProfileActive();
-
-        // Create the server side cookie with HttpOnly set to true which contains the refresh token
-        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
-                .maxAge(refreshTokenExpirationMs / 1000)
-                .httpOnly(true)
-                .sameSite(isProdProfile ? "None" : "Lax")
-                .secure(isProdProfile)
-                .path("/api/v1/auth/refresh-token")
-                .build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
+        response.addHeader(HttpHeaders.SET_COOKIE, getRefreshTokenCookie(refreshToken));
         return ResponseEntity.ok(new AuthenticationResponse(accessToken, user));
     }
 
@@ -139,22 +128,22 @@ public class AuthenticationController {
     }
 
     @GetMapping("/refresh-token")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(HttpServletRequest request) {
+    public ResponseEntity<RefreshTokenResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         // Client exchanges refresh token to get a new access token and a new refresh token
         // Refresh token rotation is used to always provide the user with a new refresh token when he requests new access token
         Cookie[] cookies = request.getCookies();
-        String refreshTokenStr = null;
+        String headerRefreshToken = null;
 
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (REFRESH_TOKEN_COOKIE_KEY.equals(cookie.getName())) {
-                    refreshTokenStr = cookie.getValue();
+                    headerRefreshToken = cookie.getValue();
                     break;
                 }
             }
         }
 
-        RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenStr).orElseThrow(
+        RefreshToken refreshToken = refreshTokenService.findByToken(headerRefreshToken).orElseThrow(
                 () -> new RefreshTokenException(HttpStatus.UNAUTHORIZED, "Refresh token cannot be processed")
         );
 
@@ -166,6 +155,10 @@ public class AuthenticationController {
         refreshTokenService.delete(refreshToken);
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String newRefreshToken = refreshTokenService.createRefreshToken(user).getToken();
+        response.addHeader(HttpHeaders.SET_COOKIE, getRefreshTokenCookie(newRefreshToken));
+
         return ResponseEntity.ok(new RefreshTokenResponse(
                 jwtService.createJwtAccessToken(authentication, user),
                 refreshTokenService.createRefreshToken(user).getToken(),
@@ -282,6 +275,18 @@ public class AuthenticationController {
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         // Clear the refresh token cookie
         clearCookie(request, response, REFRESH_TOKEN_COOKIE_KEY, true);
+    }
+
+    private String getRefreshTokenCookie(String refreshToken) {
+        boolean isProdProfile = profileHelper.isProdProfileActive();
+        // Create the server side cookie with HttpOnly set to true which contains the refresh token
+        return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
+                .maxAge(refreshTokenExpirationMs / 1000)
+                .httpOnly(true)
+                .sameSite(isProdProfile ? "None" : "Lax")
+                .secure(isProdProfile)
+                .path("/api/v1/auth/refresh-token")
+                .build().toString();
     }
 
     private void clearCookie(HttpServletRequest request, HttpServletResponse response, String cookieName, boolean isHttpOnly) {

@@ -54,7 +54,7 @@ public class RegistrationRequest {
     @NotEmpty(message = "State must not be empty")
     private String state;
 
-    @Size(min = 7, max = 15)
+    @Size(min = 10, max = 20)
     @NotNull(message = "Phone number is required")
     @NotEmpty(message = "Phone number must not be empty")
     private String phoneNumber;
