@@ -263,9 +263,7 @@ public class SubscriptionController {
     }
 
     private void handleCustomerUpdated(JsonNode previousAttributes, Customer customer, SubscriptionDetail subscriptionDetail) {
-        // Called when payment method updates
-        // Retrieve the previous and new default payment method IDs
-
+        // Called when payment method updates, the handleSubscriptionCreatedOrUpdated already updates the default payment method, but this method is used just in case
         // Access the previous invoice settings
         JsonNode previousInvoiceSettings = previousAttributes.path("invoice_settings");
 

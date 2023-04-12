@@ -297,6 +297,10 @@ public class ShipmentController {
                 // Set the bought rate to the user's shipment
                 userShipment.setRate(myRate);
 
+                // Retrieve charge id of PaymentIntent and set to UserShipment
+                String chargeId = confirmedPaymentIntent.getLatestCharge();
+                userShipment.setStripeChargeId(chargeId);
+
                 // Update user's shipment
                 shipmentService.updateShipment(userShipment);
 
@@ -322,14 +326,31 @@ public class ShipmentController {
         Shipment userShipment = shipmentService.retrieveShipment(shipmentId);
         jwtService.checkResourceBelongsToUser(principal, userShipment);
 
+        com.easypost.model.Shipment shipment = null;
+
+        try {
+            shipment = com.easypost.model.Shipment.retrieve(userShipment.getEasypostShipmentId());
+        } catch (EasyPostException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving Shipment");
+        }
+
+        String status = shipment.getStatus();
+        boolean canReturnShipment = "failed".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status) || "pre_transit".equalsIgnoreCase(status);
+
+        if (!canReturnShipment) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot return Shipment");
+        }
+
         try {
             easyPostService.refund(userShipment.getEasypostShipmentId());
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing refund");
         }
 
+        userShipment.setStatus(ShipmentStatus.REFUND_PENDING);
+
         Map<String, String> message = new HashMap<>();
-        message.put("message", String.format("Successfully processed refund for shipment %d", shipmentId));
+        message.put("message", String.format("Processing refund for shipment %d", shipmentId));
         return new ResponseEntity<>(message, HttpStatus.ACCEPTED);
     }
 

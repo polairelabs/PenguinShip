@@ -6,4 +6,5 @@ package com.navaship.api.shipment;
 public enum ShipmentStatus {
     DRAFT,
     PURCHASED,
+    REFUND_PENDING,
 }

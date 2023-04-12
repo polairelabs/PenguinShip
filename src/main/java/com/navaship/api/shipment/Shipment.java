@@ -82,6 +82,9 @@ public class Shipment {
     private boolean isInsured = false;
     private BigDecimal insuranceAmount;
 
+    // Stripe charge id when Shipment is bought
+    private String stripeChargeId;
+
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<ActivityLog> activityLogs = new ArrayList<>();
 
