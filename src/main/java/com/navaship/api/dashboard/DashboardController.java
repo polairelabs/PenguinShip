@@ -8,6 +8,7 @@ import com.navaship.api.jwt.JwtService;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.shipment.ShipmentService;
 import com.navaship.api.shipment.ShipmentStatus;
+import com.navaship.api.subscription.SubscriptionPlan;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,12 @@ public class DashboardController {
         }
 
         int currentMonthShipmentCreated = user.getSubscriptionDetail().getCurrentLimit();
-        int maxShipmentCreatedLimit = user.getSubscriptionDetail().getSubscriptionPlan().getMaxLimit();
+        SubscriptionPlan subscriptionPlan = user.getSubscriptionDetail().getSubscriptionPlan();
+
+        int maxShipmentCreatedLimit = 0;
+        if (subscriptionPlan != null) {
+            maxShipmentCreatedLimit = subscriptionPlan.getMaxLimit();
+        }
 
         List<ActivityLogResponse> activityLogs = activityLoggerService.convertToActivityLogResponse(activityLoggerService.findLatestActivityLogs(user));
         return new ResponseEntity<>(

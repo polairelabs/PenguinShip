@@ -28,7 +28,7 @@ public class SendGridEmailService {
         Email from = new Email(sourceEmail);
         Email to = new Email(userEmail);
         Content content = new Content("text/html", createVerificationEmailBody(userFirstname, verifyEmailLink));
-        Mail mail = new Mail(from, "Navaship Email Verification - Complete Your Registration", to, content);
+        Mail mail = new Mail(from, "Welcome to Navaship - Complete Your Registration", to, content);
         sendEmail(mail);
     }
 

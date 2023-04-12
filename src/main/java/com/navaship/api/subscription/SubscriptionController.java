@@ -102,10 +102,15 @@ public class SubscriptionController {
         // Webhook to provision or de-provision customer subscription
         // e.g. once customer pays via /create-checkout-session, it's time to provision the subscription to the customer
         String customerId = null;
+        JsonNode previousAttributes = null;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(payload);
-            customerId = jsonNode.path("data").path("object").path("customer").asText();
+            JsonNode eventJsonNode = objectMapper.readTree(payload);
+            customerId = eventJsonNode.path("data").path("object").path("customer").asText();
+            if (customerId.isEmpty()) {
+                customerId = eventJsonNode.path("data").path("object").path("id").asText();
+            }
+            previousAttributes = eventJsonNode.path("data").path("previous_attributes");
         } catch (JsonProcessingException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request");
         }
@@ -149,6 +154,10 @@ public class SubscriptionController {
             case "customer.subscription.created", "customer.subscription.updated" -> {
                 status = "Subscription Created/Updated";
                 handleSubscriptionCreatedOrUpdated((Subscription) stripeObject, subscriptionDetail);
+            }
+            case "customer.updated" -> {
+                status = "Customer Updated";
+                handleCustomerUpdated(previousAttributes, (Customer) stripeObject, subscriptionDetail);
             }
             default -> status = "Unhandled event type: " + event.getType();
         }
@@ -204,6 +213,7 @@ public class SubscriptionController {
             customerParams.put("invoice_settings", invoiceSettingsParams);
             Customer.retrieve(subscriptionDetail.getStripeCustomerId()).update(customerParams);
 
+            subscriptionDetail.setStripePaymentMethodId(paymentMethod.getId());
             subscriptionDetail.setCardLastFourDigits(paymentMethod.getCard().getLast4());
             subscriptionDetail.setCardType(paymentMethod.getCard().getBrand());
         } catch (StripeException e) {
@@ -214,7 +224,7 @@ public class SubscriptionController {
         AppUser user = subscriptionDetail.getUser();
         user.setRole(AppUserRoleEnum.USER);
 
-        if (subscriptionDetail.getSubscriptionId() == null || !Objects.equals(subscription.getId(), subscriptionDetail.getSubscriptionId())) {
+        if (subscriptionDetail.getStripeSubscriptionId() == null || !Objects.equals(subscription.getId(), subscriptionDetail.getStripeSubscriptionId())) {
             // User subscribed to plan for the first time or to a different plan
             subscriptionDetail.setStartDate(subscription.getStartDate());
         }
@@ -224,9 +234,15 @@ public class SubscriptionController {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Subscription plan not found")
         );
         subscriptionDetail.setSubscriptionPlan(subscriptionPlan);
-        subscriptionDetail.setSubscriptionId(subscription.getId());
-        subscriptionDetail.setEndDate(subscription.getEndedAt());
-        subscriptionDetail.setStatus(subscription.getStatus());
+        subscriptionDetail.setStripeSubscriptionId(subscription.getId());
+
+        if (subscription.getCancelAtPeriodEnd()) {
+            subscriptionDetail.setStatus("cancelled");
+            subscriptionDetail.setEndDate(subscription.getCancelAt());
+        } else {
+            subscriptionDetail.setStatus(subscription.getStatus());
+            subscriptionDetail.setEndDate(null);
+        }
 
         // Will persist user as well as SubscriptionDetail
         return subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
@@ -236,10 +252,53 @@ public class SubscriptionController {
         AppUser user = subscriptionDetail.getUser();
         // Still has access to platform to see shipments or renew subscription, but subscription is dead, and he can no longer create shipments
         user.setRole(AppUserRoleEnum.UNPAID_USER);
-        subscriptionDetail.setSubscriptionId(null);
+        subscriptionDetail.setStripeSubscriptionId(null);
         subscriptionDetail.setSubscriptionPlan(null);
         subscriptionDetail.setEndDate(subscription.getEndedAt());
+        subscriptionDetail.setStatus("cancelled");
+        subscriptionDetail.setCardLastFourDigits(null);
+        subscriptionDetail.setCardType(null);
+        subscriptionDetail.setStripePaymentMethodId(null);
         subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
+    }
+
+    private void handleCustomerUpdated(JsonNode previousAttributes, Customer customer, SubscriptionDetail subscriptionDetail) {
+        // Called when payment method updates
+        // Retrieve the previous and new default payment method IDs
+
+        // Access the previous invoice settings
+        JsonNode previousInvoiceSettings = previousAttributes.path("invoice_settings");
+
+        if (previousInvoiceSettings.isEmpty()) {
+            // Handles only payment updates, everything else won't be handled in this event
+            return;
+        }
+
+        // Access the previous default payment method ID
+        String previousPaymentMethodId = previousInvoiceSettings.path("default_payment_method").asText();
+
+        String newPaymentMethodId = customer.getInvoiceSettings().getDefaultPaymentMethod();
+        if (!previousPaymentMethodId.equals(newPaymentMethodId)) {
+            // Retrieve the new default payment method
+            if (newPaymentMethodId != null) {
+                PaymentMethod newPaymentMethod;
+                try {
+                    newPaymentMethod = PaymentMethod.retrieve(newPaymentMethodId);
+                } catch (StripeException e) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Customer update error");
+                }
+                // Update the subscription detail with the new payment method information
+                subscriptionDetail.setStripePaymentMethodId(newPaymentMethod.getId());
+                subscriptionDetail.setCardType(newPaymentMethod.getCard().getBrand());
+                subscriptionDetail.setCardLastFourDigits(newPaymentMethod.getCard().getLast4());
+                subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
+            } else {
+                subscriptionDetail.setCardLastFourDigits(null);
+                subscriptionDetail.setCardType(null);
+                subscriptionDetail.setStripePaymentMethodId(null);
+                subscriptionDetailService.updateSubscriptionDetail(subscriptionDetail);
+            }
+        }
     }
 
     private boolean isValidBaseUrl(String baseUrl) {

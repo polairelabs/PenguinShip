@@ -31,7 +31,8 @@ public class SubscriptionDetail {
     @JoinColumn(name = "user_id")
     private AppUser user;
     private String stripeCustomerId;
-    private String subscriptionId;
+    private String stripeSubscriptionId;
+    private String stripePaymentMethodId;
     @JsonView(AuthViews.Default.class)
     private int currentLimit;
     @OneToOne
