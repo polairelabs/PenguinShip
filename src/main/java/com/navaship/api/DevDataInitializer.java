@@ -1,9 +1,11 @@
 package com.navaship.api;
 
+import com.easypost.exception.EasyPostException;
 import com.navaship.api.address.AddressService;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRoleEnum;
 import com.navaship.api.appuser.AppUserService;
+import com.navaship.api.easypost.EasyPostService;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.security.PasswordEncoder;
 import com.navaship.api.stripe.StripeService;
@@ -11,10 +13,15 @@ import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscription.SubscriptionPlanService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
+import com.navaship.api.webhook.Webhook;
+import com.navaship.api.webhook.WebhookService;
+import com.navaship.api.webhook.WebhookType;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -27,17 +34,24 @@ import java.util.List;
  * Dummy data generated for dev env only
  */
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Profile("dev")
 public class DevDataInitializer implements CommandLineRunner {
-    private SubscriptionPlanService subscriptionPlanService;
-    private SubscriptionDetailService subscriptionDetailService;
-    private AppUserService appUserService;
-    private AddressService addressService;
-    private PackageService packageService;
-    private StripeService stripeService;
-    private PasswordEncoder passwordEncoder;
-    private List<SubscriptionPlan> defaultSubscriptionPlans;
+    private final SubscriptionPlanService subscriptionPlanService;
+    private final SubscriptionDetailService subscriptionDetailService;
+    private final AppUserService appUserService;
+    private final AddressService addressService;
+    private final PackageService packageService;
+    private final StripeService stripeService;
+    private final EasyPostService easyPostService;
+    private final WebhookService webhookService;
+    private final PasswordEncoder passwordEncoder;
+    private final List<SubscriptionPlan> defaultSubscriptionPlans;
+
+    @Value("${easypost.webhook.endpoint.url}")
+    private String easypostWebhookUrl;
+    @Value("${easypost.webhook.endpoint.secret}")
+    private String easypostWebhookSecret;
 
 
     @Override
@@ -74,6 +88,21 @@ public class DevDataInitializer implements CommandLineRunner {
             }
         } catch (StripeException e) {
             System.out.println("Error retrieving prices " + e.getMessage());
+        }
+
+        // Create easypost webhook for the guy so that the doesn't create it manually
+        if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
+            try {
+                com.easypost.model.Webhook easypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "test");
+                Webhook webhook = new Webhook();
+                webhook.setType(WebhookType.EASYPOST);
+                webhook.setWebhookId(easypostWebhook.getId());
+                webhook.setUrl(easypostWebhookUrl);
+                webhookService.createWebhook(webhook);
+            } catch (EasyPostException e) {
+                System.out.println("> Error creating Easypost webhook. You have to do it manually if the script is unable to create it");
+                System.out.println("> Reason: " + e.getMessage());
+            }
         }
     }
 }

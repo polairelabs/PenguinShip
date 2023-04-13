@@ -17,6 +17,9 @@ public class Webhook {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String webhookId;
-    @Column(unique=true)
-    private String type;
+    // Full url
+    private String url;
+    @Column(unique = true)
+    @Enumerated(EnumType.STRING)
+    private WebhookType type;
 }

@@ -84,6 +84,8 @@ public class Shipment {
 
     // Stripe charge id when Shipment is bought
     private String stripeChargeId;
+    // Stripe refund id when Refund has completed
+    private String stripeRefundId;
 
     @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL)
     private List<ActivityLog> activityLogs = new ArrayList<>();

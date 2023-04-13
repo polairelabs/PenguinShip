@@ -5,6 +5,7 @@ package com.navaship.api.easypost;
  * Status gotten from EasyPost: unknown, pre_transit, in_transit, out_for_delivery, available_for_pickup, delivered, return_to_sender, failure, canceled, error
  */
 public enum EasypostShipmentStatus {
+    NONE,
     UNKNOWN,
     PRE_TRANSIT,
     IN_TRANSIT,
@@ -13,6 +14,7 @@ public enum EasypostShipmentStatus {
     DELIVERED,
     RETURN_TO_SENDER,
     FAILURE,
+    FAILED,
     CANCELED,
     ERROR
 }

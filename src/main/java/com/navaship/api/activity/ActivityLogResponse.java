@@ -1,5 +1,6 @@
 package com.navaship.api.activity;
 
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.shipment.ShipmentResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,4 +18,5 @@ public class ActivityLogResponse {
     private ActivityMessageType messageType;
     private ShipmentResponse shipment;
     private LocalDateTime createdAt;
+    private EasypostShipmentStatus easypostStatus;
 }

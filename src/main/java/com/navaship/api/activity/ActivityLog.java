@@ -1,6 +1,7 @@
 package com.navaship.api.activity;
 
 import com.navaship.api.appuser.AppUser;
+import com.navaship.api.easypost.EasypostShipmentStatus;
 import com.navaship.api.shipment.Shipment;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,6 +32,8 @@ public class ActivityLog {
     private LocalDateTime createdAt;
     @ManyToOne
     private AppUser user;
+    @Enumerated(EnumType.STRING)
+    private EasypostShipmentStatus easypostStatus;
     @ManyToOne
     private Shipment shipment;
 }

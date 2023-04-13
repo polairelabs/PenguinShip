@@ -24,7 +24,7 @@ public class SendGridEmailService {
 
     public void sendVerificationEmail(String userEmail, String userFirstname, String emailVerificationJwt) throws IOException {
         // Frontend link
-        String verifyEmailLink = webAppUrl + "/register?token=" + emailVerificationJwt;
+        String verifyEmailLink = webAppUrl + "/confirm-account?token=" + emailVerificationJwt;
         Email from = new Email(sourceEmail);
         Email to = new Email(userEmail);
         Content content = new Content("text/html", createVerificationEmailBody(userFirstname, verifyEmailLink));

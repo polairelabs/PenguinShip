@@ -6,7 +6,9 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Price;
+import com.stripe.model.Refund;
 import com.stripe.model.checkout.Session;
+import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,5 +108,18 @@ public class StripeService {
         params.put("customer", customerId);
 
         return PaymentIntent.create(params);
+    }
+
+    public Refund refund(String chargeId) throws StripeException {
+        RefundCreateParams params = RefundCreateParams.builder()
+                .setCharge(chargeId)
+                .build();
+
+        return Refund.create(params);
+    }
+
+    public double getRefundAmount(Refund refund) {
+        long refundAmountInCents = refund.getAmount();
+        return refundAmountInCents / 100.0;
     }
 }

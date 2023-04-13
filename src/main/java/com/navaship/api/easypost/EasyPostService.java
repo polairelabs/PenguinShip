@@ -21,10 +21,6 @@ public class EasyPostService {
 
     @Value("${easypost.apikey}")
     private String easyPostApiKey;
-    @Value("${easypost.webhook.endpoint.secret}")
-    private String webhookSecret;
-    @Value("${easypost.webhook.endpoint.url}")
-    private String webhookUrl;
 
 
     public Shipment createShipment(com.navaship.api.address.Address fromAddress, com.navaship.api.address.Address toAddress, com.navaship.api.packages.Package parcel) throws EasyPostException {
@@ -67,15 +63,16 @@ public class EasyPostService {
         return shipment;
     }
 
-    public Webhook createWebhook() throws EasyPostException {
+    public Webhook createWebhook(String webhookUrl, String webhookSecret, String mode) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         Map<String, Object> paramMap = new HashMap<String, Object>();
         paramMap.put("url", webhookUrl);
         paramMap.put("webhook_secret", webhookSecret);
+        paramMap.put("mode", mode);
         return Webhook.create(paramMap);
     }
 
-    public Event validateWebhook(byte[] eventBody, Map<String, Object> headers) throws EasyPostException {
+    public Event validateWebhook(byte[] eventBody, Map<String, Object> headers, String webhookSecret) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         return Webhook.validateWebhook(eventBody, headers, webhookSecret);
     }

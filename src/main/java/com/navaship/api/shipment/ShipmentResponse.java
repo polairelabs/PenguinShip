@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,10 +25,11 @@ public class ShipmentResponse {
     private List<ShipmentAddressResponse> addresses;
     private ShipmentPackageResponse parcel;
     private ShipmentStatus status;
-    private EasypostShipmentStatus easyPostStatus;
+    private EasypostShipmentStatus easypostStatus;
     private RateResponse rate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Instant deliveryDate;
     private String trackingCode;
     private String postageLabelUrl;
     private String publicTrackingUrl;

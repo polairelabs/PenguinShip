@@ -4,6 +4,7 @@ public enum ActivityMessageType {
     NEW,
     STATUS_UPDATE,
     PURCHASE,
-    RETURN,
+    RETURN_STARTED,
+    RETURN_PROCESSED,
     NONE,
 }

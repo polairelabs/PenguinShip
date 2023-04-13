@@ -5,5 +5,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WebhookRepository extends JpaRepository<Webhook, Long> {
-    Webhook findWebhookByType(String type);
+    Webhook findWebhookByType(WebhookType type);
 }

@@ -1,9 +1,13 @@
 package com.navaship.api.shipment;
 
 import com.easypost.exception.EasyPostException;
+import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.navaship.api.activity.ActivityLoggerService;
 import com.navaship.api.activity.ActivityMessageType;
 import com.navaship.api.address.Address;
@@ -25,10 +29,14 @@ import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
+import com.navaship.api.util.ProfileHelper;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -37,7 +45,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
@@ -47,20 +58,26 @@ import java.util.regex.Pattern;
 import static com.navaship.api.common.ListApiConstants.*;
 
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping(path = "api/v1/shipments")
 public class ShipmentController {
-    private EasyPostService easyPostService;
-    private ShipmentService shipmentService;
-    private AddressService addressService;
-    private PackageService packageService;
-    private AppUserService appUserService;
-    private RateService rateService;
-    private StripeService stripeService;
-    private PersonService personService;
-    private SubscriptionDetailService subscriptionDetailService;
-    private ActivityLoggerService activityLoggerService;
-    private JwtService jwtService;
+    private final EasyPostService easyPostService;
+    private final ShipmentService shipmentService;
+    private final AddressService addressService;
+    private final PackageService packageService;
+    private final AppUserService appUserService;
+    private final RateService rateService;
+    private final StripeService stripeService;
+    private final PersonService personService;
+    private final SubscriptionDetailService subscriptionDetailService;
+    private final ActivityLoggerService activityLoggerService;
+    private final JwtService jwtService;
+
+    private final ProfileHelper profileHelper;
+
+    @Value("${easypost.webhook.endpoint.secret}")
+    private String easypostWebhookSecret;
+
 
 
     @GetMapping
@@ -96,22 +113,82 @@ public class ShipmentController {
     }
 
     @PostMapping("/easypost-webhook")
-    public ResponseEntity<String> easyPostWebhook(@RequestBody Map<String, Object> webhookData) {
-        // Webhook to listen for events and update shipments from easypost
-        System.out.println("Received EasyPost webhook: " + webhookData);
+    public ResponseEntity<String> easyPostWebhook(@RequestBody byte[] payload, HttpServletRequest request) {
+        boolean isProdProfile = profileHelper.isProdProfileActive();
+        Map<String, Object> webhookData = new HashMap<String, Object>();
+
+        if (isProdProfile) {
+            // Validate signature only in production because it seems easypost only sends signature to prod webhooks
+            Map<String, Object> headers = new HashMap<>();
+            Enumeration<String> headerNames = request.getHeaderNames();
+
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                String headerValue = request.getHeader(headerName);
+                headers.put(headerName, headerValue);
+            }
+
+            Event event;
+            try {
+                event = easyPostService.validateWebhook(payload, headers, easypostWebhookSecret);
+            } catch (EasyPostException e) {
+                System.err.println("Error verifying webhook signature: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            // Convert payload to Hashmap (webhookData)
+            Gson gson = new Gson();
+            String eventJson = gson.toJson(event);
+
+            Type type = new TypeToken<Map<String, Object>>(){}.getType();
+            webhookData = gson.fromJson(eventJson, type);
+        } else {
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                webhookData = objectMapper.readValue(payload, new TypeReference<Map<String, Object>>() {});
+            } catch (IOException e) {
+                System.err.println("Error parsing webhook payload: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        }
 
         // Extract shipment data
         if (webhookData != null && webhookData.containsKey("result")) {
             Map<String, Object> result = (Map<String, Object>) webhookData.get("result");
             String statusDetail = (String) result.get("status_detail");
-            if (statusDetail.equals("status_update")) {
+            if (statusDetail.equals("status_update") || statusDetail.equals("out_for_delivery") || statusDetail.equals("arrived_at_destination")) {
                 String easypostShipmentId = (String) result.get("shipment_id");
                 String shipmentStatus = (String) result.get("status");
                 String estimatedDeliveryDate = (String) result.get("est_delivery_date");
                 Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
                 userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
                 userShipment.setDeliveryDate(Instant.parse(estimatedDeliveryDate));
+
+                if (statusDetail.equals("arrived_at_destination")) {
+                    userShipment.setStatus(ShipmentStatus.DELIVERED);
+                }
+
                 shipmentService.updateShipment(userShipment);
+                activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentStatusChangeMessage(userShipment), ActivityMessageType.STATUS_UPDATE);
+            } else if (statusDetail.equals("return_update")) {
+                String easypostShipmentId = (String) result.get("shipment_id");
+                String shipmentStatus = (String) result.get("status");
+                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
+                String chargeId = userShipment.getStripeChargeId();
+
+                try {
+                    // Refund successful
+                    Refund refund = stripeService.refund(chargeId);
+                    userShipment.setStripeRefundId(refund.getId());
+                    userShipment.setStatus(ShipmentStatus.REFUND_PROCESSED);
+                    userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
+
+                    shipmentService.updateShipment(userShipment);
+                    double refundAmount = stripeService.getRefundAmount(refund);
+                    activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentReturnProcessed(userShipment, refundAmount), ActivityMessageType.RETURN_PROCESSED);
+                } catch (StripeException e) {
+                    System.err.println("Error issuing refund: " + e.getMessage());
+                }
             }
         }
 
@@ -326,6 +403,10 @@ public class ShipmentController {
         Shipment userShipment = shipmentService.retrieveShipment(shipmentId);
         jwtService.checkResourceBelongsToUser(principal, userShipment);
 
+        if (userShipment.getStatus() == ShipmentStatus.REFUND_PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Shipment is already being processed for return");
+        }
+
         com.easypost.model.Shipment shipment = null;
 
         try {
@@ -335,7 +416,12 @@ public class ShipmentController {
         }
 
         String status = shipment.getStatus();
-        boolean canReturnShipment = "failed".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status) || "pre_transit".equalsIgnoreCase(status);
+        boolean canReturnShipment;
+        if (!Objects.equals(status, "unknown")) {
+            canReturnShipment = "failed".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status) || "pre_transit".equalsIgnoreCase(status);
+        } else {
+            canReturnShipment = ShipmentStatus.PURCHASED.equals(userShipment.getStatus());
+        }
 
         if (!canReturnShipment) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot return Shipment");
@@ -348,6 +434,7 @@ public class ShipmentController {
         }
 
         userShipment.setStatus(ShipmentStatus.REFUND_PENDING);
+        activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentReturnStarted(userShipment), ActivityMessageType.RETURN_STARTED);
 
         Map<String, String> message = new HashMap<>();
         message.put("message", String.format("Processing refund for shipment %d", shipmentId));

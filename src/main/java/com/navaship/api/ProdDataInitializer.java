@@ -1,13 +1,21 @@
 package com.navaship.api;
 
+import com.easypost.exception.EasyPostException;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRoleEnum;
 import com.navaship.api.appuser.AppUserService;
+import com.navaship.api.easypost.EasyPostService;
 import com.navaship.api.security.PasswordEncoder;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlanService;
+import com.navaship.api.subscriptiondetail.SubscriptionDetail;
+import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
 import com.navaship.api.util.PasswordGenerator;
+import com.navaship.api.webhook.Webhook;
+import com.navaship.api.webhook.WebhookService;
+import com.navaship.api.webhook.WebhookType;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.Price;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,16 +33,24 @@ import java.util.List;
 @RequiredArgsConstructor
 @Profile("prod")
 public class ProdDataInitializer implements CommandLineRunner {
-    private final AppUserService appUserService;
     private final PasswordEncoder passwordEncoder;
+    private final AppUserService appUserService;
     private final PasswordGenerator passwordGenerator;
     private final SubscriptionPlanService subscriptionPlanService;
     private final StripeService stripeService;
+    private final EasyPostService easyPostService;
+    private final SubscriptionDetailService subscriptionDetailService;
+    private final WebhookService webhookService;
 
     @Value("${stripe.maxMembershipsAllowed}")
     private int maxMembershipsAllowed;
     @Value("${sendgrid.senderEmail}")
     private String adminEmail;
+
+    @Value("${easypost.webhook.endpoint.url}")
+    private String easypostWebhookUrl;
+    @Value("${easypost.webhook.endpoint.secret}")
+    private String easypostWebhookSecret;
 
 
     @Override
@@ -44,7 +60,18 @@ public class ProdDataInitializer implements CommandLineRunner {
             String password = passwordGenerator.generateRandomPassword(12);
             AppUser admin = new AppUser("Navaship", "Admin", adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password),
                     "", "", "", "", AppUserRoleEnum.ADMIN);
-            appUserService.verifyUserEmail(admin);
+            admin.setIsEmailVerified(true);
+
+            try {
+                Customer customer = stripeService.createCustomer(admin);
+                SubscriptionDetail subscriptionDetail = new SubscriptionDetail();
+                subscriptionDetail.setStripeCustomerId(customer.getId());
+                subscriptionDetail.setUser(admin);
+                subscriptionDetailService.createSubscriptionDetail(subscriptionDetail);
+            } catch (StripeException e) {
+                System.out.println("Error creating Stripe customer for default admin account " + e.getMessage());
+            }
+
             System.out.println("> Created admin user " + admin.getEmail() + " with password: " + password);
         }
 
@@ -69,6 +96,21 @@ public class ProdDataInitializer implements CommandLineRunner {
             }
         } catch (StripeException e) {
             System.out.println("Error retrieving prices " + e.getMessage());
+        }
+
+        // Create easypost webhook for the guy so that the doesn't create it manually
+        if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
+            try {
+                com.easypost.model.Webhook easypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "production");
+                Webhook webhook = new Webhook();
+                webhook.setType(WebhookType.EASYPOST);
+                webhook.setWebhookId(easypostWebhook.getId());
+                webhook.setUrl(easypostWebhookUrl);
+                webhookService.createWebhook(webhook);
+            } catch (EasyPostException e) {
+                System.out.println("> Error creating Easypost webhook. You have to do it manually if the script is unable to create it");
+                System.out.println("> Reason: " + e.getMessage());
+            }
         }
     }
 }
