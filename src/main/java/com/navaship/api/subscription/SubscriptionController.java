@@ -10,6 +10,8 @@ import com.navaship.api.jwt.JwtService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
+import com.navaship.api.webhook.WebhookService;
+import com.navaship.api.webhook.WebhookType;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.*;
@@ -41,9 +43,8 @@ public class SubscriptionController {
     private final SubscriptionDetailService subscriptionDetailService;
     private final JwtService jwtService;
     private final AppUserService appUserService;
+    private final WebhookService webhookService;
 
-    @Value("${stripe.webhook.endpoint.secret}")
-    private String webhookEndpointSecret;
     @Value("${navaship.api.domain}")
     private String domain;
 
@@ -127,6 +128,8 @@ public class SubscriptionController {
 
         // Validate signature with webhook secret
         try {
+            com.navaship.api.webhook.Webhook webhook = webhookService.retrieveWebhookWithType(WebhookType.STRIPE);
+            String webhookEndpointSecret = webhook.getSecret();
             event = Webhook.constructEvent(payload, sigHeader, webhookEndpointSecret);
         } catch (SignatureVerificationException e) {
             // Invalid signature

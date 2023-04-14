@@ -121,23 +121,23 @@ The following environment variables are used in the continuous deployment pipeli
 
 The table below lists all the other environment variables that are used to deploy the backend stack and whether they are stored as secrets (_the secure column is checked_) or plain old environment variables 
 
-| Variable Name                        | Description                                         | Secured | Dev Only |
-|--------------------------------------|-----------------------------------------------------|---------|----------------------|
-| DATABASE_NAME                        | Database name for the application                   |         |                      |
-| DATABASE_PORT                        | Port number for the database connection             |         |                      |
-| DATABASE_USER                        | Username for database access                        |         |                      |
-| DATABASE_PASSWORD                    | Password for database user                          |   ✓     |                      |
-| PGADMIN_DEFAULT_EMAIL               | Default email for PgAdmin access                    |         |         ✓            |
-| PGADMIN_DEFAULT_PASSWORD            | Default password for PgAdmin access                 |        |         ✓            |
-| API_DOMAIN                          | API domain for the application                      |         |                      |
-| API_PORT                            | API port for the application                        |         |                      |
-| WEBAPP_URL                          | URL for the web application                         |         |                      |
-| SENDGRID_SENDER_EMAIL               | Sender email for SendGrid email service             |         |                      |
-| SENDGRID_APIKEY                     | API key for SendGrid email service                  |   ✓     |                      |
-| EASYPOST_APIKEY                     | API key for EasyPost shipping service               |   ✓     |                      |
-| EASYPOST_WEBHOOK_ENDPOINT_SECRET    | Secret for EasyPost webhook endpoint                |   ✓     |                      |
-| EASYPOST_WEBHOOK_ENDPOINT_URL       | URL for EasyPost webhook endpoint                   |         |                      |
-| STRIPE_PRODUCT_ID       | The product ID in Stripe that contains the memberships                  |       |                      |
-| STRIPE_APIKEY                       | API key for Stripe payment processing               |   ✓     |                      |
-| STRIPE_WEBHOOK_ENDPOINT_SECRET      | Secret for Stripe webhook endpoint                  |   ✓     |                      |
+| Variable Name                        | Description                                            | Secured | Dev Only |
+|--------------------------------------|--------------------------------------------------------|---------|----------------------|
+| DATABASE_NAME                        | Database name for the application                      |         |                      |
+| DATABASE_PORT                        | Port number for the database connection                |         |                      |
+| DATABASE_USER                        | Username for database access                           |         |                      |
+| DATABASE_PASSWORD                    | Password for database user                             |   ✓     |                      |
+| PGADMIN_DEFAULT_EMAIL               | Default email for PgAdmin access                       |         |         ✓            |
+| PGADMIN_DEFAULT_PASSWORD            | Default password for PgAdmin access                    |        |         ✓            |
+| API_DOMAIN                          | API domain for the application                         |         |                      |
+| API_PORT                            | API port for the application                           |         |                      |
+| WEBAPP_URL                          | URL for the web application                            |         |                      |
+| SENDGRID_SENDER_EMAIL               | Sender email for SendGrid email service                |         |                      |
+| SENDGRID_APIKEY                     | API key for SendGrid email service                     |   ✓     |                      |
+| EASYPOST_APIKEY                     | API key for EasyPost shipping service                  |   ✓     |                      |
+| EASYPOST_WEBHOOK_ENDPOINT_SECRET    | Secret for EasyPost webhook endpoint                   |   ✓     |                      |
+| EASYPOST_WEBHOOK_ENDPOINT_URL       | URL for EasyPost webhook endpoint                      |         |                      |
+| STRIPE_PRODUCT_ID       | The product ID in Stripe that contains the memberships |       |                      |
+| STRIPE_APIKEY                       | API key for Stripe payment processing                  |   ✓     |                      |
+| STRIPE_WEBHOOK_ENDPOINT_URL      | URL for Stripe webhook endpoint                        |   ✓     |                      |
 

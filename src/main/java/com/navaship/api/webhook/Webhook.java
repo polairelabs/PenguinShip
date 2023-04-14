@@ -22,4 +22,5 @@ public class Webhook {
     @Column(unique = true)
     @Enumerated(EnumType.STRING)
     private WebhookType type;
+    private String secret;
 }

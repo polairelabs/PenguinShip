@@ -53,7 +53,7 @@ jobs:
             export EASYPOST_WEBHOOK_ENDPOINT_SECRET="${{ secrets.EASYPOST_WEBHOOK_ENDPOINT_SECRET }}"
             export EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}"
             export STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}"
-            export STRIPE_WEBHOOK_ENDPOINT_SECRET="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_SECRET }}"
+            export STRIPE_WEBHOOK_ENDPOINT_URL="${{ secrets.STRIPE_WEBHOOK_ENDPOINT_URL }}"
             export STRIPE_PRODUCT_ID="${{ vars.STRIPE_PRODUCT_ID }}"
             export AUTH_PRIVATE_KEY="${{ secrets.AUTH_PRIVATE_KEY }}"
             export AUTH_PUBLIC_KEY="${{ secrets.AUTH_PUBLIC_KEY }}"

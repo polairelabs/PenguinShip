@@ -87,7 +87,7 @@ public class AppUser implements UserDetails {
 
 
     public AppUser(String email, String password, String firstName, String lastName, String phoneNumber, String city, String state, String address, AppUserRoleEnum role) {
-        this.email = email;
+        this.email = email.toLowerCase();
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;

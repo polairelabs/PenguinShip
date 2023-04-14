@@ -17,6 +17,7 @@ import com.navaship.api.webhook.WebhookType;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
+import com.stripe.model.WebhookEndpoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -51,6 +52,8 @@ public class ProdDataInitializer implements CommandLineRunner {
     private String easypostWebhookUrl;
     @Value("${easypost.webhook.endpoint.secret}")
     private String easypostWebhookSecret;
+    @Value("${stripe.webhook.endpoint.url}")
+    private String stripeWebhookUrl;
 
 
     @Override
@@ -109,6 +112,23 @@ public class ProdDataInitializer implements CommandLineRunner {
                 webhookService.createWebhook(webhook);
             } catch (EasyPostException e) {
                 System.out.println("> Error creating Easypost webhook. You have to do it manually if the script is unable to create it");
+                System.out.println("> Reason: " + e.getMessage());
+            }
+        }
+
+        if (webhookService.retrieveWebhookWithType(WebhookType.STRIPE) == null) {
+            try {
+                if (stripeService.findWebhookByUrl(stripeWebhookUrl) == null) {
+                    WebhookEndpoint stripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
+                    Webhook webhook = new Webhook();
+                    webhook.setType(WebhookType.STRIPE);
+                    webhook.setWebhookId(stripeWebhook.getId());
+                    webhook.setUrl(stripeWebhookUrl);
+                    webhook.setSecret(stripeWebhook.getSecret());
+                    webhookService.createWebhook(webhook);
+                }
+            } catch (StripeException e) {
+                System.out.println("> Error creating Stripe webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
             }
         }

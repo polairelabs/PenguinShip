@@ -3,17 +3,16 @@ package com.navaship.api.stripe;
 import com.navaship.api.appuser.AppUser;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.PaymentIntent;
-import com.stripe.model.Price;
-import com.stripe.model.Refund;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.RefundCreateParams;
+import com.stripe.param.WebhookEndpointListParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,8 +88,7 @@ public class StripeService {
         Stripe.apiKey = stripeApiKey;
         Map<String, Object> params = new HashMap<>();
         params.put("customer", customerId);
-        // TODO change to url profile back
-        params.put("return_url", webAppUrl);
+        params.put("return_url", webAppUrl + "/account-settings");
 
         return com.stripe.model.billingportal.Session.create(params);
     }
@@ -108,6 +106,45 @@ public class StripeService {
         params.put("customer", customerId);
 
         return PaymentIntent.create(params);
+    }
+
+    public WebhookEndpoint findWebhookByUrl(String webhookEndpointUrl) throws StripeException {
+        Stripe.apiKey = stripeApiKey;
+
+        WebhookEndpointListParams params = WebhookEndpointListParams.builder()
+                .setLimit(100L)
+                .build();
+
+        WebhookEndpointCollection webhookEndpoints = WebhookEndpoint.list(params);
+
+        for (WebhookEndpoint webhookEndpoint : webhookEndpoints.getData()) {
+            if (webhookEndpoint.getUrl().equals(webhookEndpointUrl)) {
+                return webhookEndpoint;
+            }
+        }
+        return null;
+    }
+
+    public WebhookEndpoint createWebhook(String webhookEndpointUrl) throws StripeException {
+        Stripe.apiKey = stripeApiKey;
+        List<Object> enabledEvents = new ArrayList<>();
+        enabledEvents.add("invoice.payment_succeeded");
+        enabledEvents.add("customer.subscription.deleted");
+        enabledEvents.add("customer.subscription.created");
+        enabledEvents.add("customer.subscription.updated");
+        enabledEvents.add("customer.updated");
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("url", webhookEndpointUrl);
+        params.put("enabled_events", enabledEvents);
+
+        return WebhookEndpoint.create(params);
+    }
+
+    public String getWebhookSecret(String webhookId) throws StripeException {
+        Stripe.apiKey = stripeApiKey;
+        WebhookEndpoint webhookEndpoint = WebhookEndpoint.retrieve(webhookId);
+        return webhookEndpoint.getSecret();
     }
 
     public Refund refund(String chargeId) throws StripeException {
