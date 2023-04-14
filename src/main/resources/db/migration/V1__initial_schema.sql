@@ -14,9 +14,9 @@ create table subscription_detail (user_id varchar(255) not null, card_last_four_
 create table subscription_plan (id varchar(255) not null, description varchar(255), max_limit int4 not null, name varchar(255), shipment_handling_fee numeric(4, 3), stripe_price_id varchar(255), primary key (id));
 create table verification_token (id int8 not null, expiry_date timestamp not null, token varchar(255), token_type varchar(255), user_id varchar(255), primary key (id));
 create table webhook (id int8 not null, secret varchar(255), type varchar(255), url varchar(255), webhook_id varchar(255), primary key (id));
-alter table if exists person add constraint UK_shipment_id_type unique (shipment_id, type);
+alter table if exists person add constraint UK_person_shipment_id_type  unique (shipment_id, type);
 alter table if exists refresh_token add constraint UK_refresh_token unique (refresh_token);
-alter table if exists shipment_address add constraint UK_shipment_id_type unique (shipment_id, type);
+alter table if exists shipment_address add constraint UK_shipment_address_shipment_id_type  unique (shipment_id, type);
 alter table if exists verification_token add constraint UK_user_id_token_type unique (user_id, token_type);
 alter table if exists webhook add constraint UK_webhook_type unique (type);
 alter table if exists activity_log add constraint FK_activity_log_shipment foreign key (shipment_id) references shipment;
