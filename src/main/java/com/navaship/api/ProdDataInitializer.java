@@ -109,10 +109,13 @@ public class ProdDataInitializer implements CommandLineRunner {
                 webhook.setWebhookId(easypostWebhook.getId());
                 webhook.setUrl(easypostWebhookUrl);
                 webhookService.createWebhook(webhook);
+                System.out.println("> Created Easypost webhook " + webhook.getUrl());
             } catch (EasyPostException e) {
                 System.out.println("> Error creating Easypost webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
             }
+        } else {
+            System.out.println("> Easypost webhook already exists");
         }
 
         if (webhookService.retrieveWebhookWithType(WebhookType.STRIPE) == null) {
@@ -125,11 +128,14 @@ public class ProdDataInitializer implements CommandLineRunner {
                     webhook.setUrl(stripeWebhookUrl);
                     webhook.setSecret(stripeWebhook.getSecret());
                     webhookService.createWebhook(webhook);
+                    System.out.println("> Created Stripe webhook " + webhook.getUrl());
                 }
             } catch (StripeException e) {
                 System.out.println("> Error creating Stripe webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
             }
+        } else {
+            System.out.println("> Stripe webhook already exists");
         }
     }
 }

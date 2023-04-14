@@ -305,7 +305,8 @@ public class SubscriptionController {
     private boolean isValidWebAppBaseUrl(String baseUrl) {
         try {
             URL url = new URL(baseUrl);
-            return webAppUrl.equals(url.getHost());
+            URL webAppURL = new URL(webAppUrl);
+            return webAppURL.getHost().equals(url.getHost()) && webAppURL.getPort() == url.getPort();
         } catch (MalformedURLException e) {
             return false;
         }
