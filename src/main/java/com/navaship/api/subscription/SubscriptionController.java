@@ -45,8 +45,8 @@ public class SubscriptionController {
     private final AppUserService appUserService;
     private final WebhookService webhookService;
 
-    @Value("${navaship.api.domain}")
-    private String domain;
+    @Value("${navaship.webapp.url}")
+    private String webAppUrl;
 
 
     @GetMapping()
@@ -74,7 +74,7 @@ public class SubscriptionController {
 
     @PostMapping("/create-checkout-session")
     public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestParam String subscriptionId, @RequestParam String userId, @RequestParam String baseUrl) {
-        if (!isValidBaseUrl(baseUrl)) {
+        if (!isValidWebAppBaseUrl(baseUrl)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid base url");
         }
 
@@ -302,10 +302,10 @@ public class SubscriptionController {
         }
     }
 
-    private boolean isValidBaseUrl(String baseUrl) {
+    private boolean isValidWebAppBaseUrl(String baseUrl) {
         try {
             URL url = new URL(baseUrl);
-            return domain.equals(url.getHost());
+            return webAppUrl.equals(url.getHost());
         } catch (MalformedURLException e) {
             return false;
         }
