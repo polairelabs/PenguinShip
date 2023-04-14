@@ -80,25 +80,24 @@ public class ProdDataInitializer implements CommandLineRunner {
 
         if (subscriptionPlanService.retrieveSubscriptionPlans().size() == maxMembershipsAllowed) {
             System.out.println("> Max number of subscriptions allowed already created");
-            return;
-        }
-
-        // Create memberships from Stripe product and product prices
-        try {
-            List<Price> prices = stripeService.retrievePrices();
-            for (Price price : prices) {
-                // Can potentially create more than [maxMembershipsAllowed] subscriptions (if we have more than [maxMembershipsAllowed] prices in Stripe product)
-                if (subscriptionPlanService.retrieveSubscriptionPlanByPriceId(price.getId()).isEmpty()) {
-                    subscriptionPlanService.createSubscriptionPlan("", "", price.getId(), BigDecimal.valueOf(0.02), 10);
+        } else {
+            // Create memberships from Stripe product and product prices
+            try {
+                List<Price> prices = stripeService.retrievePrices();
+                for (Price price : prices) {
+                    // Can potentially create more than [maxMembershipsAllowed] subscriptions (if we have more than [maxMembershipsAllowed] prices in Stripe product)
+                    if (subscriptionPlanService.retrieveSubscriptionPlanByPriceId(price.getId()).isEmpty()) {
+                        subscriptionPlanService.createSubscriptionPlan("", "", price.getId(), BigDecimal.valueOf(0.02), 10);
+                    }
                 }
+                // Create empty subscriptions to always have a minimum of [maxMembershipsAllowed] subscriptions (memberships) in the database,
+                // if client doesn't have [maxMembershipsAllowed] subscriptions for his product
+                for (int i = maxMembershipsAllowed; i > prices.size(); i--) {
+                    subscriptionPlanService.createSubscriptionPlan("Place holder #" + i, "", "placeholder_id_" + i, BigDecimal.valueOf(0.02), 10);
+                }
+            } catch (StripeException e) {
+                System.out.println("Error retrieving prices " + e.getMessage());
             }
-            // Create empty subscriptions to always have a minimum of [maxMembershipsAllowed] subscriptions (memberships) in the database,
-            // if client doesn't have [maxMembershipsAllowed] subscriptions for his product
-            for (int i = maxMembershipsAllowed; i > prices.size(); i--) {
-                subscriptionPlanService.createSubscriptionPlan("Place holder #" + i, "", "placeholder_id_" + i, BigDecimal.valueOf(0.02), 10);
-            }
-        } catch (StripeException e) {
-            System.out.println("Error retrieving prices " + e.getMessage());
         }
 
         // Create easypost webhook for the guy so that the doesn't create it manually
