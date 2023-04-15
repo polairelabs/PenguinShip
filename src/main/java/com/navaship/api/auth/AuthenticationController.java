@@ -284,7 +284,7 @@ public class AuthenticationController {
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
-                .domain(Objects.requireNonNull(extractDomain(webAppUrl)))
+                .domain("navaship.io")
                 .httpOnly(true)
                 .sameSite("None")
                 .secure(isProdProfile)
@@ -301,7 +301,7 @@ public class AuthenticationController {
                 if (cookie.getName().equals(cookieName)) {
                     ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
                             .maxAge(0)
-                            .domain(Objects.requireNonNull(extractDomain(webAppUrl)))
+                            .domain("navaship.io")
                             .httpOnly(isHttpOnly)
                             .sameSite("None")
                             .secure(isProdProfile)
@@ -327,14 +327,5 @@ public class AuthenticationController {
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
         String passwordResetJwt = jwtService.createJwtTokenForValidation(user, verificationToken.getToken());
         sendGridService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), passwordResetJwt);
-    }
-
-    private String extractDomain(String url) {
-        try {
-            return new URL(url).getHost();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
