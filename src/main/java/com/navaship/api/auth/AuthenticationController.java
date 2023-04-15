@@ -129,7 +129,7 @@ public class AuthenticationController {
         return new ResponseEntity<>(registrationResponse, HttpStatus.CREATED);
     }
 
-    @GetMapping("/refresh-token")
+    @PostMapping("/refresh-token")
     public ResponseEntity<RefreshTokenResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         // Client exchanges refresh token to get a new access token and a new refresh token
         // Refresh token rotation is used to always provide the user with a new refresh token when he requests new access token
@@ -280,31 +280,30 @@ public class AuthenticationController {
     }
 
     private String getRefreshTokenCookie(String refreshToken) {
-        boolean isProdProfile = profileHelper.isProdProfileActive();
+        // boolean isProdProfile = profileHelper.isProdProfileActive();
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
-                .domain(".navaship.io")
+                .domain("navaship.io")
                 .httpOnly(true)
                 .sameSite("None")
-                .secure(isProdProfile)
+                .secure(true)
                 .path("/")
                 .build().toString();
     }
 
     private void clearCookie(HttpServletRequest request, HttpServletResponse response, String cookieName, boolean isHttpOnly) {
-        boolean isProdProfile = profileHelper.isProdProfileActive();
-
+        // boolean isProdProfile = profileHelper.isProdProfileActive();
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if (cookie.getName().equals(cookieName)) {
                     ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
                             .maxAge(0)
-                            .domain(".navaship.io")
+                            .domain("navaship.io")
                             .httpOnly(isHttpOnly)
                             .sameSite("None")
-                            .secure(isProdProfile)
+                            .secure(true)
                             .path("/")
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
