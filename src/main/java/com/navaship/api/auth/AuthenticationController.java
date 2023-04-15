@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -57,7 +58,8 @@ public class AuthenticationController {
 
     @Value("${navaship.api.refreshTokenExpirationMs}")
     private long refreshTokenExpirationMs;
-
+    @Value("${navaship.webapp.url}")
+    private String webAppUrl;
 
     @GetMapping("/user-information")
     @JsonView(AuthViews.Default.class)
@@ -282,6 +284,7 @@ public class AuthenticationController {
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
+                .domain(Objects.requireNonNull(extractDomain(webAppUrl)))
                 .httpOnly(true)
                 .sameSite("None")
                 .secure(isProdProfile)
@@ -298,10 +301,11 @@ public class AuthenticationController {
                 if (cookie.getName().equals(cookieName)) {
                     ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
                             .maxAge(0)
+                            .domain(Objects.requireNonNull(extractDomain(webAppUrl)))
                             .httpOnly(isHttpOnly)
-                            .sameSite(isProdProfile ? "None" : "Lax")
+                            .sameSite("None")
                             .secure(isProdProfile)
-                            .path("/api/v1/auth/refresh-token")
+                            .path("/")
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
                 }
@@ -323,5 +327,14 @@ public class AuthenticationController {
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
         String passwordResetJwt = jwtService.createJwtTokenForValidation(user, verificationToken.getToken());
         sendGridService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), passwordResetJwt);
+    }
+
+    private String extractDomain(String url) {
+        try {
+            return new URL(url).getHost();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
