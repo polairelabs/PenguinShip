@@ -9,7 +9,7 @@ import com.navaship.api.refreshtoken.RefreshToken;
 import com.navaship.api.refreshtoken.RefreshTokenException;
 import com.navaship.api.refreshtoken.RefreshTokenResponse;
 import com.navaship.api.refreshtoken.RefreshTokenService;
-import com.navaship.api.sendgrid.SendGridEmailService;
+import com.navaship.api.sendgrid.SendGridService;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
@@ -49,7 +49,7 @@ public class AuthenticationController {
     private final StripeService stripeService;
     private final SubscriptionDetailService subscriptionDetailService;
     private final VerificationTokenService verificationTokenService;
-    private final SendGridEmailService sendGridEmailService;
+    private final SendGridService sendGridService;
     private final AuthenticationService authenticationService;
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
@@ -314,7 +314,7 @@ public class AuthenticationController {
         verificationTokenService.findByUserAndTokenType(user, VerificationTokenType.VERIFY_EMAIL).ifPresent(verificationTokenService::delete);
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.VERIFY_EMAIL);
         String emailVerificationJwt = jwtService.createJwtTokenForValidation(user, verificationToken.getToken());
-        sendGridEmailService.sendVerificationEmail(user.getEmail(), user.getFirstName(), emailVerificationJwt);
+        sendGridService.sendVerificationEmail(user.getEmail(), user.getFirstName(), emailVerificationJwt);
     }
 
     private void sendPasswordResetLink(AppUser user) throws IOException {
@@ -322,6 +322,6 @@ public class AuthenticationController {
         verificationTokenService.findByUserAndTokenType(user, VerificationTokenType.RESET_PASSWORD).ifPresent(verificationTokenService::delete);
         VerificationToken verificationToken = verificationTokenService.createVerificationToken(user, VerificationTokenType.RESET_PASSWORD);
         String passwordResetJwt = jwtService.createJwtTokenForValidation(user, verificationToken.getToken());
-        sendGridEmailService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), passwordResetJwt);
+        sendGridService.sendPasswordResetEmail(user.getEmail(), user.getFirstName(), passwordResetJwt);
     }
 }

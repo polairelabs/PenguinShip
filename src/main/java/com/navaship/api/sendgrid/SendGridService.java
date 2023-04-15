@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class SendGridEmailService {
+public class SendGridService {
     @Value("${sendgrid.apikey}")
     private String sendGridApiKey;
     @Value("${sendgrid.senderEmail}")

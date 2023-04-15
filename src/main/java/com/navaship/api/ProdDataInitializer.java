@@ -120,7 +120,7 @@ public class ProdDataInitializer implements CommandLineRunner {
 
         if (webhookService.retrieveWebhookWithType(WebhookType.STRIPE) == null) {
             try {
-                if (stripeService.findWebhookByUrl(stripeWebhookUrl) == null) {
+                // if (stripeService.findWebhookByUrl(stripeWebhookUrl) == null) {
                     WebhookEndpoint stripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
                     Webhook webhook = new Webhook();
                     webhook.setType(WebhookType.STRIPE);
@@ -129,7 +129,7 @@ public class ProdDataInitializer implements CommandLineRunner {
                     webhook.setSecret(stripeWebhook.getSecret());
                     webhookService.createWebhook(webhook);
                     System.out.println("> Created Stripe webhook " + webhook.getUrl());
-                }
+                // }
             } catch (StripeException e) {
                 System.out.println("> Error creating Stripe webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());

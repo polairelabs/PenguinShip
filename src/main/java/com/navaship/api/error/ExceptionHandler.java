@@ -1,7 +1,7 @@
 package com.navaship.api.error;
 
 import com.navaship.api.refreshtoken.RefreshTokenException;
-import com.navaship.api.sendgrid.SendGridEmailException;
+import com.navaship.api.sendgrid.SendGridException;
 import com.navaship.api.verificationtoken.VerificationTokenException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -62,8 +62,8 @@ public class ExceptionHandler extends ResponseEntityExceptionHandler {
         return buildResponseEntity(new ErrorDetails(ex.getStatusCode(), ex.getMessage()));
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(SendGridEmailException.class)
-    protected ResponseEntity<Object> handleVerificationTokenException(SendGridEmailException ex) {
+    @org.springframework.web.bind.annotation.ExceptionHandler(SendGridException.class)
+    protected ResponseEntity<Object> handleVerificationTokenException(SendGridException ex) {
         return buildResponseEntity(new ErrorDetails(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), ex));
     }
 
