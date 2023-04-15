@@ -55,7 +55,5 @@ jobs:
             export STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}"
             export STRIPE_WEBHOOK_ENDPOINT_URL="${{ vars.STRIPE_WEBHOOK_ENDPOINT_URL }}"
             export STRIPE_PRODUCT_ID="${{ vars.STRIPE_PRODUCT_ID }}"
-            export AUTH_PRIVATE_KEY="${{ secrets.AUTH_PRIVATE_KEY }}"
-            export AUTH_PUBLIC_KEY="${{ secrets.AUTH_PUBLIC_KEY }}"
             docker-compose -f docker-compose.prod.yml pull
             docker-compose -f docker-compose.prod.yml up -d

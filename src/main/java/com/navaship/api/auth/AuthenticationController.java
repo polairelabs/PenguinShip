@@ -283,9 +283,9 @@ public class AuthenticationController {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
                 .httpOnly(true)
-                .sameSite(isProdProfile ? "None" : "Lax")
+                .sameSite("None")
                 .secure(isProdProfile)
-                .path("/api/v1/auth/refresh-token")
+                .path("/")
                 .build().toString();
     }
 

@@ -17,7 +17,7 @@ public class CorsConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 // Add the CORS configuration for the /api/v1/auth/refresh-token endpoint
-                registry.addMapping("/api/v*/auth/refresh-token")
+                registry.addMapping("/api/v1/auth/refresh-token")
                         .allowedOrigins(webAppUrl)
                         .allowedMethods("GET")
                         .allowCredentials(true);
