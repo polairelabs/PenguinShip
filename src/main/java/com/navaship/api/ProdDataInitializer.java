@@ -24,6 +24,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -98,18 +99,6 @@ public class ProdDataInitializer implements CommandLineRunner {
             }
         }
 
-        Webhook easypostWebhook = webhookService.retrieveWebhookWithType(WebhookType.EASYPOST);
-        if (easypostWebhook != null) {
-            // Delete it
-            try {
-                easyPostService.deleteWebhook(easypostWebhook.getWebhookId());
-                webhookService.deleteWebhook(easypostWebhook);
-                System.out.println("> Deleted Easypost webhook " + easypostWebhook.getWebhookId());
-            } catch (EasyPostException e) {
-                System.out.println("> Error deleting Easypost webhook " + e.getMessage());
-            }
-        }
-
         if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
             try {
                 String easypostWebhookSecret = passwordGenerator.generateStrongKey();
@@ -127,17 +116,6 @@ public class ProdDataInitializer implements CommandLineRunner {
             }
         }
 
-        Webhook stripeWebhook = webhookService.retrieveWebhookWithType(WebhookType.STRIPE);
-        if (stripeWebhook != null) {
-            try {
-                stripeService.deleteWebhook(stripeWebhook.getWebhookId());
-                webhookService.deleteWebhook(stripeWebhook);
-                System.out.println("> Deleted Stripe webhook " + stripeWebhook.getWebhookId());
-            } catch (StripeException e) {
-                System.out.println("> Error deleting Stripe webhook " + e.getMessage());
-            }
-        }
-
         if (webhookService.retrieveWebhookWithType(WebhookType.STRIPE) == null) {
             try {
                 WebhookEndpoint newStripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
@@ -152,6 +130,27 @@ public class ProdDataInitializer implements CommandLineRunner {
                 System.out.println("> Error creating Stripe webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
             }
+        }
+    }
+
+    @PreDestroy
+    public void cleanUpService() {
+        Webhook easypostWebhook = webhookService.retrieveWebhookWithType(WebhookType.EASYPOST);
+        try {
+            easyPostService.deleteWebhook(easypostWebhook.getWebhookId());
+            webhookService.deleteWebhook(easypostWebhook);
+            System.out.println("> Deleted Easypost webhook " + easypostWebhook.getWebhookId());
+        } catch (EasyPostException e) {
+            System.out.println("> Error deleting Easypost webhook " + e.getMessage());
+        }
+
+        Webhook stripeWebhook = webhookService.retrieveWebhookWithType(WebhookType.STRIPE);
+        try {
+            stripeService.deleteWebhook(stripeWebhook.getWebhookId());
+            webhookService.deleteWebhook(stripeWebhook);
+            System.out.println("> Deleted Stripe webhook " + stripeWebhook.getWebhookId());
+        } catch (StripeException e) {
+            System.out.println("> Error deleting Stripe webhook " + e.getMessage());
         }
     }
 }
