@@ -83,9 +83,9 @@ public class EasypostWebhookProcessingService {
                     userShipment.setDeliveryDate(Instant.now());
                 } else {
                     String shipmentStatus = (String) result.get("status");
+                    userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
                     Long estDeliveryDateMillis = (Long) result.get("estDeliveryDate");
                     userShipment.setDeliveryDate(Instant.ofEpochMilli(estDeliveryDateMillis));
-                    userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
                 }
 
                 shipmentService.updateShipment(userShipment);
