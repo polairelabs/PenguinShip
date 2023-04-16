@@ -103,7 +103,7 @@ public class ProdDataInitializer implements CommandLineRunner {
         // Create easypost webhook for the guy so that the doesn't create it manually
         if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
             try {
-                com.easypost.model.Webhook easypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "production");
+                com.easypost.model.Webhook easypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "test");
                 Webhook webhook = new Webhook();
                 webhook.setType(WebhookType.EASYPOST);
                 webhook.setWebhookId(easypostWebhook.getId());
