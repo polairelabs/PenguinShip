@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.navaship.api.activity.ActivityLoggerService;
 import com.navaship.api.activity.ActivityMessageType;
 import com.navaship.api.address.Address;
@@ -47,10 +45,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -109,7 +105,6 @@ public class ShipmentController {
 
     @PostMapping("/easypost-webhook")
     public ResponseEntity<String> easyPostWebhook(@RequestBody byte[] payload, HttpServletRequest request) {
-        // Validate signature only in production because it seems easypost only sends signature to prod webhooks
         Map<String, Object> headers = new HashMap<>();
         Enumeration<String> headerNames = request.getHeaderNames();
 
@@ -135,30 +130,33 @@ public class ShipmentController {
         try {
             eventJson = objectMapper.writeValueAsString(event);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+
         TypeFactory typeFactory = objectMapper.getTypeFactory();
         MapType mapType = typeFactory.constructMapType(HashMap.class, String.class, Object.class);
         try {
             webhookData = objectMapper.readValue(eventJson, mapType);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        // Extract shipment data
+        // Extract shipment data in result
         if (webhookData != null && webhookData.containsKey("result")) {
             Map<String, Object> result = (Map<String, Object>) webhookData.get("result");
             String statusDetail = (String) result.get("statusDetail");
             if (statusDetail.equals("status_update") || statusDetail.equals("out_for_delivery") || statusDetail.equals("arrived_at_destination")) {
                 String easypostShipmentId = (String) result.get("shipmentId");
-                String estimatedDeliveryDate = (String) result.get("est_delivery_date");
 
                 Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
-                userShipment.setDeliveryDate(Instant.parse(estimatedDeliveryDate));
+
                 if (statusDetail.equals("arrived_at_destination")) {
                     userShipment.setStatus(ShipmentStatus.DELIVERED);
+                    userShipment.setDeliveryDate(Instant.now());
                 } else {
                     String shipmentStatus = (String) result.get("status");
+                    Long estDeliveryDateMillis = (Long) result.get("estDeliveryDate");
+                    userShipment.setDeliveryDate(Instant.ofEpochMilli(estDeliveryDateMillis));
                     userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
                 }
 
@@ -166,11 +164,10 @@ public class ShipmentController {
                 activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentStatusChangeMessage(userShipment), ActivityMessageType.STATUS_UPDATE);
             } else if (statusDetail.equals("return_update")) {
                 String easypostShipmentId = (String) result.get("shipmentId");
+                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
                 String shipmentStatus = (String) result.get("status");
 
-                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
                 String chargeId = userShipment.getStripeChargeId();
-
                 try {
                     // Refund successful
                     Refund refund = stripeService.refund(chargeId);
@@ -187,7 +184,6 @@ public class ShipmentController {
             }
         }
 
-        // Return a 200 OK response to acknowledge receipt of the webhook
         return ResponseEntity.ok().build();
     }
 
