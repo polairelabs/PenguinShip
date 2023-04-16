@@ -4,7 +4,7 @@ import com.easypost.exception.EasyPostException;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRoleEnum;
 import com.navaship.api.appuser.AppUserService;
-import com.navaship.api.easypost.EasyPostService;
+import com.navaship.api.easypost.EasypostService;
 import com.navaship.api.security.PasswordEncoder;
 import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlanService;
@@ -40,7 +40,7 @@ public class ProdDataInitializer implements CommandLineRunner {
     private final PasswordGenerator passwordGenerator;
     private final SubscriptionPlanService subscriptionPlanService;
     private final StripeService stripeService;
-    private final EasyPostService easyPostService;
+    private final EasypostService easyPostService;
     private final SubscriptionDetailService subscriptionDetailService;
     private final WebhookService webhookService;
 

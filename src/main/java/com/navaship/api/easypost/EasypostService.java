@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class EasyPostService {
+public class EasypostService {
     public static final String FROM_ADDRESS_MAP_KEY = "from_address";
     public static final String TO_ADDRESS_MAP_KEY = "to_address";
     public static final String PARCEL_MAP_KEY = "parcel";

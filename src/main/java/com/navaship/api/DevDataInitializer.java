@@ -5,7 +5,7 @@ import com.navaship.api.address.AddressService;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserRoleEnum;
 import com.navaship.api.appuser.AppUserService;
-import com.navaship.api.easypost.EasyPostService;
+import com.navaship.api.easypost.EasypostService;
 import com.navaship.api.packages.PackageService;
 import com.navaship.api.security.PasswordEncoder;
 import com.navaship.api.stripe.StripeService;
@@ -21,7 +21,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
 import com.stripe.model.WebhookEndpoint;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -29,7 +28,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -46,7 +44,7 @@ public class DevDataInitializer implements CommandLineRunner {
     private final AddressService addressService;
     private final PackageService packageService;
     private final StripeService stripeService;
-    private final EasyPostService easyPostService;
+    private final EasypostService easyPostService;
     private final WebhookService webhookService;
     private final PasswordEncoder passwordEncoder;
     private final PasswordGenerator passwordGenerator;

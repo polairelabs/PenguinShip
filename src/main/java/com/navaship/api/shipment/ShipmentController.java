@@ -1,12 +1,9 @@
 package com.navaship.api.shipment;
 
 import com.easypost.exception.EasyPostException;
-import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.navaship.api.activity.ActivityLoggerService;
 import com.navaship.api.activity.ActivityMessageType;
 import com.navaship.api.address.Address;
@@ -14,8 +11,8 @@ import com.navaship.api.address.AddressService;
 import com.navaship.api.appuser.AppUser;
 import com.navaship.api.appuser.AppUserService;
 import com.navaship.api.common.ListApiResponse;
-import com.navaship.api.easypost.EasyPostService;
-import com.navaship.api.easypost.EasypostShipmentStatus;
+import com.navaship.api.easypost.EasypostService;
+import com.navaship.api.easypost.EasypostWebhookProcessingService;
 import com.navaship.api.jwt.JwtService;
 import com.navaship.api.packages.Package;
 import com.navaship.api.packages.PackageService;
@@ -28,11 +25,8 @@ import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
-import com.navaship.api.webhook.WebhookService;
-import com.navaship.api.webhook.WebhookType;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
-import com.stripe.model.Refund;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.domain.Page;
@@ -46,7 +40,6 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,7 +50,7 @@ import static com.navaship.api.common.ListApiConstants.*;
 @RequiredArgsConstructor
 @RequestMapping(path = "api/v1/shipments")
 public class ShipmentController {
-    private final EasyPostService easyPostService;
+    private final EasypostService easyPostService;
     private final ShipmentService shipmentService;
     private final AddressService addressService;
     private final PackageService packageService;
@@ -67,7 +60,7 @@ public class ShipmentController {
     private final PersonService personService;
     private final SubscriptionDetailService subscriptionDetailService;
     private final ActivityLoggerService activityLoggerService;
-    private final WebhookService webhookService;
+    private final EasypostWebhookProcessingService easypostWebhookProcessingService;
     private final JwtService jwtService;
 
 
@@ -105,83 +98,10 @@ public class ShipmentController {
 
     @PostMapping("/easypost-webhook")
     public ResponseEntity<String> easyPostWebhook(@RequestBody byte[] payload, HttpServletRequest request) {
-        Map<String, Object> headers = new HashMap<>();
-        Enumeration<String> headerNames = request.getHeaderNames();
-
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            String headerValue = request.getHeader(headerName);
-            headers.put(headerName, headerValue);
-        }
-
-        Event event = null;
         try {
-            String easypostWebhookSecret = webhookService.retrieveWebhookWithType(WebhookType.EASYPOST).getSecret();
-            event = easyPostService.validateWebhook(payload, headers, easypostWebhookSecret);
-        } catch (EasyPostException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        // Convert payload to Hashmap (webhookData)
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> webhookData = new HashMap<>();
-
-        String eventJson = null;
-        try {
-            eventJson = objectMapper.writeValueAsString(event);
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        TypeFactory typeFactory = objectMapper.getTypeFactory();
-        MapType mapType = typeFactory.constructMapType(HashMap.class, String.class, Object.class);
-        try {
-            webhookData = objectMapper.readValue(eventJson, mapType);
-        } catch (JsonProcessingException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        // Extract shipment data in result
-        if (webhookData != null && webhookData.containsKey("result")) {
-            Map<String, Object> result = (Map<String, Object>) webhookData.get("result");
-            String statusDetail = (String) result.get("statusDetail");
-            if (statusDetail.equals("status_update") || statusDetail.equals("out_for_delivery") || statusDetail.equals("arrived_at_destination")) {
-                String easypostShipmentId = (String) result.get("shipmentId");
-
-                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
-
-                if (statusDetail.equals("arrived_at_destination")) {
-                    userShipment.setStatus(ShipmentStatus.DELIVERED);
-                    userShipment.setDeliveryDate(Instant.now());
-                } else {
-                    String shipmentStatus = (String) result.get("status");
-                    Long estDeliveryDateMillis = (Long) result.get("estDeliveryDate");
-                    userShipment.setDeliveryDate(Instant.ofEpochMilli(estDeliveryDateMillis));
-                    userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
-                }
-
-                shipmentService.updateShipment(userShipment);
-                activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentStatusChangeMessage(userShipment), ActivityMessageType.STATUS_UPDATE);
-            } else if (statusDetail.equals("return_update")) {
-                String easypostShipmentId = (String) result.get("shipmentId");
-                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
-                String shipmentStatus = (String) result.get("status");
-
-                String chargeId = userShipment.getStripeChargeId();
-                try {
-                    // Refund successful
-                    Refund refund = stripeService.refund(chargeId);
-                    userShipment.setStripeRefundId(refund.getId());
-                    userShipment.setStatus(ShipmentStatus.REFUND_PROCESSED);
-                    userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
-
-                    shipmentService.updateShipment(userShipment);
-                    double refundAmount = stripeService.getRefundAmount(refund);
-                    activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentReturnProcessed(userShipment, refundAmount), ActivityMessageType.RETURN_PROCESSED);
-                } catch (StripeException e) {
-                    System.err.println("Error issuing refund: " + e.getMessage());
-                }
-            }
+            easypostWebhookProcessingService.processWebhookEvent(payload, request);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
 
         return ResponseEntity.ok().build();
