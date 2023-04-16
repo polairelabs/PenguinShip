@@ -135,7 +135,6 @@ The table below lists all the other environment variables that are used to deplo
 | SENDGRID_SENDER_EMAIL               | Sender email for SendGrid email service                |         |                      |
 | SENDGRID_APIKEY                     | API key for SendGrid email service                     |   ✓     |                      |
 | EASYPOST_APIKEY                     | API key for EasyPost shipping service                  |   ✓     |                      |
-| EASYPOST_WEBHOOK_ENDPOINT_SECRET    | Secret for EasyPost webhook endpoint                   |   ✓     |                      |
 | EASYPOST_WEBHOOK_ENDPOINT_URL       | URL for EasyPost webhook endpoint                      |         |                      |
 | STRIPE_PRODUCT_ID       | The product ID in Stripe that contains the memberships |       |                      |
 | STRIPE_APIKEY                       | API key for Stripe payment processing                  |   ✓     |                      |
