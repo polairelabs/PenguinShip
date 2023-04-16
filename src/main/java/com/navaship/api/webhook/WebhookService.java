@@ -16,4 +16,8 @@ public class WebhookService {
     public Webhook retrieveWebhookWithType(WebhookType type) {
         return webhookRepository.findWebhookByType(type);
     }
+
+    public void deleteWebhook(Webhook webhook) {
+        webhookRepository.delete(webhook);
+    }
 }
