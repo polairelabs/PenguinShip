@@ -339,7 +339,7 @@ public class ShipmentController {
         }
 
         try {
-            easyPostService.refund(userShipment.getEasypostShipmentId());
+            easyPostService.refund(userShipment.getEasypostShipmentId(), userShipment.getRate().getCarrier());
         } catch (EasyPostException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing refund");
         }

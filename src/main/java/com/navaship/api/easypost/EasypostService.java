@@ -2,13 +2,11 @@ package com.navaship.api.easypost;
 
 import com.easypost.EasyPost;
 import com.easypost.exception.EasyPostException;
-import com.easypost.model.Event;
-import com.easypost.model.Rate;
-import com.easypost.model.Shipment;
-import com.easypost.model.Webhook;
+import com.easypost.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +54,14 @@ public class EasypostService {
         return shipment.getRates();
     }
 
-    public Shipment refund(String easypostShipmentId) throws EasyPostException {
+    public Shipment refund(String easypostShipmentId, String carrier) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
         Shipment shipment = Shipment.retrieve(easypostShipmentId);
-        shipment.refund();
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put("carrier", carrier);
+        params.put("tracking_codes", Arrays.asList(new String[] {shipment.getTrackingCode() }));
+        Refund.create(params);
+
         return shipment;
     }
 
