@@ -147,6 +147,11 @@ public class StripeService {
         return webhookEndpoint.getSecret();
     }
 
+    public void deleteWebhook(String webhookId) throws StripeException {
+        WebhookEndpoint endpoint = WebhookEndpoint.retrieve(webhookId);
+        endpoint.delete();
+    }
+
     public Refund refund(String chargeId) throws StripeException {
         RefundCreateParams params = RefundCreateParams.builder()
                 .setCharge(chargeId)

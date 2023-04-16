@@ -3,9 +3,10 @@ package com.navaship.api.shipment;
 import com.easypost.exception.EasyPostException;
 import com.easypost.model.Event;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.navaship.api.activity.ActivityLoggerService;
@@ -29,14 +30,13 @@ import com.navaship.api.stripe.StripeService;
 import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
-import com.navaship.api.util.ProfileHelper;
+import com.navaship.api.webhook.WebhookService;
+import com.navaship.api.webhook.WebhookType;
 import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Refund;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -47,10 +47,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,13 +71,8 @@ public class ShipmentController {
     private final PersonService personService;
     private final SubscriptionDetailService subscriptionDetailService;
     private final ActivityLoggerService activityLoggerService;
+    private final WebhookService webhookService;
     private final JwtService jwtService;
-
-    private final ProfileHelper profileHelper;
-
-    @Value("${easypost.webhook.endpoint.secret}")
-    private String easypostWebhookSecret;
-
 
 
     @GetMapping
@@ -114,65 +109,65 @@ public class ShipmentController {
 
     @PostMapping("/easypost-webhook")
     public ResponseEntity<String> easyPostWebhook(@RequestBody byte[] payload, HttpServletRequest request) {
-        boolean isProdProfile = profileHelper.isProdProfileActive();
-        Map<String, Object> webhookData = new HashMap<String, Object>();
+        // Validate signature only in production because it seems easypost only sends signature to prod webhooks
+        Map<String, Object> headers = new HashMap<>();
+        Enumeration<String> headerNames = request.getHeaderNames();
 
-        if (isProdProfile) {
-            // Validate signature only in production because it seems easypost only sends signature to prod webhooks
-            Map<String, Object> headers = new HashMap<>();
-            Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            headers.put(headerName, headerValue);
+        }
 
-            while (headerNames.hasMoreElements()) {
-                String headerName = headerNames.nextElement();
-                String headerValue = request.getHeader(headerName);
-                headers.put(headerName, headerValue);
-            }
+        Event event = null;
+        try {
+            String easypostWebhookSecret = webhookService.retrieveWebhookWithType(WebhookType.EASYPOST).getSecret();
+            event = easyPostService.validateWebhook(payload, headers, easypostWebhookSecret);
+        } catch (EasyPostException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-            Event event;
-            try {
-                event = easyPostService.validateWebhook(payload, headers, easypostWebhookSecret);
-            } catch (EasyPostException e) {
-                System.err.println("Error verifying webhook signature: " + e.getMessage());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
+        // Convert payload to Hashmap (webhookData)
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> webhookData = new HashMap<>();
 
-            // Convert payload to Hashmap (webhookData)
-            Gson gson = new Gson();
-            String eventJson = gson.toJson(event);
-
-            Type type = new TypeToken<Map<String, Object>>(){}.getType();
-            webhookData = gson.fromJson(eventJson, type);
-        } else {
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                webhookData = objectMapper.readValue(payload, new TypeReference<Map<String, Object>>() {});
-            } catch (IOException e) {
-                System.err.println("Error parsing webhook payload: " + e.getMessage());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
+        String eventJson = null;
+        try {
+            eventJson = objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        TypeFactory typeFactory = objectMapper.getTypeFactory();
+        MapType mapType = typeFactory.constructMapType(HashMap.class, String.class, Object.class);
+        try {
+            webhookData = objectMapper.readValue(eventJson, mapType);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
         // Extract shipment data
         if (webhookData != null && webhookData.containsKey("result")) {
             Map<String, Object> result = (Map<String, Object>) webhookData.get("result");
-            String statusDetail = (String) result.get("status_detail");
+            String statusDetail = (String) result.get("statusDetail");
             if (statusDetail.equals("status_update") || statusDetail.equals("out_for_delivery") || statusDetail.equals("arrived_at_destination")) {
-                String easypostShipmentId = (String) result.get("shipment_id");
-                String shipmentStatus = (String) result.get("status");
+                String easypostShipmentId = (String) result.get("shipmentId");
                 String estimatedDeliveryDate = (String) result.get("est_delivery_date");
-                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
-                userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
-                userShipment.setDeliveryDate(Instant.parse(estimatedDeliveryDate));
 
+                Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
+                userShipment.setDeliveryDate(Instant.parse(estimatedDeliveryDate));
                 if (statusDetail.equals("arrived_at_destination")) {
                     userShipment.setStatus(ShipmentStatus.DELIVERED);
+                } else {
+                    String shipmentStatus = (String) result.get("status");
+                    userShipment.setEasypostStatus(EasypostShipmentStatus.valueOf(shipmentStatus.toUpperCase()));
                 }
 
                 shipmentService.updateShipment(userShipment);
                 activityLoggerService.insert(userShipment.getUser(), userShipment, activityLoggerService.getShipmentStatusChangeMessage(userShipment), ActivityMessageType.STATUS_UPDATE);
             } else if (statusDetail.equals("return_update")) {
-                String easypostShipmentId = (String) result.get("shipment_id");
+                String easypostShipmentId = (String) result.get("shipmentId");
                 String shipmentStatus = (String) result.get("status");
+
                 Shipment userShipment = shipmentService.retrieveShipmentFromEasypostId(easypostShipmentId);
                 String chargeId = userShipment.getStripeChargeId();
 

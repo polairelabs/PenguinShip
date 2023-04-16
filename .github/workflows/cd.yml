@@ -50,7 +50,6 @@ jobs:
             export SENDGRID_SENDER_EMAIL="${{ vars.SENDGRID_SENDER_EMAIL }}"
             export SENDGRID_APIKEY="${{ secrets.SENDGRID_APIKEY }}"
             export EASYPOST_APIKEY="${{ secrets.EASYPOST_APIKEY }}"
-            export EASYPOST_WEBHOOK_ENDPOINT_SECRET="${{ secrets.EASYPOST_WEBHOOK_ENDPOINT_SECRET }}"
             export EASYPOST_WEBHOOK_ENDPOINT_URL="${{ vars.EASYPOST_WEBHOOK_ENDPOINT_URL }}"
             export STRIPE_APIKEY="${{ secrets.STRIPE_APIKEY }}"
             export STRIPE_WEBHOOK_ENDPOINT_URL="${{ vars.STRIPE_WEBHOOK_ENDPOINT_URL }}"

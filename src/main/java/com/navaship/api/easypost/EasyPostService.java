@@ -72,8 +72,18 @@ public class EasyPostService {
         return Webhook.create(paramMap);
     }
 
+    public void deleteWebhook(String webhookId) throws EasyPostException {
+        EasyPost.apiKey = easyPostApiKey;
+        Webhook webhook = Webhook.retrieve(webhookId);
+        webhook.delete();
+    }
+
     public Event validateWebhook(byte[] eventBody, Map<String, Object> headers, String webhookSecret) throws EasyPostException {
         EasyPost.apiKey = easyPostApiKey;
+        if (headers.containsKey("x-hmac-signature")) {
+            headers.put("X-Hmac-Signature", headers.get("x-hmac-signature"));
+            headers.remove("x-hmac-signature");
+        }
         return Webhook.validateWebhook(eventBody, headers, webhookSecret);
     }
 }

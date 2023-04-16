@@ -13,6 +13,7 @@ import com.navaship.api.subscription.SubscriptionPlan;
 import com.navaship.api.subscription.SubscriptionPlanService;
 import com.navaship.api.subscriptiondetail.SubscriptionDetail;
 import com.navaship.api.subscriptiondetail.SubscriptionDetailService;
+import com.navaship.api.util.PasswordGenerator;
 import com.navaship.api.webhook.Webhook;
 import com.navaship.api.webhook.WebhookService;
 import com.navaship.api.webhook.WebhookType;
@@ -27,6 +28,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -47,13 +49,11 @@ public class DevDataInitializer implements CommandLineRunner {
     private final EasyPostService easyPostService;
     private final WebhookService webhookService;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordGenerator passwordGenerator;
     private final List<SubscriptionPlan> defaultSubscriptionPlans;
 
     @Value("${easypost.webhook.endpoint.url}")
     private String easypostWebhookUrl;
-    @Value("${easypost.webhook.endpoint.secret}")
-    private String easypostWebhookSecret;
-
     @Value("${stripe.webhook.endpoint.url}")
     private String stripeWebhookUrl;
 
@@ -97,6 +97,7 @@ public class DevDataInitializer implements CommandLineRunner {
         // Create easypost webhook for the guy so that the doesn't create it manually
         if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
             try {
+                String easypostWebhookSecret = passwordGenerator.generateStrongKey();
                 com.easypost.model.Webhook easypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "test");
                 Webhook webhook = new Webhook();
                 webhook.setType(WebhookType.EASYPOST);
@@ -104,6 +105,7 @@ public class DevDataInitializer implements CommandLineRunner {
                 webhook.setUrl(easypostWebhookUrl);
                 webhook.setSecret(easypostWebhookSecret);
                 webhookService.createWebhook(webhook);
+                System.out.println("> Created Easypost webhook " + webhook.getUrl());
             } catch (EasyPostException e) {
                 System.out.println("> Error creating Easypost webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
@@ -112,19 +114,38 @@ public class DevDataInitializer implements CommandLineRunner {
 
         if (webhookService.retrieveWebhookWithType(WebhookType.STRIPE) == null) {
             try {
-                // if (stripeService.findWebhookByUrl(stripeWebhookUrl) == null) {
-                    WebhookEndpoint stripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
-                    Webhook webhook = new Webhook();
-                    webhook.setType(WebhookType.STRIPE);
-                    webhook.setWebhookId(stripeWebhook.getId());
-                    webhook.setUrl(stripeWebhookUrl);
-                    webhook.setSecret(stripeWebhook.getSecret());
-                    webhookService.createWebhook(webhook);
-                // }
+                WebhookEndpoint stripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
+                Webhook webhook = new Webhook();
+                webhook.setType(WebhookType.STRIPE);
+                webhook.setWebhookId(stripeWebhook.getId());
+                webhook.setUrl(stripeWebhookUrl);
+                webhook.setSecret(stripeWebhook.getSecret());
+                webhookService.createWebhook(webhook);
+                System.out.println("> Created Stripe webhook " + webhook.getUrl());
             } catch (StripeException e) {
                 System.out.println("> Error creating Stripe webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
             }
         }
     }
+
+    @PreDestroy
+    public void cleanUpService() {
+        Webhook easypostWebhook = webhookService.retrieveWebhookWithType(WebhookType.EASYPOST);
+        try {
+            easyPostService.deleteWebhook(easypostWebhook.getWebhookId());
+            System.out.println("> Deleted Easypost webhook " + easypostWebhook.getWebhookId());
+        } catch (EasyPostException e) {
+            System.out.println("> Error deleting Easypost webhook " + e.getMessage());
+        }
+
+        Webhook stripeWebhook = webhookService.retrieveWebhookWithType(WebhookType.STRIPE);
+        try {
+            stripeService.deleteWebhook(stripeWebhook.getWebhookId());
+            System.out.println("> Deleted Stripe webhook " + stripeWebhook.getWebhookId());
+        } catch (StripeException e) {
+            System.out.println("> Error deleting Stripe webhook " + e.getMessage());
+        }
+    }
+
 }

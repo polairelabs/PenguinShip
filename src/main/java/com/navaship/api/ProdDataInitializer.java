@@ -50,8 +50,6 @@ public class ProdDataInitializer implements CommandLineRunner {
 
     @Value("${easypost.webhook.endpoint.url}")
     private String easypostWebhookUrl;
-    @Value("${easypost.webhook.endpoint.secret}")
-    private String easypostWebhookSecret;
     @Value("${stripe.webhook.endpoint.url}")
     private String stripeWebhookUrl;
 
@@ -103,11 +101,13 @@ public class ProdDataInitializer implements CommandLineRunner {
         // Create easypost webhook for the guy so that the doesn't create it manually
         if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
             try {
+                String easypostWebhookSecret = passwordGenerator.generateStrongKey();
                 com.easypost.model.Webhook easypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "test");
                 Webhook webhook = new Webhook();
                 webhook.setType(WebhookType.EASYPOST);
                 webhook.setWebhookId(easypostWebhook.getId());
                 webhook.setUrl(easypostWebhookUrl);
+                webhook.setSecret(easypostWebhookSecret);
                 webhookService.createWebhook(webhook);
                 System.out.println("> Created Easypost webhook " + webhook.getUrl());
             } catch (EasyPostException e) {
@@ -120,16 +120,14 @@ public class ProdDataInitializer implements CommandLineRunner {
 
         if (webhookService.retrieveWebhookWithType(WebhookType.STRIPE) == null) {
             try {
-                // if (stripeService.findWebhookByUrl(stripeWebhookUrl) == null) {
-                    WebhookEndpoint stripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
-                    Webhook webhook = new Webhook();
-                    webhook.setType(WebhookType.STRIPE);
-                    webhook.setWebhookId(stripeWebhook.getId());
-                    webhook.setUrl(stripeWebhookUrl);
-                    webhook.setSecret(stripeWebhook.getSecret());
-                    webhookService.createWebhook(webhook);
-                    System.out.println("> Created Stripe webhook " + webhook.getUrl());
-                // }
+                WebhookEndpoint stripeWebhook = stripeService.createWebhook(stripeWebhookUrl);
+                Webhook webhook = new Webhook();
+                webhook.setType(WebhookType.STRIPE);
+                webhook.setWebhookId(stripeWebhook.getId());
+                webhook.setUrl(stripeWebhookUrl);
+                webhook.setSecret(stripeWebhook.getSecret());
+                webhookService.createWebhook(webhook);
+                System.out.println("> Created Stripe webhook " + webhook.getUrl());
             } catch (StripeException e) {
                 System.out.println("> Error creating Stripe webhook. You have to do it manually if the script is unable to create it");
                 System.out.println("> Reason: " + e.getMessage());
