@@ -285,6 +285,7 @@ public class AuthenticationController {
                 .maxAge(refreshTokenExpirationMs / 1000)
                 //.domain(".navaship.io")
                 .httpOnly(true)
+                .domain(".navaship.io")
                 .secure(true)
                 .path("/")
                 .build().toString();
@@ -300,6 +301,7 @@ public class AuthenticationController {
                             .maxAge(0)
                             //.domain(".navaship.io")
                             .httpOnly(isHttpOnly)
+                            .domain(".navaship.io")
                             .secure(true)
                             .path("/")
                             .build();
