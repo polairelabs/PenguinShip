@@ -20,6 +20,7 @@ public class CorsConfiguration {
                 registry.addMapping("/api/v*/auth/refresh-token")
                         .allowedOrigins(webAppUrl)
                         .allowedMethods("POST")
+                        .exposedHeaders("Set-Cookie")
                         .allowCredentials(true);
 
                 registry.addMapping("/api/v*/**")
