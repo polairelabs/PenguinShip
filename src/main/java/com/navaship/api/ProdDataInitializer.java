@@ -104,7 +104,7 @@ public class ProdDataInitializer implements CommandLineRunner {
         if (webhookService.retrieveWebhookWithType(WebhookType.EASYPOST) == null) {
             try {
                 String easypostWebhookSecret = passwordGenerator.generateStrongKey();
-                com.easypost.model.Webhook newEasypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "test");
+                com.easypost.model.Webhook newEasypostWebhook = easyPostService.createWebhook(easypostWebhookUrl, easypostWebhookSecret, "production");
                 Webhook webhook = new Webhook();
                 webhook.setType(WebhookType.EASYPOST);
                 webhook.setWebhookId(newEasypostWebhook.getId());
