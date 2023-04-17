@@ -61,7 +61,7 @@ public class ProdDataInitializer implements CommandLineRunner {
         adminEmails[1] = "polairelabs@navaship.io";
 
         for (String adminEmail : adminEmails) {
-            if (appUserService.countAdminUsers() == 0 && appUserService.findByEmail(adminEmail).isEmpty()) {
+            if (appUserService.findByEmail(adminEmail).isEmpty()) {
                 String password = passwordGenerator.generateRandomPassword(12);
                 AppUser admin = new AppUser(adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password), "Admin", "Account",
                         "", "New york", "NY", "", AppUserRoleEnum.ADMIN);
