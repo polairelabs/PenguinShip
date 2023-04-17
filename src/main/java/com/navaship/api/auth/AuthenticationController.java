@@ -283,10 +283,10 @@ public class AuthenticationController {
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
-                .domain(".navaship.io")
-                .httpOnly(true)
-                .sameSite("None")
-                //.secure(true)
+//                .domain(".navaship.io")
+//                .httpOnly(true)
+//                .sameSite("None")
+//                .secure(true)
                 .path("/")
                 .build().toString();
     }
@@ -299,10 +299,10 @@ public class AuthenticationController {
                 if (cookie.getName().equals(cookieName)) {
                     ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
                             .maxAge(0)
-                            .domain(".navaship.io")
-                            .httpOnly(isHttpOnly)
-                            .sameSite("None")
-                            //.secure(true)
+//                            .domain(".navaship.io")
+//                            .httpOnly(isHttpOnly)
+//                            .sameSite("None")
+//                            .secure(true)
                             .path("/")
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
