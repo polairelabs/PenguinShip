@@ -26,7 +26,8 @@ public class CorsConfiguration {
                 registry.addMapping("/api/v*/**")
                         .allowedOrigins(webAppUrl)
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .exposedHeaders("Set-Cookie")
+                        .allowedHeaders("*") // Allow all headers
+                        .exposedHeaders("Set-Cookie", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Expose-Headers", "Access-Control-Max-Age", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin", "Cache-Control", "Content-Type", "Accept", "Authorization")
                         .allowCredentials(true);
             }
         };
