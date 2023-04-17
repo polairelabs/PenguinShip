@@ -20,14 +20,13 @@ public class CorsConfiguration {
                 //                registry.addMapping("/api/v*/auth/refresh-token")
                 //                        .allowedOrigins(webAppUrl)
                 //                        .allowedMethods("POST")
-                //                        .exposedHeaders("Set-Cookie")
+                //                        .exposedHeaders("Set-Cookie", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Expose-Headers", "Access-Control-Max-Age", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin", "Cache-Control", "Content-Type", "Accept", "Authorization", "X-Requested-With")
                 //                        .allowCredentials(true);
-
-                registry.addMapping("/**")
+                registry.addMapping("/api/v*/**")
                         .allowedOrigins(webAppUrl)
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*") // Allow all headers
-                        .exposedHeaders("Set-Cookie", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Expose-Headers", "Access-Control-Max-Age", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin", "Cache-Control", "Content-Type", "Accept", "Authorization", "X-Requested-With")
+                        .exposedHeaders("Set-Cookie", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods", "Access-Control-Expose-Headers", "Access-Control-Max-Age", "Access-Control-Request-Headers", "Access-Control-Request-Method", "Origin", "Cache-Control", "Content-Type", "Accept", "Authorization")
                         .allowCredentials(true);
             }
         };

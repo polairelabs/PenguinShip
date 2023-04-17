@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.Size;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +77,7 @@ public class AuthenticationController {
         String accessToken = jwtService.createJwtAccessToken(authentication, user);
         String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, createRefreshTokenCookie(refreshToken));
+        response.addHeader(HttpHeaders.SET_COOKIE, getRefreshTokenCookie(refreshToken));
         return ResponseEntity.ok(new AuthenticationResponse(accessToken, user));
     }
 
@@ -158,7 +159,7 @@ public class AuthenticationController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String newRefreshToken = refreshTokenService.createRefreshToken(user).getToken();
-        response.addHeader(HttpHeaders.SET_COOKIE, createRefreshTokenCookie(newRefreshToken));
+        response.addHeader(HttpHeaders.SET_COOKIE, getRefreshTokenCookie(newRefreshToken));
 
         return ResponseEntity.ok(new RefreshTokenResponse(
                 jwtService.createJwtAccessToken(authentication, user),
@@ -278,15 +279,15 @@ public class AuthenticationController {
         clearCookie(request, response, REFRESH_TOKEN_COOKIE_KEY, true);
     }
 
-    private String createRefreshTokenCookie(String refreshToken) {
+    private String getRefreshTokenCookie(String refreshToken) {
         // boolean isProdProfile = profileHelper.isProdProfileActive();
         // Create the server side cookie with HttpOnly set to true which contains the refresh token
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
-//                .domain(".navaship.io")
-//                .httpOnly(true)
-//                .sameSite("None")
-//                .secure(true)
+                .domain(".navaship.io")
+                .httpOnly(true)
+                .sameSite("None")
+                .secure(true)
                 .path("/")
                 .build().toString();
     }
@@ -299,10 +300,10 @@ public class AuthenticationController {
                 if (cookie.getName().equals(cookieName)) {
                     ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
                             .maxAge(0)
-//                            .domain(".navaship.io")
-//                            .httpOnly(isHttpOnly)
-//                            .sameSite("None")
-//                            .secure(true)
+                            .domain(".navaship.io")
+                            .httpOnly(isHttpOnly)
+                            .sameSite("None")
+                            .secure(true)
                             .path("/")
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
