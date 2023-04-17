@@ -284,9 +284,9 @@ public class AuthenticationController {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE_KEY, refreshToken)
                 .maxAge(refreshTokenExpirationMs / 1000)
                 .domain(".navaship.io")
-                //.httpOnly(true)
+                .httpOnly(true)
                 .sameSite("None")
-                .secure(true)
+                //.secure(true)
                 .path("/")
                 .build().toString();
     }
@@ -300,9 +300,9 @@ public class AuthenticationController {
                     ResponseCookie clearCookie = ResponseCookie.from(cookie.getName(), "")
                             .maxAge(0)
                             .domain(".navaship.io")
-                            //.httpOnly(isHttpOnly)
+                            .httpOnly(isHttpOnly)
                             .sameSite("None")
-                            .secure(true)
+                            //.secure(true)
                             .path("/")
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
