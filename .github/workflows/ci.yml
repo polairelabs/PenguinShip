@@ -42,7 +42,7 @@ jobs:
           # This will create a directory named `api` and copy the repo contents to it
           # so that you can easily upload it to your remote server
           path: api
-          ref: release
+          ref: main
 
       - name: Copy repo to remote server
         uses: appleboy/scp-action@master
