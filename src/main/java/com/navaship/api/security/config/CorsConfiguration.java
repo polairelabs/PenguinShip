@@ -23,7 +23,7 @@ public class CorsConfiguration {
                 //                        .exposedHeaders("Set-Cookie")
                 //                        .allowCredentials(true);
 
-                registry.addMapping("/api/v*/**")
+                registry.addMapping("/**")
                         .allowedOrigins(webAppUrl)
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*") // Allow all headers
