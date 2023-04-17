@@ -46,8 +46,6 @@ public class ProdDataInitializer implements CommandLineRunner {
 
     @Value("${stripe.maxMembershipsAllowed}")
     private int maxMembershipsAllowed;
-    @Value("${sendgrid.senderEmail}")
-    private String adminEmail;
 
     @Value("${easypost.webhook.endpoint.url}")
     private String easypostWebhookUrl;
@@ -58,23 +56,27 @@ public class ProdDataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // If he doesn't have admin account in the db, create one
-        if (appUserService.countAdminUsers() == 0 && appUserService.findByEmail(adminEmail).isEmpty()) {
-            String password = passwordGenerator.generateRandomPassword(12);
-            AppUser admin = new AppUser(adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password), "Admin", "Account",
-                    "", "New york", "NY", "", AppUserRoleEnum.ADMIN);
-            admin.setIsEmailVerified(true);
+        String[] adminEmails = new String[2];
+        adminEmails[0] = "admin@navaship.io";
+        adminEmails[1] = "polairelabs@navaship.io";
 
-            try {
-                Customer customer = stripeService.createCustomer(admin);
-                SubscriptionDetail subscriptionDetail = new SubscriptionDetail();
-                subscriptionDetail.setStripeCustomerId(customer.getId());
-                subscriptionDetail.setUser(admin);
-                subscriptionDetailService.createSubscriptionDetail(subscriptionDetail);
-            } catch (StripeException e) {
-                System.out.println("Error creating Stripe customer for default admin account " + e.getMessage());
+        for (String adminEmail : adminEmails) {
+            if (appUserService.countAdminUsers() == 0 && appUserService.findByEmail(adminEmail).isEmpty()) {
+                String password = passwordGenerator.generateRandomPassword(12);
+                AppUser admin = new AppUser(adminEmail, passwordEncoder.bCryptPasswordEncoder().encode(password), "Admin", "Account",
+                        "", "New york", "NY", "", AppUserRoleEnum.ADMIN);
+                admin.setIsEmailVerified(true);
+                try {
+                    Customer customer = stripeService.createCustomer(admin);
+                    SubscriptionDetail subscriptionDetail = new SubscriptionDetail();
+                    subscriptionDetail.setStripeCustomerId(customer.getId());
+                    subscriptionDetail.setUser(admin);
+                    subscriptionDetailService.createSubscriptionDetail(subscriptionDetail);
+                } catch (StripeException e) {
+                    System.out.println("Error creating Stripe customer for default admin account " + e.getMessage());
+                }
+                System.out.println("> Created admin user " + admin.getEmail() + " with password: " + password);
             }
-
-            System.out.println("> Created admin user " + admin.getEmail() + " with password: " + password);
         }
 
         if (subscriptionPlanService.retrieveSubscriptionPlans().size() == maxMembershipsAllowed) {
