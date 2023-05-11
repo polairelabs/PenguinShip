@@ -9,6 +9,15 @@ To run the stack locally, follow these steps:
 3. Load the environment variables from the `.env` file. If you are using IntelliJ IDEA, you can follow the example in the next section (**Loading Environment Variables in IntelliJ IDEA**)
 4. Run the API
 
+#### Easypost and Stripe webhook
+
+To make both webhooks work and start receiving events, follow these steps: 
+
+Install and run ngrok. You can do this by following these steps:
+1. Download ngrok from https://ngrok.com/download.
+2. Launch ngrok by using the command `ngrok http 8080` in a Terminal (where 8080 is the post the server is running on). Ngrok will provide a URL that you can use to expose your local server.
+3. Set `EASYPOST_WEBHOOK_ENDPOINT_URL` and `STRIPE_WEBHOOK_ENDPOINT_URL` envionement variables in `.env` to `{ngrokURL}/api/v1/shipments/easypost-webhook` and `{ngrokURL}/api/v1/subscriptions/stripe-webhook` respectively. Replace `{ngrokURL}` with the URL provided by ngrok.
+
 ### Loading Environment Variables in IntelliJ IDEA
 
 If you're using IntelliJ IDEA, you can load environment variables from your .env file directly into the IDE. Follow these steps:
@@ -28,20 +37,6 @@ Now, you can configure IntelliJ to load the environment variables from the .env 
 5. Click the + button and browse to your .env file in the project directory. Select the file and click OK.
 6. Click Apply and then OK to save the configuration.
 
-### Setting up Stripe Webhook
-
-To handle payments and subscription provisioning during local development, you need to set up Stripe webhooks. Follow these steps:
-
-1. Download the Stripe CLI executable for your operating system from the Stripe [CLI GitHub releases page](https://github.com/stripe/stripe-cli/releases) (Or use a package manager to install)
-
-2. After installing the Stripe CLI, log in to your Stripe account:
-
-    `stripe login`
-
-3. Set up the webhook listener:
-
-    `stripe listen --forward-to localhost:8080/api/v1/subscriptions/stripe-webhook`
-    
 ### Default Admin account
 
 You can access authenticated endpoints by logging in with the default admin account through the API:
