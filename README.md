@@ -11,7 +11,7 @@ To run the stack locally, follow these steps:
 
 #### Easypost and Stripe webhook
 
-To make both webhooks work and start receiving events, follow these steps: 
+To test Easypost and Stripe webhooks your connection needs to be over HTTPS. To do so we can use `ngrok` to setup a HTTPS tunnel pointing to your local webhook endpoint. This tunnel exposes your endpoint to the Internet and provide a HTTPS certificate
 
 Install and run ngrok. You can do this by following these steps:
 1. Download ngrok from https://ngrok.com/download.
