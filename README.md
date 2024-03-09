@@ -1,5 +1,7 @@
 # NavaShip
 
+End-to-end shipping API solution using Easypost and Stripe. Buy shipping labels, track and ship your packages all in one API.
+
 ## Running the Stack Locally (Local development)
 
 To run the stack locally, follow these steps:
